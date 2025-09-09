@@ -139,40 +139,55 @@ class KGSweb_Google_Admin {
         );
     }
 
-    public static function sanitize_settings( $input ) {
-        $out = is_array( $input ) ? $input : [];
+ public static function sanitize_settings( $input ) {
+    $out = is_array( $input ) ? $input : [];
 
-        $keys_text = [
-            'public_docs_root_id','upload_root_id','menu_breakfast_folder_id','menu_lunch_folder_id',
-            'ticker_file_id','calendar_id','slides_file_id','sheets_file_id','sheets_default_range',
-            'upload_auth_mode','upload_google_group','upload_destination','wp_upload_root_path',
-            'upload_password_plaintext','calendar_page_url'
-        ];
-        foreach ( $keys_text as $k ) {
-            if ( isset( $out[ $k ] ) ) {
-                $out[ $k ] = sanitize_text_field( $out[ $k ] );
-            }
+    // Sanitize normal text fields
+    $keys_text = [
+        'public_docs_root_id','upload_root_id','menu_breakfast_folder_id','menu_lunch_folder_id',
+        'ticker_file_id','calendar_id','slides_file_id','sheets_file_id','sheets_default_range',
+        'upload_auth_mode','upload_google_group','upload_destination','wp_upload_root_path',
+        'upload_password_plaintext','calendar_page_url'
+    ];
+    foreach ( $keys_text as $k ) {
+        if ( isset( $out[ $k ] ) ) {
+            $out[ $k ] = sanitize_text_field( $out[ $k ] );
         }
-
-        if ( isset( $out['service_account_json'] ) ) {
-            // Store as-is but validate structure
-            $try = json_decode( $out['service_account_json'], true );
-            if ( ! is_array( $try ) || empty( $try['client_email'] ) || empty( $try['private_key'] ) ) {
-                add_settings_error( KGSWEB_SETTINGS_OPTION, 'invalid_sa', __( 'Invalid service account JSON.', 'kgsweb' ) );
-            }
-        }
-
-        $out['debug_enabled'] = ! empty( $out['debug_enabled'] );
-
-        if ( isset( $out['upload_password_plaintext'] ) && ! empty( $out['upload_password_plaintext'] ) ) {
-            $key = defined( 'KGSWEB_PASSWORD_SECRET_KEY' ) ? KGSWEB_PASSWORD_SECRET_KEY : '';
-            if ( $key ) {
-                $out['upload_password_hash'] = hash_hmac( 'sha256', $out['upload_password_plaintext'], $key );
-            }
-        }
-
-        return $out;
     }
+
+    // Handle service account JSON
+    if ( isset( $out['service_account_json'] ) ) {
+        // Remove WP-added slashes
+        $json_raw = wp_unslash( $out['service_account_json'] );
+
+        // Validate JSON structure
+        $decoded = json_decode( $json_raw, true );
+        if ( ! is_array( $decoded ) || empty( $decoded['client_email'] ) || empty( $decoded['private_key'] ) ) {
+            add_settings_error(
+                KGSWEB_SETTINGS_OPTION,
+                'invalid_sa',
+                __( 'Invalid service account JSON.', 'kgsweb' )
+            );
+        } else {
+            // Store the raw JSON string, no further encoding or escaping
+            $out['service_account_json'] = $json_raw;
+        }
+    }
+
+    // Debug flag
+    $out['debug_enabled'] = ! empty( $out['debug_enabled'] );
+
+    // Optional: hash upload password if key is defined
+    if ( isset( $out['upload_password_plaintext'] ) && ! empty( $out['upload_password_plaintext'] ) ) {
+        $key = defined( 'KGSWEB_PASSWORD_SECRET_KEY' ) ? KGSWEB_PASSWORD_SECRET_KEY : '';
+        if ( $key ) {
+            $out['upload_password_hash'] = hash_hmac( 'sha256', $out['upload_password_plaintext'], $key );
+        }
+    }
+
+    return $out;
+}
+
 
     public static function field_text( $args ) {
         $opt  = KGSweb_Google_Integration::get_settings();
