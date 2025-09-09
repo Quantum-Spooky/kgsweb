@@ -65,15 +65,96 @@ class KGSweb_Google_Integration {
         // JS enqueues are performed by shortcode renderers per presence.
     }
 
-    // Build Google clients from stored service account JSON (do not expose to front-end)
-    public static function get_drive() {
-        if ( self::$drive ) return self::$drive;
-        $json = self::get_settings()['service_account_json'] ?? '';
-        if ( empty( $json ) ) return null;
-        // TODO: Initialize Google Drive client with service account JSON (server-to-server)
-        // self::$drive = new Google_Service_Drive($client);
-        return self::$drive;
-    }
+	// Build and return a Google_Service_Drive instance (cached)
+	public static function get_drive() {
+		if ( self::$drive ) return self::$drive;
+
+		$client = self::get_drive_client();
+		if ( ! $client ) {
+			error_log( 'KGSWeb: get_drive -> no Google client available.' );
+			return null;
+		}
+
+		try {
+			self::$drive = new Google_Service_Drive( $client );
+			return self::$drive;
+		} catch ( Exception $e ) {
+			error_log( 'KGSWeb: Failed initializing Google_Service_Drive: ' . $e->getMessage() );
+			return null;
+		}
+	}
+
+	/**
+	 * Create and return a configured Google_Client or null on error.
+	 */
+	
+	public static function get_drive_client() {
+		static $cached_client = null;
+		if ($cached_client) return $cached_client;
+
+		if (!class_exists('Google_Client')) {
+			$autoload = __DIR__ . '/../vendor/autoload.php';
+			if (file_exists($autoload)) {
+				require_once $autoload;
+			} else {
+				error_log('KGSWeb: Google API client autoload missing at: ' . $autoload);
+				return null;
+			}
+		}
+
+		$settings = self::get_settings();
+		$client   = new Google_Client();
+		$client->setApplicationName('KGSWeb');
+		$client->setScopes([
+			Google_Service_Drive::DRIVE_READONLY,
+			Google_Service_Drive::DRIVE_METADATA_READONLY,
+		]);
+		$client->setAccessType('offline');
+
+		// Option 1: credentials file path
+		if (!empty($settings['google_credentials_path'])) {
+			$path = $settings['google_credentials_path'];
+			if (!file_exists($path)) {
+				$try = __DIR__ . '/../' . ltrim($path, '/\\');
+				if (file_exists($try)) $path = $try;
+			}
+			if (file_exists($path)) {
+				try {
+					$client->setAuthConfig($path);
+					return $cached_client = $client;
+				} catch (Exception $e) {
+					error_log('KGSWeb: setAuthConfig(path) failed: ' . $e->getMessage());
+					return null;
+				}
+			} else {
+				error_log('KGSWeb: google_credentials_path not found: ' . $settings['google_credentials_path']);
+			}
+		}
+
+		// Option 2: service account JSON
+		if (!empty($settings['service_account_json'])) {
+			$json_normalized = str_replace('\\n', "\n", $settings['service_account_json']);
+			$service_account = json_decode($json_normalized, true);
+
+			if (!is_array($service_account) || empty($service_account['private_key']) || empty($service_account['client_email'])) {
+				error_log('KGSWeb: service_account_json invalid after normalization.');
+				return null;
+			}
+
+			try {
+				$client->setAuthConfig($service_account);
+				return $cached_client = $client;
+			} catch (Exception $e) {
+				error_log('KGSWeb: setAuthConfig(json) failed: ' . $e->getMessage());
+				return null;
+			}
+		}
+
+		error_log('KGSWeb: No Google credentials configured (google_credentials_path or service_account_json).');
+		return null;
+	}
+
+
     public static function get_calendar() { /* TODO */ return self::$calendar; }
     public static function get_sheets()   { /* TODO */ return self::$sheets; }
     public static function get_slides()   { /* TODO */ return self::$slides; }
@@ -122,19 +203,7 @@ class KGSweb_Google_Integration {
 	
 	
 	
-	public static function get_drive_client() {
-    // Load Google API PHP Client
-    $client = new Google_Client();
-    $client->setAuthConfig( self::get_settings()['google_credentials_path'] );
-    $client->addScope( Google_Service_Drive::DRIVE_READONLY );
-    $client->setAccessType('offline');
-    // Optionally refresh token here
-    return $client;
-	
-	
-	}
-	
-	
+
 	
 	
 	
