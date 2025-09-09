@@ -29,6 +29,7 @@ require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-drive-docs.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-ticker.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-upcoming-events.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-helpers.php';
+require  KGSWEB_PLUGIN_DIR . 'vendor/autoload.php';
 
 
 
