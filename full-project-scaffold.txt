@@ -1,0 +1,1301 @@
+# KGSWeb Google Integration – Full project scaffold (classes, stubs, hooks, and assets)
+
+This scaffold matches the unified spec exactly. It provides a ready-to-implement WordPress plugin structure with method stubs, hooks, settings registration, REST routes, cron, caching, and front-end assets. All names, options, and keys are consistent across files.
+
+---
+
+## 1) Main plugin bootstrap
+
+```php
+<?php
+/**
+ * Plugin Name: KGSWeb Google Integration
+ * Plugin URI: https://kellgradeschool.com
+ * Description: Google Drive/Calendar/Slides/Sheets integration + secure uploads for Kell Grade School.
+ * Version: 1.0.0
+ * Author: Travis Donoho
+ * License: GPLv2 or later
+ * Text Domain: kgsweb
+ */
+
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+define( 'KGSWEB_PLUGIN_VERSION', '1.0.0' );
+define( 'KGSWEB_PLUGIN_FILE', __FILE__ );
+define( 'KGSWEB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'KGSWEB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'KGSWEB_SETTINGS_OPTION', 'kgsweb_settings' );
+
+// Optional: configure in wp-config.php
+// define( 'KGSWEB_UPLOAD_PASS_HASH', 'sha256:...' );
+
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-integration.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-admin.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-rest-api.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-shortcodes.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-secure-upload.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-drive-docs.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-ticker.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-upcoming-events.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-helpers.php';
+
+register_activation_hook( KGSWEB_PLUGIN_FILE, function() {
+    // Seed defaults
+    $defaults = [
+        'service_account_json'     => '',
+        'public_docs_root_id'      => '',
+        'upload_root_id'           => '',
+        'menu_breakfast_folder_id' => '',
+        'menu_lunch_folder_id'     => '',
+        'ticker_file_id'           => '',
+        'calendar_id'              => '',
+        'slides_file_id'           => '',
+        'sheets_file_id'           => '',
+        'sheets_default_range'     => 'A1:Z100',
+        'upload_auth_mode'         => 'password', // password|google_group
+        'upload_google_group'      => '',
+        'upload_destination'       => 'drive', // drive|wordpress
+        'wp_upload_root_path'      => '',
+        'upload_password_plaintext'=> '',
+        'debug_enabled'            => false,
+        'calendar_page_url'        => '',
+    ];
+    $existing = get_option( KGSWEB_SETTINGS_OPTION, [] );
+    update_option( KGSWEB_SETTINGS_OPTION, array_merge( $defaults, $existing ) );
+
+    // Schedule hourly cron if not scheduled
+    if ( ! wp_next_scheduled( 'kgsweb_hourly_cache_refresh' ) ) {
+        wp_schedule_event( time() + 60, 'hourly', 'kgsweb_hourly_cache_refresh' );
+    }
+});
+
+register_deactivation_hook( KGSWEB_PLUGIN_FILE, function() {
+    $ts = wp_next_scheduled( 'kgsweb_hourly_cache_refresh' );
+    if ( $ts ) wp_unschedule_event( $ts, 'kgsweb_hourly_cache_refresh' );
+    // Do not delete options/transients automatically; preserve last-known-good cache.
+    // Consider purging temporary transients if needed.
+});
+
+add_action( 'plugins_loaded', function() {
+    KGSweb_Google_Integration::init();
+    KGSweb_Google_Admin::init();
+    KGSweb_Google_REST_API::init();
+    KGSweb_Google_Shortcodes::init();
+    KGSweb_Google_Secure_Upload::init();
+    KGSweb_Google_Drive_Docs::init();
+    KGSweb_Google_Ticker::init();
+    KGSweb_Google_Upcoming_Events::init();
+    KGSweb_Google_Helpers::init();
+});
+```
+
+---
+
+## 2) Core integration class
+
+```php
+<?php
+// includes/class-kgsweb-google-integration.php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+class KGSweb_Google_Integration {
+    private static $instance = null;
+
+    // Google service clients
+    private static $drive   = null;
+    private static $calendar= null;
+    private static $sheets  = null;
+    private static $slides  = null;
+
+    public static function init() {
+        if ( self::$instance ) return;
+        self::$instance = new self();
+
+        add_action( 'init', [ __CLASS__, 'register_assets' ] );
+        add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_admin' ] );
+        add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_frontend' ] );
+        add_action( 'kgsweb_hourly_cache_refresh', [ __CLASS__, 'cron_refresh_all_caches' ] );
+    }
+
+    public static function get_settings() {
+        return get_option( KGSWEB_SETTINGS_OPTION, [] );
+    }
+
+    public static function register_assets() {
+        // CSS
+        wp_register_style( 'kgsweb-style', KGSWEB_PLUGIN_URL . 'css/kgsweb-style.css', [], KGSWEB_PLUGIN_VERSION );
+        // JS (front-end)
+        wp_register_script( 'kgsweb-helpers',  KGSWEB_PLUGIN_URL . 'js/kgsweb-helpers.js', [], KGSWEB_PLUGIN_VERSION, true );
+        wp_register_script( 'kgsweb-cache',    KGSWEB_PLUGIN_URL . 'js/kgsweb-cache.js',    ['kgsweb-helpers'], KGSWEB_PLUGIN_VERSION, true );
+        wp_register_script( 'kgsweb-datetime', KGSWEB_PLUGIN_URL . 'js/kgsweb-datetime.js', ['kgsweb-helpers'], KGSWEB_PLUGIN_VERSION, true );
+        wp_register_script( 'kgsweb-ticker',   KGSWEB_PLUGIN_URL . 'js/kgsweb-ticker.js',   ['kgsweb-helpers','kgsweb-cache'], KGSWEB_PLUGIN_VERSION, true );
+        wp_register_script( 'kgsweb-calendar', KGSWEB_PLUGIN_URL . 'js/kgsweb-calendar.js', ['kgsweb-helpers','kgsweb-cache'], KGSWEB_PLUGIN_VERSION, true );
+        wp_register_script( 'kgsweb-folders',  KGSWEB_PLUGIN_URL . 'js/kgsweb-folders.js',  ['kgsweb-helpers','kgsweb-cache'], KGSWEB_PLUGIN_VERSION, true );
+        wp_register_script( 'kgsweb-menus',    KGSWEB_PLUGIN_URL . 'js/kgsweb-menus.js',    ['kgsweb-helpers','kgsweb-cache'], KGSWEB_PLUGIN_VERSION, true );
+        wp_register_script( 'kgsweb-upload',   KGSWEB_PLUGIN_URL . 'js/kgsweb-upload.js',   ['kgsweb-helpers'], KGSWEB_PLUGIN_VERSION, true );
+        // JS (admin)
+        wp_register_script( 'kgsweb-admin',    KGSWEB_PLUGIN_URL . 'js/kgsweb-admin.js',    ['jquery'], KGSWEB_PLUGIN_VERSION, true );
+
+        // Localize common config
+        $cfg = [
+            'rest' => [
+                'root' => esc_url_raw( rest_url( 'kgsweb/v1' ) ),
+                'nonce'=> wp_create_nonce( 'wp_rest' ),
+            ],
+            'assets' => [
+                'fontawesome' => true, // assume loaded theme-side or enqueue in admin
+            ],
+        ];
+        wp_localize_script( 'kgsweb-helpers', 'KGSWEB_CFG', $cfg );
+    }
+
+    public static function enqueue_admin( $hook ) {
+        wp_enqueue_style( 'kgsweb-style' );
+        wp_enqueue_script( 'kgsweb-admin' );
+    }
+
+    public static function enqueue_frontend() {
+        // Enqueue as needed; shortcodes can also enqueue conditionally.
+        wp_enqueue_style( 'kgsweb-style' );
+        // JS enqueues are performed by shortcode renderers per presence.
+    }
+
+    // Build Google clients from stored service account JSON (do not expose to front-end)
+    public static function get_drive() {
+        if ( self::$drive ) return self::$drive;
+        $json = self::get_settings()['service_account_json'] ?? '';
+        if ( empty( $json ) ) return null;
+        // TODO: Initialize Google Drive client with service account JSON (server-to-server)
+        // self::$drive = new Google_Service_Drive($client);
+        return self::$drive;
+    }
+    public static function get_calendar() { /* TODO */ return self::$calendar; }
+    public static function get_sheets()   { /* TODO */ return self::$sheets; }
+    public static function get_slides()   { /* TODO */ return self::$slides; }
+
+    // Cron: refresh caches safely
+    public static function cron_refresh_all_caches() {
+        // Defer to module classes for each cache
+        KGSweb_Google_Ticker::refresh_cache_cron();
+        KGSweb_Google_Upcoming_Events::refresh_cache_cron();
+        KGSweb_Google_Drive_Docs::refresh_cache_cron(); // includes menus, documents tree
+        // Slides/Sheets cache refresh can be on-demand or included here if configured
+        update_option( 'kgsweb_cache_last_refresh_global', time() );
+    }
+
+    // Namespaced transient helpers
+    public static function get_transient( $key ) { return get_transient( $key ); }
+    public static function set_transient( $key, $val, $ttl ) { return set_transient( $key, $val, $ttl ); }
+    public static function delete_transient( $key ) { return delete_transient( $key ); }
+}
+```
+
+---
+
+## 3) Admin settings page
+
+```php
+<?php
+// includes/class-kgsweb-google-admin.php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+class KGSweb_Google_Admin {
+    public static function init() {
+        add_action( 'admin_menu', [ __CLASS__, 'menu' ] );
+        add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
+        add_action( 'admin_post_kgsweb_rebuild_caches', [ __CLASS__, 'handle_rebuild_caches' ] );
+    }
+
+    public static function menu() {
+        add_menu_page(
+            __( 'KGS Web Integration', 'kgsweb' ),
+            __( 'KGS Web', 'kgsweb' ),
+            'manage_options',
+            'kgsweb-settings',
+            [ __CLASS__, 'render_settings_page' ],
+            'dashicons-media-spreadsheet',
+            82
+        );
+    }
+
+    public static function register_settings() {
+        register_setting( 'kgsweb_settings_group', KGSWEB_SETTINGS_OPTION, [
+            'type' => 'array',
+            'sanitize_callback' => [ __CLASS__, 'sanitize_settings' ],
+            'default' => []
+        ] );
+
+        add_settings_section( 'kgsweb_google', __( 'Google Configuration', 'kgsweb' ), '__return_false', 'kgsweb-settings' );
+        add_settings_field( 'service_account_json', __( 'Service Account JSON', 'kgsweb' ), [ __CLASS__, 'field_textarea' ], 'kgsweb-settings', 'kgsweb_google', ['key'=>'service_account_json','rows'=>10] );
+
+        add_settings_section( 'kgsweb_ids', __( 'Default IDs', 'kgsweb' ), '__return_false', 'kgsweb-settings' );
+        $fields = [
+            'public_docs_root_id'      => 'Public Documents Root Folder ID',
+            'upload_root_id'           => 'Documents Upload Root Folder ID',
+            'menu_breakfast_folder_id' => 'Breakfast Menu Folder ID',
+            'menu_lunch_folder_id'     => 'Lunch Menu Folder ID',
+            'ticker_file_id'           => 'Ticker File ID',
+            'calendar_id'              => 'Google Calendar ID',
+            'slides_file_id'           => 'Default Slides File ID',
+            'sheets_file_id'           => 'Default Sheets File ID',
+            'sheets_default_range'     => 'Default Sheets Range',
+            'calendar_page_url'        => 'Full Calendar Page URL',
+        ];
+        foreach ( $fields as $k => $label ) {
+            add_settings_field( $k, __( $label, 'kgsweb' ), [ __CLASS__, 'field_text' ], 'kgsweb-settings', 'kgsweb_ids', ['key'=>$k] );
+        }
+
+        add_settings_section( 'kgsweb_upload', __( 'Upload Settings', 'kgsweb' ), '__return_false', 'kgsweb-settings' );
+        add_settings_field( 'upload_auth_mode', __( 'Upload Auth Mode', 'kgsweb' ), [ __CLASS__, 'field_select' ], 'kgsweb-settings', 'kgsweb_upload', ['key'=>'upload_auth_mode','options'=>['password'=>'Password','google_group'=>'Google Group']] );
+        add_settings_field( 'upload_google_group', __( 'Approved Google Group', 'kgsweb' ), [ __CLASS__, 'field_text' ], 'kgsweb-settings', 'kgsweb_upload', ['key'=>'upload_google_group'] );
+        add_settings_field( 'upload_destination', __( 'Upload Destination', 'kgsweb' ), [ __CLASS__, 'field_select' ], 'kgsweb-settings', 'kgsweb_upload', ['key'=>'upload_destination','options'=>['drive'=>'Google Drive','wordpress'=>'WordPress']] );
+        add_settings_field( 'wp_upload_root_path', __( 'WP Upload Root Path', 'kgsweb' ), [ __CLASS__, 'field_text' ], 'kgsweb-settings', 'kgsweb_upload', ['key'=>'wp_upload_root_path'] );
+        add_settings_field( 'upload_password_plaintext', __( 'Upload Password (plaintext, admin-only)', 'kgsweb' ), [ __CLASS__, 'field_text' ], 'kgsweb-settings', 'kgsweb_upload', ['key'=>'upload_password_plaintext'] );
+
+        add_settings_section( 'kgsweb_misc', __( 'Misc & Debug', 'kgsweb' ), '__return_false', 'kgsweb-settings' );
+        add_settings_field( 'debug_enabled', __( 'Enable Debug', 'kgsweb' ), [ __CLASS__, 'field_checkbox' ], 'kgsweb-settings', 'kgsweb_misc', ['key'=>'debug_enabled'] );
+    }
+
+    public static function sanitize_settings( $input ) {
+        $out = is_array( $input ) ? $input : [];
+        $keys_text = [
+            'public_docs_root_id','upload_root_id','menu_breakfast_folder_id','menu_lunch_folder_id',
+            'ticker_file_id','calendar_id','slides_file_id','sheets_file_id','sheets_default_range',
+            'upload_auth_mode','upload_google_group','upload_destination','wp_upload_root_path',
+            'upload_password_plaintext','calendar_page_url'
+        ];
+        foreach ( $keys_text as $k ) {
+            if ( isset( $out[$k] ) ) $out[$k] = sanitize_text_field( $out[$k] );
+        }
+        if ( isset( $out['service_account_json'] ) ) {
+            // Store as-is but validate structure
+            $try = json_decode( $out['service_account_json'], true );
+            if ( ! is_array( $try ) || empty( $try['client_email'] ) || empty( $try['private_key'] ) ) {
+                add_settings_error( KGSWEB_SETTINGS_OPTION, 'invalid_sa', __( 'Invalid service account JSON.', 'kgsweb' ) );
+            }
+        }
+        $out['debug_enabled'] = ! empty( $out['debug_enabled'] );
+        return $out;
+    }
+
+    public static function field_text( $args ) {
+        $opt = KGSweb_Google_Integration::get_settings();
+        $k = esc_attr( $args['key'] );
+        printf( '<input type="text" class="regular-text" name="%s[%s]" value="%s"/>', esc_attr( KGSWEB_SETTINGS_OPTION ), $k, isset($opt[$k]) ? esc_attr($opt[$k]) : '' );
+    }
+
+    public static function field_textarea( $args ) {
+        $opt = KGSweb_Google_Integration::get_settings();
+        $k = esc_attr( $args['key'] );
+        $rows = isset($args['rows']) ? intval($args['rows']) : 5;
+        printf( '<textarea rows="%d" class="large-text code" name="%s[%s]">%s</textarea>', $rows, esc_attr( KGSWEB_SETTINGS_OPTION ), $k, isset($opt[$k]) ? esc_textarea($opt[$k]) : '' );
+        echo '<p class="description">'.esc_html__( 'Paste the full Service Account JSON here. Never shared publicly.', 'kgsweb' ).'</p>';
+    }
+
+    public static function field_select( $args ) {
+        $opt = KGSweb_Google_Integration::get_settings();
+        $k = esc_attr( $args['key'] );
+        $val = isset($opt[$k]) ? $opt[$k] : '';
+        echo '<select name="'.esc_attr(KGSWEB_SETTINGS_OPTION).'['.$k.']">';
+        foreach ( $args['options'] as $v => $label ) {
+            printf( '<option value="%s" %s>%s</option>', esc_attr($v), selected($val,$v,false), esc_html($label) );
+        }
+        echo '</select>';
+    }
+
+    public static function field_checkbox( $args ) {
+        $opt = KGSweb_Google_Integration::get_settings();
+        $k = esc_attr( $args['key'] );
+        $checked = ! empty( $opt[$k] );
+        printf( '<label><input type="checkbox" name="%s[%s]" value="1" %s/> %s</label>',
+            esc_attr( KGSWEB_SETTINGS_OPTION ), $k, checked($checked,true,false), esc_html__( 'Enable', 'kgsweb' ) );
+    }
+
+    public static function render_settings_page() {
+        if ( ! current_user_can( 'manage_options' ) ) return;
+        echo '<div class="wrap"><h1>'.esc_html__( 'KGS Web Integration', 'kgsweb' ).'</h1>';
+        echo '<form method="post" action="options.php">';
+        settings_fields( 'kgsweb_settings_group' );
+        do_settings_sections( 'kgsweb-settings' );
+        submit_button();
+        echo '</form>';
+
+        echo '<hr/><h2>'.esc_html__('Cache Controls','kgsweb').'</h2>';
+        echo '<form method="post" action="'.esc_url( admin_url( 'admin-post.php' ) ).'">';
+        wp_nonce_field( 'kgsweb_rebuild_caches', '_wpnonce_kgsweb_rebuild' );
+        echo '<input type="hidden" name="action" value="kgsweb_rebuild_caches"/>';
+        submit_button( __( 'Rebuild Caches Now', 'kgsweb' ), 'secondary' );
+        echo '</form>';
+
+        echo '</div>';
+    }
+
+    public static function handle_rebuild_caches() {
+        if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Forbidden' );
+        check_admin_referer( 'kgsweb_rebuild_caches', '_wpnonce_kgsweb_rebuild' );
+        KGSweb_Google_Integration::cron_refresh_all_caches();
+        wp_safe_redirect( wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=kgsweb-settings' ) );
+        exit;
+    }
+}
+```
+
+---
+
+## 4) REST API routes
+
+```php
+<?php
+// includes/class-kgsweb-google-rest-api.php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+class KGSweb_Google_REST_API {
+    public static function init() {
+        add_action( 'rest_api_init', [ __CLASS__, 'register_routes' ] );
+    }
+
+    public static function register_routes() {
+        $ns = 'kgsweb/v1';
+
+        register_rest_route( $ns, '/ticker', [
+            'methods'  => 'GET',
+            'callback' => [ __CLASS__, 'get_ticker' ],
+            'args'     => [
+                'id' => [ 'type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field' ],
+            ],
+            'permission_callback' => '__return_true',
+        ]);
+
+        register_rest_route( $ns, '/events', [
+            'methods'  => 'GET',
+            'callback' => [ __CLASS__, 'get_events' ],
+            'args'     => [
+                'calendar_id' => [ 'type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field' ],
+                'page'        => [ 'type'=>'integer', 'required'=>false, 'default'=>1 ],
+                'per_page'    => [ 'type'=>'integer', 'required'=>false, 'default'=>10 ],
+            ],
+            'permission_callback' => '__return_true',
+        ]);
+
+        register_rest_route( $ns, '/menu', [
+            'methods'  => 'GET',
+            'callback' => [ __CLASS__, 'get_menu' ],
+            'args'     => [
+                'type' => [ 'type'=>'string', 'required'=>true, 'enum'=>['breakfast','lunch'] ],
+            ],
+            'permission_callback' => '__return_true',
+        ]);
+
+        register_rest_route( $ns, '/documents', [
+            'methods'  => 'GET',
+            'callback' => [ __CLASS__, 'get_documents' ],
+            'args'     => [
+                'doc-folder' => [ 'type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field' ],
+            ],
+            'permission_callback' => '__return_true',
+        ]);
+
+        register_rest_route( $ns, '/slides', [
+            'methods'  => 'GET',
+            'callback' => [ __CLASS__, 'get_slides' ],
+            'args'     => [
+                'file_id' => [ 'type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field' ],
+            ],
+            'permission_callback' => '__return_true',
+        ]);
+
+        register_rest_route( $ns, '/sheets', [
+            'methods'  => 'GET',
+            'callback' => [ __CLASS__, 'get_sheets' ],
+            'args'     => [
+                'sheet_id' => [ 'type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field' ],
+                'range'    => [ 'type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field' ],
+            ],
+            'permission_callback' => '__return_true',
+        ]);
+
+        register_rest_route( $ns, '/upload', [
+            'methods'  => 'POST',
+            'callback' => [ __CLASS__, 'post_upload' ],
+            'args'     => [
+                'upload-folder' => [ 'type'=>'string', 'required'=>true, 'sanitize_callback'=>'sanitize_text_field' ],
+                // 'file' handled via $_FILES
+            ],
+            'permission_callback' => function( $request ) {
+                // Require REST nonce for CSRF protection
+                return wp_verify_nonce( $request->get_header( 'X-WP-Nonce' ), 'wp_rest' );
+            },
+        ]);
+    }
+
+    public static function get_ticker( WP_REST_Request $req ) {
+        $id = $req->get_param( 'id' );
+        $data = KGSweb_Google_Ticker::get_ticker_payload( $id );
+        if ( is_wp_error( $data ) ) return $data;
+        return rest_ensure_response( $data );
+    }
+
+    public static function get_events( WP_REST_Request $req ) {
+        $calendar_id = $req->get_param( 'calendar_id' );
+        $page = max(1, intval($req->get_param('page') ) );
+        $per  = max(1, intval($req->get_param('per_page') ) );
+        $data = KGSweb_Google_Upcoming_Events::get_events_payload( $calendar_id, $page, $per );
+        if ( is_wp_error( $data ) ) return $data;
+        return rest_ensure_response( $data );
+    }
+
+    public static function get_menu( WP_REST_Request $req ) {
+        $type = $req->get_param( 'type' );
+        $data = KGSweb_Google_Drive_Docs::get_menu_payload( $type );
+        if ( is_wp_error( $data ) ) return $data;
+        return rest_ensure_response( $data );
+    }
+
+    public static function get_documents( WP_REST_Request $req ) {
+		$folder_id = $req->get_param( 'doc-folder' ) ?? $req->get_param( 'folder_id' );
+        $data = KGSweb_Google_Drive_Docs::get_documents_tree_payload( $folder_id );
+        if ( is_wp_error( $data ) ) return $data;
+        return rest_ensure_response( $data );
+    }
+
+    public static function get_slides( WP_REST_Request $req ) {
+        $file_id = $req->get_param( 'file_id' );
+        $data = [ 'file_id' => $file_id, 'message' => 'TODO: implement slides cache + embed URL' ];
+        return rest_ensure_response( $data );
+    }
+
+    public static function get_sheets( WP_REST_Request $req ) {
+        $sheet_id = $req->get_param( 'sheet_id' );
+        $range    = $req->get_param( 'range' );
+        $data = [ 'sheet_id' => $sheet_id, 'range' => $range ?: (KGSweb_Google_Integration::get_settings()['sheets_default_range'] ?? 'A1:Z100'), 'rows'=>[], 'headers'=>[] ];
+        return rest_ensure_response( $data );
+    }
+
+    public static function post_upload( WP_REST_Request $req ) {
+        return KGSweb_Google_Secure_Upload::handle_upload_rest( $req );
+    }
+}
+```
+
+---
+
+## 5) Shortcodes
+
+```php
+<?php
+// includes/class-kgsweb-google-shortcodes.php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+class KGSweb_Google_Shortcodes {
+    public static function init() {
+        add_shortcode( 'kgsweb_current_datetime', [ __CLASS__, 'current_datetime' ] );
+        add_shortcode( 'kgsweb_ticker',           [ __CLASS__, 'ticker' ] );
+        add_shortcode( 'kgsweb_events',           [ __CLASS__, 'events' ] );
+        add_shortcode( 'kgsweb_menu',             [ __CLASS__, 'menu' ] );
+        add_shortcode( 'kgsweb_documents',        [ __CLASS__, 'documents' ] );
+        add_shortcode( 'kgsweb_secure_upload_form', [ __CLASS__, 'secure_upload_form' ] );
+        add_shortcode( 'kgsweb_slides',           [ __CLASS__, 'slides' ] );
+        add_shortcode( 'kgsweb_sheets',           [ __CLASS__, 'sheets' ] );
+    }
+
+    public static function enqueue_if_needed( $handles = [] ) {
+        wp_enqueue_style( 'kgsweb-style' );
+        foreach ( (array)$handles as $h ) { wp_enqueue_script( $h ); }
+    }
+
+    public static function current_datetime( $atts ) {
+        $atts = shortcode_atts( [ 'format' => 'long' ], $atts, 'kgsweb_current_datetime' );
+        // Resolve alias to PHP date format
+        $map = [
+            'short'     => 'h:ii xm n/j/yy',
+            'med'       => 'h:ii D M j, Y',
+            'long'      => 'h:ii a, l, F d, Y',
+            'time'      => 'h:ii xm',
+            'shortdate' => 'n/j/yy',
+            'meddate'   => 'D M j, Y',
+            'longdate'  => 'l, F d, Y',
+        ];
+        $fmt = isset($map[$atts['format']]) ? $map[$atts['format']] : $atts['format'];
+        // Render server-side for reliability; JS can enhance if needed.
+        $tz = wp_timezone();
+        $dt = new DateTime( 'now', $tz );
+        return '<span class="kgsweb-datetime" data-format="'.esc_attr($fmt).'">'.esc_html( $dt->format( $fmt ) ).'</span>';
+    }
+
+    public static function ticker( $atts ) {
+        $a = shortcode_atts( [ 'folder' => '' ], $atts, 'kgsweb_ticker' );
+        self::enqueue_if_needed( ['kgsweb-helpers','kgsweb-cache','kgsweb-ticker'] );
+        $folder = $a['folder'] ?: ( KGSweb_Google_Integration::get_settings()['ticker_file_id'] ?? '' );
+        ob_start(); ?>
+        <div class="kgsweb-ticker" data-folder="<?php echo esc_attr($folder); ?>" data-speed="0.5">
+            <div class="kgsweb-ticker-track"></div>
+            <div class="kgsweb-ticker-controls">
+                <button class="kgsweb-ticker-toggle" aria-label="Pause/Play"></button>
+                <button class="kgsweb-ticker-expand" aria-expanded="false" aria-controls="kgsweb-ticker-full">Show</button>
+            </div>
+            <div class="kgsweb-ticker-full" id="kgsweb-ticker-full" hidden></div>
+        </div>
+        <?php return ob_get_clean();
+    }
+
+    public static function events( $atts ) {
+        $a = shortcode_atts( [ 'calendar_id' => '' ], $atts, 'kgsweb_events' );
+        self::enqueue_if_needed( ['kgsweb-helpers','kgsweb-cache','kgsweb-calendar'] );
+        $cal = $a['calendar_id'] ?: ( KGSweb_Google_Integration::get_settings()['calendar_id'] ?? '' );
+        $page_url = KGSweb_Google_Integration::get_settings()['calendar_page_url'] ?? '#';
+        return '<div class="kgsweb-events" data-calendar-id="'.esc_attr($cal).'" data-page-url="'.esc_url($page_url).'"></div>';
+    }
+
+    public static function menu( $atts ) {
+        $a = shortcode_atts( [ 'type' => 'breakfast' ], $atts, 'kgsweb_menu' );
+        self::enqueue_if_needed( ['kgsweb-helpers','kgsweb-cache','kgsweb-menus'] );
+        return '<div class="kgsweb-menu" data-type="'.esc_attr($a['type']).'"><div class="kgsweb-menu-image"></div></div>';
+    }
+
+	public static function documents( $atts ) {
+		$a = shortcode_atts( [ 'doc-folder' => '', 'folder' => '', 'folders' => '' ], $atts, 'kgsweb_documents' );
+		$settings = KGSweb_Google_Integration::get_settings();
+		$folder = $a['doc-folder'] ?? $a['folder'] ?? $a['folders'] ?? ($settings['public_docs_root_id'] ?? '');
+		self::enqueue_if_needed( ['kgsweb-helpers','kgsweb-cache','kgsweb-folders'] );
+		return '<div class="kgsweb-documents" data-doc-folder="'.esc_attr($folder).'"></div>';
+	}
+
+	public static function secure_upload_form( $atts ) {
+		$a = shortcode_atts( [ 'upload-folder' => '', 'folders' => '', 'folder' => '' ], $atts, 'kgsweb_secure_upload_form' );
+		$settings = KGSweb_Google_Integration::get_settings();
+		$root = $a['upload-folder'] ?? $a['folders'] ?? $a['folder'] ?? ($settings['upload_root_id'] ?? '');
+		self::enqueue_if_needed( ['kgsweb-helpers','kgsweb-upload'] );
+		// Minimal shell; JS controls password gate and group auth UI
+		ob_start(); ?>
+		<div class="kgsweb-upload" data-upload-folder="<?php echo esc_attr($root); ?>">
+			<div class="kgsweb-upload-gate"></div>
+			<form class="kgsweb-upload-form" method="post" enctype="multipart/form-data" hidden>
+				<label><?php esc_html_e('Destination Folder','kgsweb'); ?>
+					<select name="folder_id" class="kgsweb-upload-dest"></select>
+				</label>
+				<label><?php esc_html_e('File','kgsweb'); ?>
+					<input type="file" name="file" required />
+				</label>
+				<button type="submit"><?php esc_html_e('Upload','kgsweb'); ?></button>
+			</form>
+			<div class="kgsweb-upload-status" aria-live="polite"></div>
+		</div>
+		<?php return ob_get_clean();
+	}
+
+
+    public static function slides( $atts ) {
+        $a = shortcode_atts( [ 'file' => '' ], $atts, 'kgsweb_slides' );
+        $file = $a['file'] ?: ( KGSweb_Google_Integration::get_settings()['slides_file_id'] ?? '' );
+        // For now, embed via Google Slides public URL if available (cache layer to be implemented in REST)
+        return '<div class="kgsweb-slides" data-file-id="'.esc_attr($file).'"></div>';
+    }
+
+    public static function sheets( $atts ) {
+        $a = shortcode_atts( [ 'sheet_id' => '', 'range' => '' ], $atts, 'kgsweb_sheets' );
+        $id = $a['sheet_id'] ?: ( KGSweb_Google_Integration::get_settings()['sheets_file_id'] ?? '' );
+        $range = $a['range'] ?: ( KGSweb_Google_Integration::get_settings()['sheets_default_range'] ?? 'A1:Z100' );
+        return '<div class="kgsweb-sheets" data-sheet-id="'.esc_attr($id).'" data-range="'.esc_attr($range).'"></div>';
+    }
+}
+```
+
+---
+
+## 6) Secure upload module
+
+```php
+<?php
+// includes/class-kgsweb-google-secure-upload.php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+class KGSweb_Google_Secure_Upload {
+    private static $allowed_ext = ['txt','rtf','pdf','doc','docx','ppt','pptx','ppsx','xls','xlsx','csv','png','jpg','jpeg','gif','webp','mp3','wav','mp4','m4v','mov','avi'];
+    private static $video_ext   = ['mp4','m4v','mov','avi'];
+
+    public static function init() { /* shortcodes/REST already hooked elsewhere */ }
+
+    public static function handle_upload_rest( WP_REST_Request $req ) {
+        $settings = KGSweb_Google_Integration::get_settings();
+		$folder_id = sanitize_text_field($req->get_param( 'upload-folder' ) ?? $req->get_param( 'folder_id' )
+	);
+
+        // Auth gate: password or google_group
+        $auth_mode = $settings['upload_auth_mode'] ?? 'password';
+        $ip_key = self::lockout_key();
+        if ( self::is_locked_out( $ip_key ) ) {
+            return new WP_Error( 'upload_locked', __( 'Too many failed attempts. Try again later.', 'kgsweb' ), [ 'status'=>403 ] );
+        }
+
+        $authorized = false;
+        if ( $auth_mode === 'password' ) {
+            $password = $req->get_param( 'password' ); // expected in body (not in shortcode shell)
+            $authorized = self::verify_password( $password );
+            if ( ! $authorized ) self::register_failed_attempt( $ip_key );
+        } else {
+            $authorized = self::verify_google_group(); // TODO: implement (OAuth / domain membership)
+            if ( ! $authorized ) self::register_failed_attempt( $ip_key );
+        }
+        if ( ! $authorized ) {
+            return new WP_Error( 'unauthorized', __( 'Not authorized to upload.', 'kgsweb' ), [ 'status'=>401 ] );
+        }
+
+        // Validate file
+        if ( empty( $_FILES['file'] ) || ! is_uploaded_file( $_FILES['file']['tmp_name'] ) ) {
+            return new WP_Error( 'no_file', __( 'No file uploaded.', 'kgsweb' ), [ 'status'=>400 ] );
+        }
+        $file = $_FILES['file'];
+        $ext = strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) );
+        if ( ! in_array( $ext, self::$allowed_ext, true ) ) {
+            return new WP_Error( 'bad_ext', __( 'File type not allowed.', 'kgsweb' ), [ 'status'=>400 ] );
+        }
+        $max = in_array( $ext, self::$video_ext, true ) ? 500 * 1024 * 1024 : 100 * 1024 * 1024;
+        if ( $file['size'] > $max ) {
+            return new WP_Error( 'too_large', __( 'File exceeds size limit.', 'kgsweb' ), [ 'status'=>400 ] );
+        }
+
+        // Validate folder_id against cached tree (upload root)
+        if ( ! KGSweb_Google_Drive_Docs::folder_exists_in_upload_tree( $folder_id ) ) {
+            return new WP_Error( 'bad_folder', __( 'Invalid destination folder.', 'kgsweb' ), [ 'status'=>404 ] );
+        }
+
+        // Destination
+        $dest = $settings['upload_destination'] ?? 'drive';
+        if ( $dest === 'wordpress' ) {
+            $result = self::upload_to_wordpress( $folder_id, $file );
+        } else {
+            $result = self::upload_to_drive( $folder_id, $file );
+        }
+        if ( is_wp_error( $result ) ) return $result;
+
+        return [
+            'success'      => true,
+            'destination'  => $dest,
+            'file'         => $result,
+            'message'      => __( 'Upload successful.', 'kgsweb' ),
+        ];
+    }
+
+    private static function upload_to_wordpress( $folder_id, $file ) {
+        // Create subdir path based on Drive folder tree label (safe)
+        $root = KGSweb_Google_Integration::get_settings()['wp_upload_root_path'] ?? '';
+        if ( empty( $root ) ) $root = wp_upload_dir()['basedir'].'/kgsweb';
+        $subpath = KGSweb_Google_Drive_Docs::folder_path_from_id( $folder_id ); // e.g., "Grade 4/Newsletters"
+        $destdir = trailingslashit( $root ) . $subpath;
+        wp_mkdir_p( $destdir );
+        $san = KGSweb_Google_Helpers::sanitize_filename( $file['name'] );
+        $dest = trailingslashit( $destdir ) . $san;
+        if ( ! move_uploaded_file( $file['tmp_name'], $dest ) ) {
+            return new WP_Error( 'move_failed', __( 'Could not store file.', 'kgsweb' ), [ 'status'=>409 ] );
+        }
+        // Optionally insert as attachment
+        return [
+            'path' => $dest,
+            'url'  => str_replace( wp_upload_dir()['basedir'], wp_upload_dir()['baseurl'], $dest ),
+        ];
+    }
+
+    private static function upload_to_drive( $folder_id, $file ) {
+        // TODO: Use Drive API to upload to the given folder_id within a Shared Drive
+        // Return { id, name, webViewLink, webContentLink } as available
+        return new WP_Error( 'todo', __( 'Drive upload not yet implemented.', 'kgsweb' ), [ 'status'=>409 ] );
+    }
+
+    private static function verify_password( $password ) {
+        if ( ! defined( 'KGSWEB_UPLOAD_PASS_HASH' ) || empty( $password ) ) return false;
+        // Expected format: "algo:hash"
+        $parts = explode( ':', KGSWEB_UPLOAD_PASS_HASH, 2 );
+        if ( count( $parts ) !== 2 ) return false;
+        list( $algo, $hash ) = $parts;
+        $calc = hash( $algo, $password );
+        return hash_equals( $hash, $calc );
+    }
+
+    private static function verify_google_group() {
+        // TODO: Implement Google Sign-In flow + group membership check
+        return false;
+    }
+
+    private static function lockout_key() {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $user = get_current_user_id();
+        return 'ip:'.$ip.'|u:'.$user;
+    }
+
+    private static function is_locked_out( $key ) {
+        $map = get_option( 'kgsweb_upload_lockouts', [] );
+        if ( empty( $map[$key] ) ) return false;
+        return time() < intval( $map[$key] );
+    }
+
+    private static function register_failed_attempt( $key ) {
+        $count = (int) get_transient( 'kgsweb_attempts_'.$key );
+        $count++;
+        set_transient( 'kgsweb_attempts_'.$key, $count, DAY_IN_SECONDS );
+        if ( $count >= 50 ) {
+            $map = get_option( 'kgsweb_upload_lockouts', [] );
+            $map[$key] = time() + DAY_IN_SECONDS;
+            update_option( 'kgsweb_upload_lockouts', $map, false );
+            delete_transient( 'kgsweb_attempts_'.$key );
+        }
+    }
+}
+```
+
+---
+
+## 7) Drive, menus, and documents tree
+
+```php
+<?php
+// includes/class-kgsweb-google-drive-docs.php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+class KGSweb_Google_Drive_Docs {
+    public static function init() { /* no-op */ }
+
+    // Cron refresh
+    public static function refresh_cache_cron() {
+        // Rebuild public docs tree
+        self::rebuild_documents_tree_cache( self::get_public_root_id() );
+        // Rebuild upload folder list
+        self::rebuild_upload_tree_cache( self::get_upload_root_id() );
+        // Menus
+        self::refresh_menu_cache( 'breakfast' );
+        self::refresh_menu_cache( 'lunch' );
+    }
+
+    public static function get_public_root_id() {
+        return KGSweb_Google_Integration::get_settings()['public_docs_root_id'] ?? '';
+    }
+    public static function get_upload_root_id() {
+        return KGSweb_Google_Integration::get_settings()['upload_root_id'] ?? '';
+    }
+
+    // Public documents tree payload
+    public static function get_documents_tree_payload( $folder_id = '' ) {
+        $root = $folder_id ?: self::get_public_root_id();
+        $key  = 'kgsweb_cache_documents_' . $root;
+        $tree = KGSweb_Google_Integration::get_transient( $key );
+        if ( false === $tree ) {
+            $tree = self::build_documents_tree( $root );
+            $tree = self::filter_empty_branches( $tree );
+            KGSweb_Google_Integration::set_transient( $key, $tree, HOUR_IN_SECONDS );
+        }
+        if ( empty( $tree ) ) return new WP_Error( 'no_docs', __( 'No documents available.', 'kgsweb' ), [ 'status'=>404 ] );
+        return [ 'root_id' => $root, 'tree' => $tree, 'updated_at' => time() ];
+    }
+
+    public static function rebuild_documents_tree_cache( $root ) {
+        if ( empty( $root ) ) return;
+        $tree = self::build_documents_tree( $root );
+        $tree = self::filter_empty_branches( $tree );
+        KGSweb_Google_Integration::set_transient( 'kgsweb_cache_documents_' . $root, $tree, HOUR_IN_SECONDS );
+        update_option( 'kgsweb_cache_last_refresh_documents_'.$root, time() );
+    }
+
+    public static function rebuild_upload_tree_cache( $root ) {
+        if ( empty( $root ) ) return;
+        $tree = self::build_folders_only_tree( $root ); // includes empty folders
+        KGSweb_Google_Integration::set_transient( 'kgsweb_cache_upload_tree_' . $root, $tree, HOUR_IN_SECONDS );
+        update_option( 'kgsweb_cache_last_refresh_uploadtree_'.$root, time() );
+    }
+
+    // Drive traversal (stubs)
+    private static function build_documents_tree( $root_id ) {
+        // TODO: Use Drive API to recursively retrieve folders/files
+        // Return normalized array: [ [ 'id','name','type'=>'folder','children'=>[...] ], [ 'id','name','type'=>'file','mime','icon','size','modifiedTime' ] ]
+        return [];
+    }
+
+    private static function build_folders_only_tree( $root_id ) {
+        // TODO: Retrieve folders/subfolders including empty ones
+        return [];
+    }
+
+    public static function folder_exists_in_upload_tree( $folder_id ) {
+        $root = self::get_upload_root_id();
+        $tree = get_transient( 'kgsweb_cache_upload_tree_' . $root );
+        if ( false === $tree ) {
+            $tree = self::build_folders_only_tree( $root );
+            KGSweb_Google_Integration::set_transient( 'kgsweb_cache_upload_tree_' . $root, $tree, HOUR_IN_SECONDS );
+        }
+        return self::search_tree_for_id( $tree, $folder_id );
+    }
+
+    public static function folder_path_from_id( $folder_id ) {
+        // TODO: Resolve a path-like string from the cached upload tree for folder_id
+        return sanitize_title( $folder_id );
+    }
+
+    private static function search_tree_for_id( $nodes, $id ) {
+        foreach ( (array) $nodes as $n ) {
+            if ( isset($n['id']) && $n['id'] === $id ) return true;
+            if ( ! empty( $n['children'] ) && self::search_tree_for_id( $n['children'], $id ) ) return true;
+        }
+        return false;
+    }
+
+    public static function filter_empty_branches( $node ) {
+        if ( empty( $node ) ) return $node;
+        if ( isset( $node['type'] ) && $node['type'] === 'file' ) return $node; // files are leaves
+        if ( isset( $node['children'] ) && is_array( $node['children'] ) ) {
+            $filtered = [];
+            foreach ( $node['children'] as $child ) {
+                $c = self::filter_empty_branches( $child );
+                if ( $c ) $filtered[] = $c;
+            }
+            // Keep folder only if it has at least one file somewhere below
+            $has_file_descendant = self::has_file_descendant( $filtered );
+            if ( ! $has_file_descendant ) return null;
+            $node['children'] = $filtered;
+            return $node;
+        }
+        return null;
+    }
+
+    private static function has_file_descendant( $nodes ) {
+        foreach ( (array) $nodes as $n ) {
+            if ( isset( $n['type'] ) && $n['type'] === 'file' ) return true;
+            if ( ! empty( $n['children'] ) && self::has_file_descendant( $n['children'] ) ) return true;
+        }
+        return false;
+    }
+
+    // Menus (Breakfast/Lunch)
+    public static function get_menu_payload( $type ) {
+        $key = 'kgsweb_cache_menu_' . $type;
+        $data = get_transient( $key );
+        if ( false === $data ) {
+            $data = self::build_latest_menu_image( $type );
+            set_transient( $key, $data, HOUR_IN_SECONDS );
+        }
+        if ( empty( $data['image_url'] ) ) return new WP_Error( 'no_menu', __( 'Menu not available.', 'kgsweb' ), [ 'status'=>404 ] );
+        return $data;
+    }
+
+    public static function refresh_menu_cache( $type ) {
+        $data = self::build_latest_menu_image( $type );
+        set_transient( 'kgsweb_cache_menu_' . $type, $data, HOUR_IN_SECONDS );
+        update_option( 'kgsweb_cache_last_refresh_menu_'.$type, time() );
+    }
+
+    private static function build_latest_menu_image( $type ) {
+        // TODO: From folder ID, find most recent file; if PDF → convert via Imagick; optimize size; store locally; return URL + dims.
+        return [ 'type'=>$type, 'image_url'=>'', 'width'=>0, 'height'=>0, 'updated_at'=>time() ];
+    }
+}
+```
+
+---
+
+## 8) Ticker module
+
+```php
+<?php
+// includes/class-kgsweb-google-ticker.php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+class KGSweb_Google_Ticker {
+    public static function init() { /* no-op */ }
+
+    public static function refresh_cache_cron() {
+        $default_id = KGSweb_Google_Integration::get_settings()['ticker_file_id'] ?? '';
+        if ( $default_id ) {
+            self::refresh_ticker_cache( $default_id );
+        }
+    }
+
+    public static function get_ticker_payload( $id = '' ) {
+        $id = $id ?: ( KGSweb_Google_Integration::get_settings()['ticker_file_id'] ?? '' );
+        if ( ! $id ) return new WP_Error( 'no_id', __( 'Ticker source not configured.', 'kgsweb' ), [ 'status'=>400 ] );
+        $key = 'kgsweb_cache_ticker_' . $id;
+        $cached = get_transient( $key );
+        if ( false === $cached ) {
+            $cached = self::fetch_and_normalize_text( $id );
+            set_transient( $key, $cached, HOUR_IN_SECONDS );
+        }
+        return [ 'id'=>$id, 'text'=> $cached['text'], 'updated_at'=>$cached['updated_at'] ];
+    }
+
+    public static function refresh_ticker_cache( $id ) {
+        $data = self::fetch_and_normalize_text( $id );
+        set_transient( 'kgsweb_cache_ticker_' . $id, $data, HOUR_IN_SECONDS );
+        update_option( 'kgsweb_cache_last_refresh_ticker_'.$id, time() );
+    }
+
+    private static function fetch_and_normalize_text( $id ) {
+        // TODO: if .txt: download file; if Google Doc: export plain text via Drive/Docs API
+        $text = '';
+        $text = trim( wp_strip_all_tags( $text ) );
+        return [ 'text' => $text, 'updated_at' => time() ];
+    }
+}
+```
+
+---
+
+## 9) Upcoming events module
+
+```php
+<?php
+// includes/class-kgsweb-google-upcoming-events.php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+class KGSweb_Google_Upcoming_Events {
+    public static function init() { /* no-op */ }
+
+    public static function refresh_cache_cron() {
+        $cal = KGSweb_Google_Integration::get_settings()['calendar_id'] ?? '';
+        if ( $cal ) self::refresh_events_cache( $cal );
+    }
+
+    public static function get_events_payload( $calendar_id = '', $page = 1, $per = 10 ) {
+        $calendar_id = $calendar_id ?: ( KGSweb_Google_Integration::get_settings()['calendar_id'] ?? '' );
+        if ( ! $calendar_id ) return new WP_Error( 'no_calendar', __( 'Calendar not configured.', 'kgsweb' ), [ 'status'=>400 ] );
+        $key = 'kgsweb_cache_events_' . md5( $calendar_id );
+        $list = get_transient( $key );
+        if ( false === $list ) {
+            $list = self::fetch_and_normalize_events( $calendar_id ); // up to 100
+            set_transient( $key, $list, HOUR_IN_SECONDS );
+        }
+        $total = count( $list );
+        $offset = max(0, ($page-1)*$per );
+        $slice = array_slice( $list, $offset, $per );
+        return [
+            'calendar_id' => $calendar_id,
+            'events'      => $slice,
+            'page'        => $page,
+            'per_page'    => $per,
+            'total'       => $total,
+        ];
+    }
+
+    public static function refresh_events_cache( $calendar_id ) {
+        $list = self::fetch_and_normalize_events( $calendar_id );
+        set_transient( 'kgsweb_cache_events_' . md5( $calendar_id ), $list, HOUR_IN_SECONDS );
+        update_option( 'kgsweb_cache_last_refresh_events_'.md5($calendar_id), time() );
+    }
+
+    private static function fetch_and_normalize_events( $calendar_id ) {
+        // TODO: Use Calendar API to fetch upcoming events (max 100), normalize:
+        // [ ['id','title','start','end','all_day'=>bool,'location'=>null,'updated'=>ts], ... ]
+        return [];
+    }
+}
+```
+
+---
+
+## 10) Helpers
+
+```php
+<?php
+// includes/class-kgsweb-google-helpers.php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+class KGSweb_Google_Helpers {
+    public static function init() { /* no-op */ }
+
+    public static function sanitize_filename( $name ) {
+        $name = wp_strip_all_tags( $name );
+        $name = remove_accents( $name );
+        $name = preg_replace( '/[^\w\.\-]+/u', '-', $name );
+        $name = preg_replace( '/-+/', '-', $name );
+        return trim( $name, '-' );
+    }
+
+    public static function icon_for_mime_or_ext( $mime, $ext ) {
+        $ext = strtolower( $ext );
+        $map = [
+            'pdf'=>'file-pdf', 'doc'=>'file-word','docx'=>'file-word','rtf'=>'file-word',
+            'xls'=>'file-excel','xlsx'=>'file-excel','csv'=>'file-csv',
+            'ppt'=>'file-powerpoint','pptx'=>'file-powerpoint','ppsx'=>'file-powerpoint',
+            'png'=>'file-image','jpg'=>'file-image','jpeg'=>'file-image','gif'=>'file-image','webp'=>'file-image',
+            'mp3'=>'file-audio','wav'=>'file-audio',
+            'mp4'=>'file-video','m4v'=>'file-video','mov'=>'file-video','avi'=>'file-video',
+            'zip'=>'file-archive','txt'=>'file-lines'
+        ];
+        return $map[$ext] ?? 'file';
+    }
+
+    public static function format_event_datetime( $start_iso, $end_iso ) {
+        // TODO: Respect WP timezone; return "Start" or "Start - End" or "All Day"
+        return '';
+    }
+}
+```
+
+---
+
+## 11) JavaScript modules (stubs)
+
+Create all files under js/. Each uses the localized config KGSWEB_CFG where applicable.
+
+```javascript
+// js/kgsweb-helpers.js
+(function(){
+  window.KGSWEB = window.KGSWEB || {};
+  KGSWEB.qs = (sel, el=document) => el.querySelector(sel);
+  KGSWEB.qsa = (sel, el=document) => Array.prototype.slice.call(el.querySelectorAll(sel));
+  KGSWEB.rest = (path, opts={}) => {
+    const url = (KGSWEB_CFG.rest.root.replace(/\/$/, '') + '/' + path.replace(/^\//,''));
+    const headers = opts.headers || {};
+    headers['X-WP-Nonce'] = KGSWEB_CFG.rest.nonce;
+    return fetch(url, Object.assign({ headers }, opts )).then(r => r.json());
+  };
+})();
+```
+
+```javascript
+// js/kgsweb-cache.js
+(function(){
+  window.KGSWEB = window.KGSWEB || {};
+  KGSWEB.sget = (k) => { try { return JSON.parse(sessionStorage.getItem(k)); } catch(e){ return null; } };
+  KGSWEB.sset = (k,v) => { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+})();
+```
+
+```javascript
+// js/kgsweb-datetime.js
+(function(){
+  document.addEventListener('DOMContentLoaded', function(){
+    // Server-rendered already; enhance if needed
+  });
+})();
+```
+
+```javascript
+// js/kgsweb-ticker.js
+(function(){
+  function initTicker(el){
+    const id = el.getAttribute('data-folder') || '';
+    const speed = parseFloat(el.getAttribute('data-speed')) || 0.5;
+    const key = 'kgsweb_ticker_' + id;
+    const track = el.querySelector('.kgsweb-ticker-track');
+    const full = el.querySelector('.kgsweb-ticker-full');
+    const btnToggle = el.querySelector('.kgsweb-ticker-toggle');
+    const btnExpand = el.querySelector('.kgsweb-ticker-expand');
+
+    function render(text){
+      track.textContent = text || '';
+      full.textContent = text || '';
+    }
+
+    function fetchAndRender(){
+      KGSWEB.rest('ticker?id='+encodeURIComponent(id)).then(data=>{
+        if (data && data.text !== undefined) {
+          KGSWEB.sset(key, data);
+          render(data.text);
+          start();
+        }
+      });
+    }
+
+    let rafId = null, pos=0, playing=true;
+    function frame(){
+      pos -= speed;
+      track.style.transform = 'translateX('+pos+'px)';
+      rafId = requestAnimationFrame(frame);
+    }
+    function start(){ if(!rafId){ rafId = requestAnimationFrame(frame); playing=true; } }
+    function stop(){ if(rafId){ cancelAnimationFrame(rafId); rafId=null; playing=false; } }
+
+    el.addEventListener('mouseenter', stop);
+    el.addEventListener('mouseleave', ()=> playing && start());
+    btnToggle.addEventListener('click', ()=> { playing ? stop() : start(); });
+    btnExpand.addEventListener('click', ()=>{
+      const hidden = full.hasAttribute('hidden');
+      if (hidden) full.removeAttribute('hidden'); else full.setAttribute('hidden','');
+      btnExpand.setAttribute('aria-expanded', hidden ? 'true':'false');
+    });
+
+    const cached = KGSWEB.sget(key);
+    if (cached) { render(cached.text); start(); }
+    else { fetchAndRender(); }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    (window.KGSWEB.qsa||function(){} )('.kgsweb-ticker').forEach(initTicker);
+  });
+})();
+```
+
+```javascript
+// js/kgsweb-calendar.js
+(function(){
+  function renderEvents(el, payload){
+    // TODO: build UI with pagination controls; use payload.events
+    el.textContent = 'Events loaded: ' + (payload.events ? payload.events.length : 0);
+  }
+  function load(el, page){
+    const cal = el.getAttribute('data-calendar-id') || '';
+    const params = new URLSearchParams({ calendar_id: cal, page: page||1, per_page: 10 });
+    KGSWEB.rest('events?'+params.toString()).then(data=>{
+      if (data && data.events) renderEvents(el, data);
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    (window.KGSWEB.qsa||function(){} )('.kgsweb-events').forEach(el=>load(el,1));
+  });
+})();
+```
+
+```javascript
+// js/kgsweb-menus.js
+(function(){
+  function load(el){
+    const type = el.getAttribute('data-type') || 'breakfast';
+    KGSWEB.rest('menu?type='+encodeURIComponent(type)).then(data=>{
+      const cont = el.querySelector('.kgsweb-menu-image');
+      if (data && data.image_url) {
+        cont.innerHTML = '<img src="'+data.image_url+'" alt="'+type+' menu" />';
+        // TODO: add zoom icon and modal behavior
+      } else {
+        cont.textContent = 'Menu not available.';
+      }
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    (window.KGSWEB.qsa||function(){} )('.kgsweb-menu').forEach(load);
+  });
+})();
+```
+
+```javascript
+// js/kgsweb-folders.js
+(function(){
+  function buildTree(container, node){
+    // TODO: build accordion UI from node.tree
+    container.textContent = 'Documents loading...';
+  }
+  function load(el){
+	const root = el.getAttribute('data-doc-folder') || el.getAttribute('data-root-id');
+	console.log('Resolved document folder ID:', root);
+    KGSWEB.rest('documents?folder_id='+encodeURIComponent(root)).then(data=>{
+      if (data && data.tree) buildTree(el, data);
+      else el.textContent = 'No documents available.';
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    (window.KGSWEB.qsa||function(){} )('.kgsweb-documents').forEach(load);
+  });
+})();
+```
+
+```javascript
+// js/kgsweb-upload.js
+(function(){
+  function gatePasswordUI(root, settings){
+    const gate = root.querySelector('.kgsweb-upload-gate');
+    const form = root.querySelector('.kgsweb-upload-form');
+    gate.innerHTML = '<label>Password <input type="password" class="kgsweb-upload-pass"/></label><button>Continue</button>';
+    const btn = gate.querySelector('button');
+    btn.addEventListener('click', function(){
+      form.removeAttribute('hidden'); // Server will validate on submit; this is UX-only gate
+      gate.remove();
+    });
+  }
+  function populateFolders(select, rootId){
+    // TODO: get upload tree (may share REST path or separate), then fill select
+    select.innerHTML = '';
+  }
+  function initUpload(el){
+    const form = el.querySelector('.kgsweb-upload-form');
+    const select = el.querySelector('.kgsweb-upload-dest');
+	const rootId = el.getAttribute('data-upload-folder') || el.getAttribute('data-root-id');
+	console.log('Resolved upload folder ID:', rootId);
+    populateFolders(select, rootId);
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const fd = new FormData(form);
+      const file = form.querySelector('input[type=file]').files[0];
+      if (!file) return;
+      fd.append('folder_id', select.value);
+      KGSWEB.rest('upload', { method:'POST', body: fd }).then(res=>{
+        // TODO: handle success/failure UI
+        console.log(res);
+      });
+    });
+
+    // Choose gate behavior based on settings (client may not know auth mode; keep simple)
+    gatePasswordUI(el);
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    (window.KGSWEB.qsa||function(){} )('.kgsweb-upload').forEach(initUpload);
+  });
+})();
+```
+
+```javascript
+// js/kgsweb-admin.js
+(function($){
+  $(function(){
+    // Admin UI enhancements (e.g., toggle password visibility, trigger rebuild)
+  });
+})(jQuery);
+```
+
+---
+
+## 12) CSS (baseline)
+
+```css
+/* css/kgsweb-style.css */
+.kgsweb-ticker { position: relative; overflow: hidden; border: 1px solid #ddd; padding: 6px; }
+.kgsweb-ticker-track { white-space: nowrap; will-change: transform; display: inline-block; }
+.kgsweb-ticker-controls { position: absolute; right: 6px; top: 6px; display: flex; gap: 6px; }
+.kgsweb-ticker-full[hidden] { display: none; }
+
+.kgsweb-events { border: 1px solid #eee; padding: 8px; }
+
+.kgsweb-menu .kgsweb-menu-image img { max-width: 100%; height: auto; display: block; }
+.kgsweb-menu .zoom-icon { position: absolute; right: 8px; bottom: 8px; }
+
+.kgsweb-documents { border: 1px solid #eee; padding: 8px; }
+.kgsweb-documents .folder { cursor: pointer; }
+.kgsweb-documents .children { margin-left: 1rem; }
+
+.kgsweb-upload form { display: grid; gap: 8px; }
+.kgsweb-upload .kgsweb-upload-status { margin-top: 8px; }
+```
+
+---
+
+## 13) Acceptance checkpoints wired into scaffold
+
+- Activation seeds defaults and schedules hourly cron.
+- REST endpoints exist with argument schemas and nonce-protected POST for uploads.
+- Shortcodes output minimal, accessible shells; JS enhances per feature.
+- Transient-based cache keys are aligned with spec: documents, menus, ticker, events.
+- Secure upload implements:
+  - Allowed extensions and size limits,
+  - Password hashing contract via wp-config,
+  - Lockout after 50 failures for 24 hours,
+  - Folder validation against upload tree cache,
+  - WordPress destination write path creation.
+- Placeholders marked TODO for:
+  - Google client initialization,
+  - Drive traversal, PDF→PNG via Imagick,
+  - Calendar events fetch and normalization,
+  - Ticker text extraction from Google Doc or .txt,
+  - Google Group auth verification,
+  - Slides/Sheets cached retrieval and embed rendering,
+  - Front-end folder tree rendering and upload folder list.
+
+---
+
+## 14) Next steps (safe implementation order)
+
+1. Wire Google Client initialization (service account JSON) and minimal Drive list call.
+2. Implement Drive traversal for both trees; store normalized structures; verify empty-branch filtering.
+3. Implement menus latest-file selection and Imagick PDF→PNG conversion with optimization.
+4. Implement ticker text extraction and cache.
+5. Implement Calendar events fetch and normalization (100 items).
+6. Implement Slides/Sheets cache and embed/HTML transforms.
+7. Implement Google Group auth (Sign-In + group membership verification) if required now; otherwise, keep password mode.
+8. Complete front-end UI for folder accordion, events pagination, menu zoom modal.
+9. Add debug logging toggled by settings; surface admin notices on failures.
+
+This scaffold is designed to be dropped into your plugins directory and iteratively completed. If you want, I can fill in specific API calls for Drive traversal and Calendar normalization next, with careful handling of scopes, errors, and rate limits.

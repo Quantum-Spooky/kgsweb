@@ -1,0 +1,679 @@
+**KGSWeb Google Integration – Unified, AI-ready functional and implementation spec**
+This version is designed to be both human-readable and flawlessly interpretable by AI or developers.
+
+---
+
+# KGSWeb Google Integration – Unified, AI-Ready Functional and Implementation Spec
+
+**Prepared by:** Travis Donoho (Lead Developer)  
+**Date:** September 3, 2025  
+**Target Platform:** WordPress 6.8.2 on PHP 8.3  
+**Plugin Purpose:** Integrate Google services into kellgradeschool.com to dynamically display school content and enable secure file uploads.
+
+---
+
+## 1. Project Overview
+
+### Purpose
+The plugin shall:
+- Integrate with Google Drive, Calendar, Docs, Sheets, and Slides via a service account.
+- Display dynamic content (menus, events, documents, slides, sheets, alerts).
+- Enable secure file uploads by approved users.
+- Serve administrators, staff, students, parents, and the public.
+
+### Scope
+- Shortcodes for all display features.
+- Secure upload form with password or Google Group authentication.
+- Caching of all Google API data.
+- Responsive, accessible front-end components.
+- Modular, maintainable codebase.
+
+---
+
+## 2. Functional Features and Shortcodes
+
+| Feature | Shortcode | Description |
+|--------|-----------|-------------|
+| Public Documents Tree | `[kgsweb_documents doc-folder="FOLDER_ID"]` | Accordion-style folder tree from Drive; excludes empty folders. |
+| Secure Upload Form | `[kgsweb_secure_upload_form upload-folder="FOLDER_ID"]` | Upload form gated by password or Google Group; one file per upload. |
+| Upcoming Events | `[kgsweb_events calendar_id="CALENDAR_ID"]` or `[kgsweb_events]` | Displays 10 upcoming Google Calendar events with pagination (caches 100 events). |
+| Menus | `[kgsweb_menu type="breakfast"]`, `[kgsweb_menu type="lunch"]` | Displays latest image from Drive folder; converts PDF to PNG if needed. |
+| Scrolling Ticker | `[kgsweb_ticker folder="FOLDER_ID"]` | Displays horizontally scrolling text from a Google Doc or .txt file. |
+| Google Slides | `[kgsweb_slides file="FILE_ID"]` | Embeds Google Slides presentation. |
+| Google Sheets | `[kgsweb_sheets sheet_id="SHEET_ID" range="A1:Z100"]` | Displays Google Sheets data in specified range. |
+| Current DateTime | `[kgsweb_current_datetime format="FORMAT"]` | Displays current time/date in specified format or alias. |
+
+### Dashboard Settings Page
+
+- Accessible only by WordPress administrators.
+- Configure: Google API credentials (json), default document root folder ID (Google Drive), default Google Calendar ID, default upload root folder  ID (Google Drive), default ticker file ID (Google Drive), default breakfast menu folder ID (Google Drive), default lunch menu folder ID (Google Drive), save settings button, refresh cache button, clear cache (emergency) button.
+- Configure: Secure Uploads Settings. Password access checkbox, password field, password upload locked notification, unlock password upload button, Google Group Gate checkbox (auto-authenticated via Google login), Google Drive (default) / Wordpress (workaround) upload destination toggle, default document root folder (Wordpress uploads).
+
+### Current DateTime formats: literal spec and PHP tokens both supported
+
+- Shortcode: `[kgsweb_current_datetime format="PHP_FORMAT"]`
+- Default format: `"h:ii a, l, F d, yyyy"`
+- Supported formats: `short`, `med`, `long`, `time`, `shortdate`, `meddate`, `longdate`, or user-defined PHP formats.
+- Recognize and render the literal strings exactly as specified in your doc:
+  - short = "h:ii xm n/j/yy"
+  - med = "h:ii D M j, yyyy"
+  - long = "h:ii a, l, F d, yyyy"
+  - time = "h:ii xm"
+  - shortdate = "n/j/yy"
+  - meddate = "D M j, yyyy"
+  - longdate = "l, F d, yyyy"
+- Also support any custom PHP format (with `i` and `Y`) supplied by the user.
+- Rendering rules:
+  - If a format string contains `ii` or `yyyy`, internally map `ii→i` and `yyyy→Y` at render time so the output matches the user’s intended layout while using correct PHP tokens.
+  - If the user passes a strict PHP format, do not alter it.
+
+### Scrolling Ticker
+
+- Shortcode: `[kgsweb_ticker folder="FILE_ID"]` (default folder from settings)
+- Controls and icons:
+  - Play/Pause: `<i class="fa fa-play">` / `<i class="fa fa-pause">`
+  - Expand/Collapse full text: `<i class="fa fa-angle-down">` / `<i class="fa fa-angle-up">`
+- Pausing on hover: ensure both the marquee and any auto-scroll timers stop immediately on `mouseenter`, resume on `mouseleave` if in playing state.
+- Data attributes:
+  - `data-folder` for ID, `data-speed` for speed. Default parsing: `parseFloat(attr)` with fallback `0.5`.
+- CSS positioning:
+  - Place control buttons as a small overlay in the top-right of the ticker container.
+  - Full-text block toggles directly below with `aria-expanded` state synced.
+  - Ensure `aria-pressed` and `aria-expanded` are in sync for accessibility.
+- Cached hourly via cron.
+  
+### Upcoming Events
+
+- Shortcode: `[kgsweb_events calendar_id="CALENDAR_ID"]`
+ - Default calendar ID from settings.
+- Display up to 10 events initially, with Previous/Next controls and full calendar link.
+- Event display format:
+	- Line 1: Event Date (`D, M j, Y`)
+	- Line 2: Event Name, Start/End Time or “All Day”.
+- Cache 100 upcoming events from Google Calendar.
+
+### Breakfast and Lunch Menus
+
+- Shortcodes: `[kgsweb_menu type="breakfast"]`, `[kgsweb_menu type="lunch"]`
+- Display most recent image from respective folder.
+- If file is PDF: convert to PNG.
+- Optimize image size while keeping text readable.
+- Add FontAwesome zoom icon in bottom-right corner.
+- Cached hourly via cron.
+
+### Public Documents Folder Tree
+
+- Shortcode: `[kgsweb_documents folders="FOLDER_ID"]` (default folder from settings)
+- Recursive retrieval of folders/files from Google Drive via service account.
+- Accordion-style folder display with FontAwesome carets.
+- File icons based on type (pdf, word, excel, powerpoint, image, audio, video, zip, text, other).
+- Exclude empty folders/subfolders recursively.
+- Cached hourly via cron.
+
+### Secure File Upload
+
+- Shortcode: `[kgsweb_secure_upload_form folders="FOLDER_ID"]`
+- See Section: "3. Secure Upload Logic" for details.
+
+### Google Slides
+
+- Shortcode: `[kgsweb_slides file="FILE_ID"]`
+- Default file ID stored in settings.
+- Cache slides via Google API; update cache on first load and periodically thereafter.
+- Cached hourly via cron.
+
+### Google Sheets
+
+- Shortcode: `[kgsweb_sheets sheet_id="SHEET_ID" range="A1:Z100"]`
+- Default file ID stored in settings.
+- Cache sheet via Google API; update cache on first load and periodically thereafter.
+  - Cached hourly via cron.
+  
+### REST visibility statement (explicit)
+
+- Public GET endpoints:
+  - `/ticker`, `/events`, `/menu`, `/documents`, `/slides`, `/sheets`
+- Secure write endpoint:
+  - `/upload` requires REST nonce and auth (password or Google Group).
+- Admin settings:
+  - Only visible to logged-in WordPress admins; no settings data is available through public endpoints.
+- Credentials:
+  - Service account JSON never leaves the server; no echo in REST payloads, HTML, or JS.
+
+### Folder list flows: strictly separated caches and endpoints
+
+- Public documents tree (downloads):
+  - Cache key: `kgsweb_cache_documents_<root_id>`
+  - Endpoint: `/documents?folder_id=<root_id>`
+  - Filtering: recursively remove any folder that does not contain a file under it (no dead-ends).
+- Upload folder list (dropdown):
+  - Cache key: `kgsweb_cache_upload_tree_<root_id>`
+  - Endpoint: expose as `/documents?folder_id=<root_id>&mode=upload` or a dedicated `/upload-folders?root_id=<root_id>`
+  - Inclusion: show all folders, including empty ones, flattened to “Folder > Subfolder > Subsubfolder …” labels.
+  
+---
+
+## 3. Secure Upload Logic
+
+### Authentication Modes
+1. **Password Gate:**
+   - Password stored as hash in `wp-config.php`.
+   - Plaintext shown in admin settings.
+   - 50 failed attempts → 24-hour lockout.
+2. **Google Group Gate:**
+   - User must be logged into Google and belong to approved group.
+   - Upload form shown automatically if authorized.
+
+### Upload Destination
+- Default: Google Drive (shared folder).
+- Fallback: WordPress Media Library.
+- Admin can toggle destination in settings.
+- Folder selector populated from cached Drive tree.
+- WordPress folders created if missing.
+
+### File Constraints
+- Allowed extensions: `txt, rtf, pdf, doc, docx, ppt, pptx, ppsx, xls, xlsx, csv, png, jpg, jpeg, gif, webp, mp3, wav, mp4, m4v, mov, avi`
+- Max size: 100 MB (default), 500 MB for video types.
+- One file per upload.
+
+### Upload dropdown source clarity
+
+- Upload destination selector is populated strictly from the upload-tree cache (not the public documents tree).
+- If WordPress destination is selected and a folder path does not exist locally, it shall be created prior to moving the uploaded file.
+
+- Details: Secure file upload shall have a few flow paths.
+    1.  If the password option is selected in Settings, the user shall become authorized to upload a file by entering the password. After the user successfully submits the password, the file upload form shall appear (a destination folder selector which shall be populated from the cache based on the Documents Upload Root Folder in the settings page, a file selector, and an Upload button). Upon clicking the Upload button, the system shall check to make sure that the correct password has been entered and not bypassed in some way, and then shall upload the file. Otherwise, the system shall fail. And a user shall be able to enter an incorrect password up to 50 times before the upload is locked for that user for 24 hours (or so). The password shall be protected by a hash (key in `wp_config`), and shall never be revealed publicly. The password should, however, be rendered in plaintext in the plugin settings page in WordPress. The logic for all of this shall be in the code.
+    2.  If the Google Groups option is selected in Settings, a user who is currently logged into Google and belongs to the Google Group of Approved KGS Web Uploaders shall be able to upload a file. The file upload form shall appear automatically with no password gate if the user is currently logged in to Google and authorized by their Google Group membership (a destination folder selector which shall be populated based on the Documents Upload Root Folder in the settings page, a file selector, and an Upload button). Upon clicking the Upload button, the system shall check to make sure that the user is truly authorized and the check has not bypassed in some way, and then shall upload the file. Otherwise, the system shall fail. The integration with Google Workspace has not yet been completed. Fully working code shall be in place before the Google Workspace administrator is involved. If there needs to be a "Use Google Sign-In to upload with your Kell Grade School email address" button or something, that's fine.
+    3.  This is also related to the Google Workspace integration. By default, the user shall be uploading to a shared Google Drive in the school's Google Workspace. However, a Google service account shall not have an upload quota, and shall not be able to upload files to a private Google Drive. As a workaround for this until the Google Drive upload becomes functional (i.e., when access to a shared Google Drive in the school's Google Workspace is available), there shall be a toggle in the plugin's settings that shall allow the admin in the dashboard to switch from upload to Google Drive to upload to WordPress. The root directory for the WordPress upload shall be set on that settings page as well. In either case (Google Drive upload or WordPress upload), the destination folder selector's folder list shall be populated from the same cache (the Google Drive API one). If the selected upload folder does not exist in the WordPress upload folder, it shall be created.
+
+---
+
+## 4. Caching Strategy
+
+### 4.1 Server-Side Caching (Transients)
+
+To minimize Google API calls and improve performance, all external data is cached using WordPress transients. Each feature has a dedicated cache key:
+
+### Where caching lives
+
+	Feature: Breakfast/Lunch menus 
+	Class/File: class-kgsweb-google-drive-docs.php / class-kgs-google-rest-api.php 
+	Cache Type: transient kgsweb_menu_<type>
+
+	Feature: Folder Trees 
+	Class/File: class-kgsweb-google-drive-docs.php / class-kgs-google-rest-api.php 
+	Cache Type: transient kgsweb_cache_documents_<folder_id>
+
+	Feature: Google Slides 
+	Class/File: class-kgsweb-google-rest-api.php 
+	Cache Type: transient kgsweb_cache_slides_<file_id>
+
+	Feature: Google Sheets 
+	Class/File: class-kgsweb-google-rest-api.php 
+	Cache Type: transient kgsweb_cache_sheets_<sheet_id>
+
+	Feature: Secure File Upload Destination Folder Tree
+	Class/File: class-kgsweb-google-secure-upload.php / class-kgsweb-google-rest-api.php 
+	Cache Type: None (validation uses cached upload folder tree via transient kgsweb_cache_upload_tree_<folder_id>)
+
+	Feature: Ticker 
+	Class/File: class-kgsweb-google-ticker.php / JS 
+	Cache Type: transient kgsweb_cache_ticker_<folder_id> (server) + sessionStorage (front-end)
+
+	Feature: Upcoming events 
+	Class/File: class-kgsweb-google-upcoming-events.php / REST API 
+	Cache Type: transient kgsweb_cache_events_<calendar_id>
+
+- **Default TTL:** 1 hour  
+- **Storage:** WordPress transients or options  
+- **Refresh Triggers:** Hourly cron job or manual refresh via admin settings  
+- **Change Detection:** Uses Google API `modifiedTime` or equivalent to determine if data has changed since last cache
+
+### 4.2 Hourly Cron Behavior and Cache Integrity
+
+A cron job shall run once per hour to refresh the caches. The refresh process shall not remove existing last-known-good data until a new cache is built successfully.
+
+To ensure reliability and prevent user-facing gaps:
+
+- **Atomic Refresh:**  
+  Cached data is refreshed using a “refetch-then-swap” strategy. This means the plugin builds a new cache before replacing the old one, ensuring that stale data is never removed until fresh data is available.
+
+- **Last-Known-Good Preservation:**  
+  If the Google API is unreachable or returns an error, the plugin retains the previous cache to avoid blank states or broken UI.
+
+- **Refresh Timestamps:**  
+  Each cache type stores a `last_refresh` timestamp (e.g., `kgsweb_cache_last_refresh_documents_<folder_id>`) to support diagnostics and optional admin display.
+
+### 4.3 Change Detection Logic
+
+To avoid unnecessary API calls and keep data fresh:
+
+- **Google Drive:**  
+  Compares `modifiedTime` of folders and files to the last cached timestamp. If changes are detected, only affected branches are refreshed.
+
+- **Google Calendar:**  
+  Uses event `updated` timestamps or sync tokens (if available) to detect changes. Falls back to full refresh if detection fails.
+
+- **Fallback Behavior:**  
+  If change detection is inconclusive, the plugin performs a full refresh once per hour to ensure data accuracy.
+
+---
+
+### Front-End (sessionStorage)
+- Used for ticker, menus, events to avoid repeated fetches.
+- Keyed by folder/file ID.
+
+---
+
+## 5. REST API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/ticker` | GET | Returns cached ticker text. |
+| `/events` | GET | Returns paginated calendar events. |
+| `/menu` | GET | Returns latest menu image. |
+| `/documents` | GET | Returns filtered folder tree. |
+| `/slides` | GET | Returns embed info for Slides. |
+| `/sheets` | GET | Returns sheet data or embed. |
+| `/upload` | POST | Handles secure file upload. |
+
+All GET endpoints are public. POST `/upload` requires nonce and authentication.
+
+---
+
+## 6. Non-Functional Requirements
+
+### Usability
+- Intuitive folder tree and upload form.
+- Responsive design for all devices.
+- Accessible components (ARIA, contrast, keyboard support).
+- Admin settings with inline help.
+
+### Security
+- Service account JSON never exposed.
+- CSRF protection, nonce checks, MIME validation.
+- Sanitized filenames and metadata.
+- Password hash stored securely.
+
+### Performance
+- Cached API responses.
+- Efficient JS/CSS loading.
+- Smooth ticker animation via `requestAnimationFrame`.
+
+### Reliability
+- Fallback to cached data on API failure.
+- Graceful error messages.
+- Stable under typical school site load.
+
+### Maintainability
+- Modular classes and shortcodes.
+- WordPress-standard hooks and file structure.
+- Inline documentation.
+- Debug instrumentation for uploads and API errors.
+
+---
+
+## 7. Technical Requirements
+
+| Requirement | Value |
+|-------------|-------|
+| WordPress | 6.8.2 |
+| PHP | 8.3 |
+| Imagick | Enabled |
+| FontAwesome | Enabled |
+| Google Cloud Project | Configured |
+| Google Service Account | Configured |
+| Google Workspace | Exists but not yet integrated |
+
+---
+
+## 8. File Structure
+
+```plaintext
+/Plugins/kgs-google-integration/
+├─ kgsweb-google-integration.php
+├─ includes/
+│  ├─ class-kgsweb-google-integration.php
+│  ├─ class-kgsweb-google-admin.php
+│  ├─ class-kgsweb-google-rest-api.php
+│  ├─ class-kgsweb-google-shortcodes.php
+│  ├─ class-kgsweb-google-secure-upload.php
+│  ├─ class-kgsweb-google-drive-docs.php
+│  ├─ class-kgsweb-google-ticker.php
+│  ├─ class-kgsweb-google-upcoming-events.php
+│  ├─ class-kgsweb-google-helpers.php
+├─ js/
+│  ├─ kgsweb-admin.js
+│  ├─ kgsweb-cache.js
+│  ├─ kgsweb-calendar.js
+│  ├─ kgsweb-datetime.js
+│  ├─ kgsweb-folders.js
+│  ├─ kgsweb-helpers.js
+│  ├─ kgsweb-menus.js
+│  ├─ kgsweb-ticker.js
+│  ├─ kgsweb-upload.js
+├─ css/
+│  └─ kgsweb-style.css
+```
+
+---
+
+## 9. Acceptance Criteria
+
+- All shortcodes render expected content.
+- Upload form enforces auth and file constraints.
+- Folder tree excludes empty branches.
+- Menus convert PDFs and optimize images.
+- Events paginate and link to full calendar.
+- Ticker scrolls smoothly and caches text.
+- REST endpoints return structured data.
+- Admin settings save securely and validate inputs.
+- Cron refreshes caches hourly.
+- Debug mode logs errors without exposing secrets.
+
+
+------------------------------------------------------------
+
+
+## **KGSWeb Google Integration Plugin Architecture**
+
+```
+kgsweb-google-integration.php
+│
+├─ Includes / Classes
+│   ├─ class-kgsweb-google-integration.php
+│   │   ├─ Initializes Google API clients (Drive, Calendar, Slides, Sheets)
+│   │   ├─ Enqueues JS & CSS assets
+│   │   ├─ Provides settings access and transient helpers
+│   │   └─ Coordinates hourly cache refresh via cron
+│   │
+│   ├─ class-kgsweb-google-rest-api.php
+│   │   ├─ Registers REST endpoints:
+│   │   │     - /wp-json/kgsweb/v1/ticker
+│   │   │     - /wp-json/kgsweb/v1/events
+│   │   │     - /wp-json/kgsweb/v1/documents
+│   │   │     - /wp-json/kgsweb/v1/upload
+│   │   │     - /wp-json/kgsweb/v1/menu
+│   │   │     - /wp-json/kgsweb/v1/slides
+│   │   │     - /wp-json/kgsweb/v1/sheets
+│   │   └─ Handles server-side cache refresh and data delivery
+│   │
+│   ├─ class-kgsweb-google-secure-upload.php
+│   │   ├─ Handles secure file upload logic:
+│   │   │     • Password-protected or Google Group gated uploads
+│   │   │     • Uploads to Google Drive or WP Media Library (toggle)
+│   │   │     • Validates destination folder against cached Drive tree
+│   │   └─ Uses REST endpoint: /wp-json/kgsweb/v1/upload
+│   │
+│   ├─ class-kgsweb-google-shortcodes.php
+│   │   ├─ Registers shortcodes:
+│   │   │     • [kgsweb_current_datetime] → JS: datetime.js
+│   │   │     • [kgsweb_ticker folder="FOLDER_ID"] → JS: ticker.js
+│   │   │     • [kgsweb_events calendar_id="CAL_ID"] → JS: calendar.js
+│   │   │     • [kgsweb_menu type="breakfast/lunch"] → JS: menus.js
+│   │   │     • [kgsweb_documents doc-folder="FOLDER_ID"] → JS: folders.js
+│   │   │     • [kgsweb_secure_upload_form upload-folder="FOLDER_ID"] → JS: upload.js
+│   │   │     • [kgsweb_slides file="FILE_ID"] → JS: slides.js (future)
+│   │   │     • [kgsweb_sheets sheet_id="SHEET_ID" range="A1:Z100"] → JS: sheets.js (future)
+│   │   └─ Outputs HTML containers with data attributes for JS modules
+│   │
+│   ├─ class-kgsweb-google-ticker.php
+│   │   └─ Manages ticker content and caching via transients
+│   │
+│   ├─ class-kgsweb-google-upcoming-events.php
+│   │   └─ Fetches and caches Google Calendar events
+│   │
+│   ├─ class-kgsweb-google-drive-docs.php
+│   │   ├─ Builds recursive folder trees from Google Drive
+│   │   ├─ Filters empty branches for public display
+│   │   ├─ Validates upload destinations
+│   │   └─ Provides data for documents and upload shortcodes
+│   │
+│   ├─ class-kgsweb-google-admin.php
+│   │   └─ Registers plugin settings page:
+│   │         - Google API credentials
+│   │         - Default folder IDs (public docs, uploads, menus)
+│   │         - Upload settings (auth mode, destination)
+│   │         - Default files (ticker, slides, sheets)
+│   │         - Manual cache rebuild trigger
+│
+├─ JS Modules
+│   ├─ kgsweb-datetime.js → Enhances [kgsweb_current_datetime] display
+│   ├─ kgsweb-ticker.js → Scrolls ticker text, manages play/pause, expand/collapse
+│   ├─ kgsweb-calendar.js → Fetches and paginates upcoming events
+│   ├─ kgsweb-menus.js → Displays breakfast/lunch menu images
+│   ├─ kgsweb-folders.js → Builds accordion folder tree from cached Drive data
+│   ├─ kgsweb-upload.js → Handles secure upload form, folder selection, file submission
+│   ├─ kgsweb-admin.js → Enhances admin settings UI
+│   ├─ kgsweb-cache.js → Front-end sessionStorage caching for ticker, menus
+│   └─ kgsweb-helpers.js → Shared JS utilities (query selectors, REST wrapper)
+│
+├─ CSS
+│   └─ kgsweb-style.css → Styles folder tree, upload form, ticker, menus, slides, sheets
+│
+└─ Caching Overview
+    ├─ Server-side (PHP transients / options)
+    │   - kgsweb_cache_documents_<folder_id> (public folder tree)
+    │   - kgsweb_cache_upload_tree_<folder_id> (upload folder validation)
+    │   - kgsweb_cache_ticker_<folder_id> (ticker content)
+    │   - kgsweb_menu_<type> (menu image URL)
+    │   - kgsweb_cache_events_<calendar_id> (calendar events)
+    │   - kgsweb_cache_slides_<file_id> (slides data)
+    │   - kgsweb_cache_sheets_<sheet_id> (sheets data)
+    │
+    └─ Front-end (sessionStorage)
+        - Keyed by folder ID or feature (ticker, menus)
+        - Prevents redundant REST calls on page reload
+        - Used for fast rendering only (not persistent)
+
+```
+
+---
+
+### Legend / Flow
+
+```
+Shortcode → HTML container → JS Module → REST API → PHP Class → Cache → Google API
+```
+
+**Example: Ticker Flow**
+
+```
+[kgsweb_ticker folder="XYZ"]
+→ HTML <div class="kgsweb-ticker" data-folder="XYZ" data-speed="0.5">
+→ kgsweb-ticker.js
+→ /wp-json/kgsweb/v1/ticker?id=XYZ
+→ class-kgsweb-google-ticker.php
+→ transient kgsweb_cache_ticker_XYZ
+→ Google Drive API fetch if cache is missing or stale
+```
+
+---
+
+### Notes on Folder ID Resolution
+
+- Shortcode parameters like `doc-folder="abc123"` or `upload-folder="xyz789"` pass the actual folder ID value.
+- These values are used in:
+  - Cache keys (e.g., `kgsweb_cache_documents_abc123`)
+  - REST queries (e.g., `documents?folder_id=abc123`)
+  - JS attributes (`data-doc-folder`, `data-upload-folder`)
+- REST handlers support both semantic param names (`doc-folder`, `upload-folder`) and legacy fallback (`folder_id`).
+
+------------------------------------------------------------
+
+
+## 1. Printable Summary: Shortcodes and REST Endpoints
+
+### Shortcodes Summary
+
+| Shortcode | Parameters | Description |
+|----------|------------|-------------|
+| `[kgsweb_current_datetime]` | `format="short|med|long|time|shortdate|meddate|longdate|PHP_FORMAT"` | Displays current date/time in specified format. |
+| `[kgsweb_ticker]` | `folder="FOLDER_ID"` | Displays scrolling ticker from Google Doc or .txt file. |
+| `[kgsweb_events]` | `calendar_id="CALENDAR_ID"` | Displays upcoming events with pagination and calendar link. |
+| `[kgsweb_menu]` | `type="breakfast|lunch"` | Displays latest menu image from Drive folder. Converts PDF to PNG. |
+| `[kgsweb_documents]` | `doc-folder="FOLDER_ID"` | Displays accordion-style folder tree. Filters out empty folders. |
+| `[kgsweb_secure_upload_form]` | `upload-folder="FOLDER_ID"` | Displays secure upload form gated by password or Google Group. |
+| `[kgsweb_slides]` | `file="FILE_ID"` | Embeds Google Slides presentation. |
+| `[kgsweb_sheets]` | `sheet_id="SHEET_ID" range="A1:Z100"` | Displays Google Sheets data in specified range. |
+
+---
+
+### REST Endpoints Summary
+
+| Endpoint | Method | Parameters | Description |
+|----------|--------|------------|-------------|
+| `/ticker` | GET | `id` | Returns cached ticker text. |
+| `/events` | GET | `calendar_id`, `page`, `per_page` | Returns paginated calendar events. |
+| `/menu` | GET | `type` | Returns latest menu image. |
+| `/documents` | GET | `folder_id` | Returns filtered folder tree. |
+| `/slides` | GET | `file_id` | Returns embed info for Slides. |
+| `/sheets` | GET | `sheet_id`, `range` | Returns sheet data or embed. |
+| `/upload` | POST | `folder_id`, `file`, `password` (if applicable) | Handles secure file upload. Requires nonce and authentication. |
+
+---
+
+## 2. Flowchart: Secure Upload Logic
+
+```plaintext
+[User accesses upload form]
+        ↓
+[Plugin checks auth mode]
+        ↓
+ ┌──────────────┬─────────────────────┐
+ │ Password Mode│ Google Group Mode   │
+ └──────────────┴─────────────────────┘
+        ↓                      ↓
+[User enters password]   [User logs into Google]
+        ↓                      ↓
+[Password hashed + checked]   [Group membership verified]
+        ↓                      ↓
+[If valid]              [If valid]
+        ↓                      ↓
+[Show upload form]      [Show upload form]
+        ↓                      ↓
+[User selects folder + file]
+        ↓
+[Validate file type + size]
+        ↓
+[Check folder exists in cache]
+        ↓
+ ┌──────────────┬─────────────────────┐
+ │ Upload to WP │ Upload to Drive     │
+ └──────────────┴─────────────────────┘
+        ↓
+[If WP: create folder if missing]
+        ↓
+[Move file to destination]
+        ↓
+[Return success or error]
+```
+
+---
+
+## 3. Feature Testing Checklist
+
+### Shortcodes
+- [ ] `[kgsweb_current_datetime]` renders correct format.
+- [ ] `[kgsweb_ticker]` scrolls smoothly, caches text, controls work.
+- [ ] `[kgsweb_events]` paginates events, shows calendar link.
+- [ ] `[kgsweb_menu]` displays image, converts PDF, zoom icon works.
+- [ ] `[kgsweb_documents]` shows filtered folder tree, excludes empty folders.
+- [ ] `[kgsweb_secure_upload_form]` enforces auth, validates file, uploads correctly.
+- [ ] `[kgsweb_slides]` embeds presentation.
+- [ ] `[kgsweb_sheets]` displays sheet data in correct range.
+
+### REST API
+- [ ] `/ticker` returns correct text.
+- [ ] `/events` paginates and formats events.
+- [ ] `/menu` returns optimized image.
+- [ ] `/documents` returns filtered tree.
+- [ ] `/slides` returns embed info.
+- [ ] `/sheets` returns sheet data.
+- [ ] `/upload` enforces auth, validates file, returns success.
+
+### Upload Logic
+- [ ] Password gate locks after 50 failures.
+- [ ] Google Group gate verifies membership.
+- [ ] MIME type and size validation enforced.
+- [ ] Folder selector populated from cache.
+- [ ] WP destination creates missing folders.
+- [ ] Upload success returns correct metadata.
+
+### Admin Settings
+- [ ] All fields save correctly.
+- [ ] Service account JSON validated.
+- [ ] Toggle between Drive and WP works.
+- [ ] Password plaintext visible only in admin.
+- [ ] Debug mode logs errors.
+
+### Caching
+- [ ] All transients created and refreshed hourly.
+- [ ] sessionStorage used for ticker and menus.
+- [ ] Change detection triggers cache refresh.
+
+### Non-Functional
+- [ ] Responsive layout on mobile/tablet/desktop.
+- [ ] Accessible controls (ARIA, contrast, keyboard).
+- [ ] Smooth performance under load.
+- [ ] Fallbacks show cached data on API failure.
+- [ ] Modular code structure with inline docs.
+
+---
+
+## 4. Plugin Architecture Map
+
+```plaintext
+kgsweb-google-integration.php
+├─ Initializes plugin
+├─ Registers activation/deactivation hooks
+├─ Loads all classes
+
+includes/
+├─ class-kgsweb-google-integration.php
+│  ├─ Google API clients
+│  ├─ Asset registration
+│  ├─ Cron refresh
+├─ class-kgsweb-google-admin.php
+│  ├─ Settings page
+│  ├─ Field registration
+│  ├─ Cache rebuild
+├─ class-kgsweb-google-rest-api.php
+│  ├─ Registers REST endpoints
+│  ├─ Handles GET/POST logic
+├─ class-kgsweb-google-shortcodes.php
+│  ├─ Registers shortcodes
+│  ├─ Renders HTML shells
+├─ class-kgsweb-google-secure-upload.php
+│  ├─ Auth logic
+│  ├─ File validation
+│  ├─ Upload to Drive/WP
+├─ class-kgsweb-google-drive-docs.php
+│  ├─ Folder tree traversal
+│  ├─ Menu image conversion
+├─ class-kgsweb-google-ticker.php
+│  ├─ Text extraction
+│  ├─ Caching
+├─ class-kgsweb-google-upcoming-events.php
+│  ├─ Calendar fetch
+│  ├─ Pagination
+├─ class-kgsweb-google-helpers.php
+│  ├─ Filename sanitization
+│  ├─ MIME/icon mapping
+
+js/
+├─ kgsweb-helpers.js
+├─ kgsweb-cache.js
+├─ kgsweb-datetime.js
+├─ kgsweb-ticker.js
+├─ kgsweb-calendar.js
+├─ kgsweb-folders.js
+├─ kgsweb-menus.js
+├─ kgsweb-upload.js
+├─ kgsweb-admin.js
+
+css/
+└─ kgsweb-style.css
+```
+
+---

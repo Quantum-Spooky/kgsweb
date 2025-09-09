@@ -1,0 +1,132 @@
+/* css/kgsweb-style.css */
+
+.kgsweb-ticker { position: relative; overflow: hidden; border: 1px solid #ddd; padding: 6px; }
+.kgsweb-ticker-track { white-space: nowrap; will-change: transform; display: inline-block; }
+.kgsweb-ticker-controls { position: absolute; right: 6px; top: 6px; display: flex; gap: 6px; }
+.kgsweb-ticker-full[hidden] { display: none; }
+
+.kgsweb-events { border: 1px solid #eee; padding: 8px; }
+
+.kgsweb-menu .kgsweb-menu-image img { max-width: 100%; height: auto; display: block; }
+.kgsweb-menu .zoom-icon { position: absolute; right: 8px; bottom: 8px; }
+
+.kgsweb-documents { border: 1px solid #eee; padding: 8px; }
+.kgsweb-documents .folder { cursor: pointer; }
+.kgsweb-documents .children { margin-left: 1rem; }
+
+.kgsweb-upload form { display: grid; gap: 8px; }
+.kgsweb-upload .kgsweb-upload-status { margin-top: 8px; }
+
+
+
+
+
+
+/* Settings page */
+
+.kgsweb-tooltip {
+    position: relative;
+    display: inline-block;
+    margin-left: 6px;
+    cursor: pointer;
+    color: #555;
+}
+
+.kgsweb-tooltip .fa-question-circle:hover {
+    color: #0073aa; /* WP blue */
+}
+
+.kgsweb-tooltip-text {
+    visibility: hidden;
+    width: 280px;
+    background-color: #f1f1f1;
+    color: #222;
+    text-align: left;
+    border-radius: 4px;
+    padding: 8px;
+    position: absolute;
+    z-index: 10;
+    top: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.kgsweb-tooltip:hover .kgsweb-tooltip-text {
+    visibility: visible;
+}
+
+
+/* Document Tree Accordion */
+
+.kgsweb-documents {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  line-height: 1.4;
+}
+
+.kgsweb-docs-loading {
+  color: #555;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+.kgsweb-tree {
+  margin: 8px 0;
+}
+
+.kgsweb-node {
+  display: block;
+  margin: 2px 0;
+}
+
+.kgsweb-node .kgsweb-icon {
+  display: inline-block;
+  width: 1.2em;
+  margin-right: 6px;
+  text-align: center;
+}
+
+.kgsweb-node .kgsweb-label {
+  vertical-align: middle;
+}
+
+/* Indentation by depth */
+.kgsweb-node.depth-0 { padding-left: 0; }
+.kgsweb-node.depth-1 { padding-left: 16px; }
+.kgsweb-node.depth-2 { padding-left: 28px; }
+.kgsweb-node.depth-3 { padding-left: 40px; }
+.kgsweb-node.depth-4 { padding-left: 52px; }
+.kgsweb-node.depth-5 { padding-left: 64px; }
+
+/* Toggle button style */
+.kgsweb-toggle {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  font: inherit;
+  color: #1d2327;
+}
+
+.kgsweb-toggle:hover,
+.kgsweb-toggle:focus {
+  text-decoration: underline;
+}
+
+/* File links */
+.kgsweb-file {
+  color: #135e96;
+  text-decoration: none;
+}
+
+.kgsweb-file:hover,
+.kgsweb-file:focus {
+  text-decoration: underline;
+}
+
+/* Children container */
+.kgsweb-children {
+  margin-top: 2px;
+}
