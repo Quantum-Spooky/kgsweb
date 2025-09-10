@@ -132,23 +132,34 @@ class KGSweb_Google_Integration {
 		}
 
 		// Option 2: service account JSON
-		if (!empty($settings['service_account_json'])) {
-			$json_normalized = str_replace('\\n', "\n", $settings['service_account_json']);
-			$service_account = json_decode($json_normalized, true);
+		// JSON option (saved as base64 to avoid WP escaping)
+			if ( ! empty( $settings['service_account_json_b64'] ) ) {
+				$json_raw = base64_decode( $settings['service_account_json_b64'], true );
+				if ( $json_raw === false ) {
+					error_log( 'KGSWeb: failed to base64_decode service_account_json_b64' );
+					return null;
+				}
 
-			if (!is_array($service_account) || empty($service_account['private_key']) || empty($service_account['client_email'])) {
-				error_log('KGSWeb: service_account_json invalid after normalization.');
-				return null;
-			}
+				$arr = json_decode( $json_raw, true );
+				if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $arr ) ) {
+					error_log( 'KGSWeb: decoded service_account_json_b64 is not valid JSON.' );
+					return null;
+				}
 
-			try {
-				$client->setAuthConfig($service_account);
-				return $cached_client = $client;
-			} catch (Exception $e) {
-				error_log('KGSWeb: setAuthConfig(json) failed: ' . $e->getMessage());
-				return null;
+				// Ensure private_key has real newlines
+				if ( isset( $arr['private_key'] ) ) {
+					$arr['private_key'] = str_replace( ["\\n", "\r\n", "\r"], "\n", $arr['private_key'] );
+				}
+
+				try {
+					$client->setAuthConfig( $arr );
+					$cached_client = $client;
+					return $cached_client;
+				} catch ( Exception $e ) {
+					error_log( 'KGSWeb: setAuthConfig(json) failed: ' . $e->getMessage() );
+					return null;
+				}
 			}
-		}
 
 		error_log('KGSWeb: No Google credentials configured (google_credentials_path or service_account_json).');
 		return null;
@@ -170,7 +181,8 @@ class KGSweb_Google_Integration {
 		}
 
 		$tree = KGSweb_Google_Drive_Docs::build_documents_tree( $root_id );
-		$tree = self::filter_empty_branches( $tree );
+		$tree = KGSweb_Google_Drive_Docs::filter_empty_branches( $tree );
+
 
 		set_transient( $cache_key, $tree, HOUR_IN_SECONDS );
 		return $tree;
@@ -202,11 +214,20 @@ class KGSweb_Google_Integration {
 	
 	
 	
-	
-
-	
+	/*
+		// Proxy to Drive_Docs filter function
+		public static function filter_empty_branches( $node ) {
+			if ( class_exists( 'KGSweb_Google_Drive_Docs' ) && method_exists( 'KGSweb_Google_Drive_Docs', 'filter_empty_branches' ) ) {
+				return KGSweb_Google_Drive_Docs::filter_empty_branches( $node );
+			}
+			return $node;
+		}
+	*/		
 	
 	
 	
 	
 }
+
+
+

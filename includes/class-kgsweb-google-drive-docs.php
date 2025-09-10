@@ -16,9 +16,19 @@ class KGSweb_Google_Drive_Docs {
         self::refresh_menu_cache( 'lunch' );
     }
 
-    public static function get_public_root_id() {
-        return KGSweb_Google_Integration::get_settings()['public_docs_root_id'] ?? '';
-    }
+	
+	public static function get_public_root_id() {
+		$key = 'kgsweb_service_account_json';
+		$value = get_transient($key);
+		if (false === $value) {
+			// handle error
+		}
+		$decoded_value = base64_decode($value);
+		// use the decoded value...
+	}
+		
+	
+	
     public static function get_upload_root_id() {
         return KGSweb_Google_Integration::get_settings()['upload_root_id'] ?? '';
     }
