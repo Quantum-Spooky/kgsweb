@@ -32,7 +32,6 @@ require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-helpers.php';
 require  KGSWEB_PLUGIN_DIR . 'vendor/autoload.php';
 
 
-
 register_activation_hook( KGSWEB_PLUGIN_FILE, function() {
     // Seed defaults
     $defaults = [
