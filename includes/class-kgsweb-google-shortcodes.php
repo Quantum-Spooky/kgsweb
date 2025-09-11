@@ -2,20 +2,37 @@
 // includes/class-kgsweb-google-shortcodes.php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
+
 class KGSweb_Google_Shortcodes {
-    public static function init() {
-        add_shortcode( 'kgsweb_current_datetime', [ __CLASS__, 'current_datetime' ] );
-        add_shortcode( 'kgsweb_ticker',           [ __CLASS__, 'ticker' ] );
-        add_shortcode( 'kgsweb_events',           [ __CLASS__, 'events' ] );
-        add_shortcode( 'kgsweb_menu',             [ __CLASS__, 'menu' ] );
-        add_shortcode( 'kgsweb_documents',        [ __CLASS__, 'documents' ] );
-        add_shortcode( 'kgsweb_secure_upload_form', [ __CLASS__, 'secure_upload_form' ] );
-        add_shortcode( 'kgsweb_slides',           [ __CLASS__, 'slides' ] );
-        add_shortcode( 'kgsweb_sheets',           [ __CLASS__, 'sheets' ] );
+
+    private static ?self $instance = null;
+
+    /*******************************
+     * Singleton init
+     *******************************/
+    public static function init(): self {
+        if (self::$instance === null) {
+            self::$instance = new self();
+            // Hook shortcodes registration into 'init'
+            add_action('init', [self::$instance, 'register_shortcodes']);
+        }
+        return self::$instance;
     }
 
-
-    
+    /*******************************
+     * Register all shortcodes
+     *******************************/
+    public function register_shortcodes() {
+        add_shortcode('kgsweb_documents', [$this, 'documents']);
+        add_shortcode('kgsweb_secure_upload_form', [$this, 'secure_upload_form']);		
+        add_shortcode('kgsweb_menu', [$this, 'menu']);
+        add_shortcode('kgsweb_ticker', [$this, 'ticker']);
+        add_shortcode('kgsweb_calendar', [$this, 'events']);
+        add_shortcode('kgsweb_datetime', [$this, 'current_datetime']);
+        add_shortcode('kgsweb_sheets', [$this, 'sheets']);
+        add_shortcode('kgsweb_slides', [$this, 'slides']);
+    }
+	  
 	public static function enqueue_if_needed( $handles = [] ) {
         wp_enqueue_style( 'kgsweb-style' );
         foreach ( (array)$handles as $h ) { wp_enqueue_script( $h ); }
@@ -105,15 +122,15 @@ class KGSweb_Google_Shortcodes {
 		$ver = '0.1.0';
 
 		wp_register_style(
-			'kgsweb-folders',
-			plugins_url( 'assets/css/kgsweb-folders.css', KGSWEB_PLUGIN_FILE ),
+			'kgsweb-style',
+			plugins_url( '/css/kgsweb-style.css', KGSWEB_PLUGIN_FILE ),
 			[],
 			$ver
 		);
 
 		wp_register_script(
 			'kgsweb-folders',
-			plugins_url( 'assets/js/kgsweb-folders.js', KGSWEB_PLUGIN_FILE ),
+			plugins_url( '/js/kgsweb-folders.js', KGSWEB_PLUGIN_FILE ),
 			[],
 			$ver,
 			true
@@ -125,7 +142,7 @@ class KGSweb_Google_Shortcodes {
 	}
 
 	public static function enqueue_documents_assets() {
-		wp_enqueue_style( 'kgsweb-folders' );
+		wp_enqueue_style( 'kgsweb-style' );
 		wp_enqueue_script( 'kgsweb-folders' );
 	}
 
