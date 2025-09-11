@@ -8,7 +8,7 @@
  * License: GPLv2 or later
  * Text Domain: kgsweb
  */
-
+// kgsweb-google-integration.php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 define( 'KGSWEB_PLUGIN_VERSION', '1.0.0' );
@@ -20,17 +20,37 @@ define( 'KGSWEB_SETTINGS_OPTION', 'kgsweb_settings' );
 // Optional: configure in wp-config.php
 // define( 'KGSWEB_UPLOAD_PASS_HASH', 'sha256:...' );
 
+require_once plugin_dir_path(__FILE__) . 'includes/class-kgsweb-google-drive-docs.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-kgsweb-google-rest-api.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-integration.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-admin.php';
-require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-rest-api.php';
+// require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-rest-api.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-shortcodes.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-secure-upload.php';
-require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-drive-docs.php';
+// require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-drive-docs.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-ticker.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-upcoming-events.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-helpers.php';
-require  KGSWEB_PLUGIN_DIR . 'vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
+add_action( 'plugins_loaded', function() {
+    KGSweb_Google_Integration::init();
+    KGSweb_Google_Admin::init();
+    KGSweb_Google_REST_API::init();
+    KGSweb_Google_Shortcodes::init();
+    KGSweb_Google_Secure_Upload::init();
+    KGSweb_Google_Drive_Docs::init();
+    KGSweb_Google_Ticker::init();
+    KGSweb_Google_Upcoming_Events::init();
+    KGSweb_Google_Helpers::init();
+});
+
+
+use Google\Client;
+use Google\Service\Drive;
+use Google\Service\Calendar;
+use Google\Service\Sheets;
+use Google\Service\Slides;
 
 register_activation_hook( KGSWEB_PLUGIN_FILE, function() {
     // Seed defaults
@@ -69,17 +89,11 @@ register_deactivation_hook( KGSWEB_PLUGIN_FILE, function() {
     // Consider purging temporary transients if needed.
 });
 
-add_action( 'plugins_loaded', function() {
-    KGSweb_Google_Integration::init();
-    KGSweb_Google_Admin::init();
-    KGSweb_Google_REST_API::init();
-    KGSweb_Google_Shortcodes::init();
-    KGSweb_Google_Secure_Upload::init();
-    KGSweb_Google_Drive_Docs::init();
-    KGSweb_Google_Ticker::init();
-    KGSweb_Google_Upcoming_Events::init();
-    KGSweb_Google_Helpers::init();
-});
-
 add_action( 'wp_enqueue_scripts', [ 'KGSweb_Google_Shortcodes', 'register_assets' ] );	
+
+add_action('admin_notices', function() {
+    if (rest_url('kgsweb/v1/documents')) {
+        echo '<div class="notice notice-success"><p>REST route kgsweb/v1/documents exists!</p></div>';
+    }
+});
 
