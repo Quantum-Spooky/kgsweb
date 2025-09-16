@@ -112,44 +112,69 @@ class KGSweb_Google_Upcoming_Events {
     /**
      * REST endpoint for public GET /events
      */
-	public function rest_calendar_events(WP_REST_Request $request) {
-		$calendarId = sanitize_text_field($request->get_param('calendar_id'))
-					  ?: get_option('kgsweb_default_calendar_id', '');
-		$page      = max(1, (int) $request->get_param('page'));
-		$perPage   = max(1, (int) $request->get_param('per_page'));
+		public function rest_calendar_events( WP_REST_Request $request ) {
+			// Read input parameters
+			$calendarId = sanitize_text_field( $request->get_param('calendar_id') )
+						  ?: get_option( 'kgsweb_default_calendar_id', '' );
+			$page       = max(1, intval( $request->get_param('page') ));
+			$perPage    = max(1, intval( $request->get_param('per_page') ));
 
-		if (empty($calendarId)) {
-			return new WP_REST_Response(
-				['message' => 'No calendar ID configured.'],
-				404
-			);
+			if ( empty( $calendarId ) ) {
+				return new WP_REST_Response( [
+					'message' => 'No calendar ID configured.',
+				], 404 );
+			}
+
+			// Try to get cached events (the normalized array)
+			$cache_key = 'kgsweb_cache_events_' . md5( $calendarId );
+			$cached = get_transient( $cache_key );
+
+			if ( false === $cached ) {
+				// Cache miss -> fetch fresh
+				$events_all = self::fetch_and_normalize_events( $calendarId );
+				// Always store an array
+				set_transient( $cache_key, $events_all, HOUR_IN_SECONDS );
+			} else {
+				// If cached is not false, ensure it's an array
+				if ( is_string( $cached ) ) {
+					$maybe = json_decode( $cached, true );
+					if ( is_array( $maybe ) ) {
+						$events_all = $maybe;
+					} else {
+						// If for some reason the cached string is not valid JSON,
+						// fallback: assume it was stored as an array already.
+						$events_all = maybe_unserialize( $cached );
+						if ( ! is_array( $events_all ) ) {
+							// Extreme fallback: re‐fetch if everything is weird
+							$events_all = self::fetch_and_normalize_events( $calendarId );
+							set_transient( $cache_key, $events_all, HOUR_IN_SECONDS );
+						}
+					}
+				} elseif ( is_array( $cached ) ) {
+					$events_all = $cached;
+				} else {
+					// Not string nor array: fallback refetch
+					$events_all = self::fetch_and_normalize_events( $calendarId );
+					set_transient( $cache_key, $events_all, HOUR_IN_SECONDS );
+				}
+			}
+
+			// Now we have an array $events_all
+			$total   = count( $events_all );
+			$offset  = ( $page - 1 ) * $perPage;
+			$slice   = array_slice( $events_all, $offset, $perPage );
+			$total_pages = $perPage > 0 ? ceil( $total / $perPage ) : 1;
+
+			// Build response payload
+			$response_data = [
+				'calendar_id' => $calendarId,
+				'events'      => $slice,
+				'page'        => $page,
+				'per_page'    => $perPage,
+				'total'       => $total,
+				'total_pages' => $total_pages,
+			];
+
+			return rest_ensure_response( $response_data );
 		}
-
-		$cache_key = 'kgsweb_cache_events_' . md5($calendarId);
-		$cached_events = get_transient($cache_key);
-
-		// Fetch and cache events if not cached
-		if ($cached_events === false) {
-			$cached_events = KGSweb_Google_Upcoming_Events::fetch_and_normalize_events($calendarId);
-			set_transient($cache_key, wp_json_encode($cached_events), HOUR_IN_SECONDS);
-		} else {
-			$cached_events = json_decode($cached_events, true);
-		}
-
-		$total = count($cached_events);
-		$offset = ($page - 1) * $perPage;
-		$slice = array_slice($cached_events, $offset, $perPage);
-
-		$response_data = [
-			'calendar_id' => $calendarId,
-			'events'      => $slice,
-			'page'        => $page,
-			'per_page'    => $perPage,
-			'total'       => $total,
-			'total_pages' => ceil($total / $perPage),
-		];
-
-		return new WP_REST_Response($response_data, 200);
-	}
-
 }
