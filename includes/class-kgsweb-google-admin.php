@@ -31,7 +31,6 @@ class KGSweb_Google_Admin {
             'admin',
             'cache',
             'calendar',
-            'datetime',
             'folders',
             'helpers',
             'menus',
@@ -70,25 +69,28 @@ class KGSweb_Google_Admin {
             wp_die('Security check failed.');
         }
 
-        // Google Integration options
-        update_option('kgsweb_service_account_json', stripslashes($_POST['service_account_json']));
-        update_option('kgsweb_root_folder_id', sanitize_text_field($_POST['root_folder_id']));
-        update_option('kgsweb_breakfast_folder_id', sanitize_text_field($_POST['breakfast_folder_id']));
-        update_option('kgsweb_lunch_folder_id', sanitize_text_field($_POST['lunch_folder_id']));
-        update_option('kgsweb_ticker_folder_id', sanitize_text_field($_POST['ticker_folder_id']));
-        update_option('kgsweb_calendar_ids', sanitize_text_field($_POST['calendar_ids']));
-        update_option('kgsweb_upload_root_folder_id', sanitize_text_field($_POST['upload_root_folder_id']));
+		// Google Integration options
+		update_option('kgsweb_service_account_json', stripslashes($_POST['service_account_json']));
+		update_option('kgsweb_root_folder_id', $_POST['root_folder_id']); // Removed sanitize_text_field
+		update_option('kgsweb_breakfast_folder_id', $_POST['breakfast_folder_id']); // Removed sanitize_text_field
+		update_option('kgsweb_lunch_folder_id', $_POST['lunch_folder_id']); // Removed sanitize_text_field
+		update_option('kgsweb_ticker_file_id', $_POST['ticker_file_id'] ?? ''); // Removed sanitize_text_field
+		update_option('kgsweb_calendar_ids', $_POST['calendar_ids']); // Removed sanitize_text_field
+		update_option('kgsweb_upload_root_folder_id', $_POST['upload_root_folder_id']); // Removed sanitize_text_field
 
-        // Secure Upload Settings
-        $upload_opts = [
-            'upload_auth_mode'   => sanitize_text_field($_POST['upload_auth_mode'] ?? 'password'),
-            'upload_password'    => sanitize_text_field($_POST['upload_password'] ?? ''),
-            'google_groups'      => array_map('trim', is_array($_POST['google_groups'] ?? null) ? $_POST['google_groups'] : explode(',', (string)($_POST['google_groups'] ?? ''))),
-            'upload_destination' => sanitize_text_field($_POST['upload_destination'] ?? 'drive'),
-            'wp_upload_root'     => sanitize_text_field($_POST['wp_upload_root'] ?? ''),
-        ];
-        update_option('kgsweb_secure_upload_options', $upload_opts);
+		// Secure Upload Settings
+		$upload_opts = [
+			'upload_auth_mode'   => sanitize_text_field($_POST['upload_auth_mode'] ?? 'password'),
+			'upload_password'    => sanitize_text_field($_POST['upload_password'] ?? ''),
+			'google_groups'      => array_map('trim', is_array($_POST['google_groups'] ?? null) ? $_POST['google_groups'] : explode(',', (string)($_POST['google_groups'] ?? ''))),
+			'upload_destination' => sanitize_text_field($_POST['upload_destination'] ?? 'drive'),
+			'wp_upload_root'     => sanitize_text_field($_POST['wp_upload_root'] ?? ''),
+		];
+		update_option('kgsweb_secure_upload_options', $upload_opts);
 
+		// Refresh ticker cache immediately
+		KGSweb_Google_Ticker::refresh_cache_cron();
+	
         echo "<div class='updated'><p>Settings saved!</p></div>";
 
         // Initialize or refresh Google Drive client
@@ -138,7 +140,7 @@ class KGSweb_Google_Admin {
     $upload_root_folder = get_option('kgsweb_upload_root_folder_id', '');
     $breakfast          = get_option('kgsweb_breakfast_folder_id', '');
     $lunch              = get_option('kgsweb_lunch_folder_id', '');
-    $ticker             = get_option('kgsweb_ticker_folder_id', '');
+	$ticker             = get_option('kgsweb_ticker_file_id', '');
     $calendars          = get_option('kgsweb_calendar_ids', '');
     $upload_opts        = get_option('kgsweb_secure_upload_options', []);
 
@@ -180,7 +182,8 @@ class KGSweb_Google_Admin {
                     <tr><th>Documents Upload Root Folder</th><td><input type="text" name="upload_root_folder_id" value="<?php echo esc_attr($upload_root_folder); ?>" size="50"></td></tr>
                     <tr><th>Breakfast Folder</th><td><input type="text" name="breakfast_folder_id" value="<?php echo esc_attr($breakfast); ?>" size="50"></td></tr>
                     <tr><th>Lunch Folder</th><td><input type="text" name="lunch_folder_id" value="<?php echo esc_attr($lunch); ?>" size="50"></td></tr>
-                    <tr><th>Ticker Folder</th><td><input type="text" name="ticker_folder_id" value="<?php echo esc_attr($ticker); ?>" size="50"></td></tr>
+					<tr><th>Ticker Folder</th><td><input type="text" name="ticker_file_id" value="<?php echo esc_attr($ticker); ?>" size="50"></td></tr>
+
                 </table>
 
                 <!-- Calendar IDs -->
@@ -236,6 +239,13 @@ class KGSweb_Google_Admin {
                         </td>
                     </tr>
                 </table>
+				
+				 <!-- Save Settings -->
+                <p class="submit">
+                    <input type="submit" name="kgsweb_save_settings" id="submit" class="button button-primary" value="Save Settings">
+                </p>
+				
+				<hr />
 
                 <!-- Cache Buttons -->
                 <h2>Cache Management</h2>
@@ -243,12 +253,70 @@ class KGSweb_Google_Admin {
                 <button type="submit" name="kgsweb_update_cache" class="button">Update Cache Now</button>
                 <button type="submit" name="kgsweb_clear_cache" class="button">Clear All Cache</button>
 
-                <!-- Save Settings -->
-                <p class="submit">
-                    <input type="submit" name="kgsweb_save_settings" id="submit" class="button button-primary" value="Save Settings">
-                </p>
+               
             </form>
-        </div>
+			
+			
+			
+			<hr />
+			<div class="kgsweb-shortcode-help">
+			  <h2>Available Shortcodes</h2>
+			  <p>You can use these shortcodes anywhere in posts, pages, or widgets</p>
+			  <ul class="kgsweb-shortcode-list">
+				<li>
+				  <code>[kgsweb_documents doc-folder="FOLDER_ID"]</code> &nbsp; 
+				  <i>Accordion-style folder tree from Drive; excludes empty folders</i>
+				</li>
+				<li>
+				  <code>[kgsweb_secure_upload_form upload-folder="FOLDER_ID"]</code> &nbsp; 
+				  <i>Upload form gated by password or Google Group; one file per upload</i>
+				</li>
+				<li>
+				  <code>[kgsweb_events calendar_id="CALENDAR_ID"]</code> &nbsp; 
+				  <i>Displays 10 upcoming Google Calendar events with pagination (caches 100 events)</i>
+				</li>
+				<li>
+				  <code>[kgsweb_menu type="breakfast"]</code>, 
+				  <code>[kgsweb_menu type="lunch"]</code> &nbsp; 
+				  <i>Displays latest image from Drive folder; converts PDF to PNG if needed</i>
+				</li>
+				<li>
+				  <code>[kgsweb_ticker folder="FOLDER_ID"]</code> &nbsp; 
+				  <i>Displays horizontally scrolling text from a Google Doc or .txt file</i>
+				</li>
+				<li>
+				  <code>[kgsweb_slides file="FILE_ID"]</code> &nbsp; 
+				  <i>Embeds Google Slides presentation</i>
+				</li>
+				<li class="kgsweb-shortcode-example">
+				  Example (slideshow): 
+				  <code>[kgsweb_slides file="GOOGLE_SLIDES_FILE_ID" width="800px" height="600px"]</code>
+				</li>
+				<li class="kgsweb-shortcode-example">
+				  Example (force PDFs): 
+				  <code>[kgsweb_slides file="GOOGLE_SLIDES_FILE_ID" force_pdf="true" width="800px" height="600px"]</code>
+				</li>
+				<li>
+				  <code>[kgsweb_sheets sheet_id="SHEET_ID" range="A1:Z100"]</code> &nbsp; 
+				  <i>Displays Google Sheets data in specified range</i>
+				</li>
+				<li>
+				  <code>[kgsweb_current_datetime format="FORMAT"]</code> &nbsp; 
+				  <i>Displays current time/date in specified format or alias</i>
+				</li>
+			  </ul>
+			  <h3>Notes</h3>
+			  <ul>
+				<li><?php esc_html_e( 'You must have a valid Google service account with access to the specified Drive folders and Calendars.', 'kgsweb' ); ?></li>
+				<li><?php esc_html_e( 'Menus and ticker fetch the latest file from the folder.', 'kgsweb' ); ?></li>
+				<li><?php esc_html_e( 'Sheets and Slides require IDs passed in the shortcode.', 'kgsweb' ); ?></li>
+				<li><?php esc_html_e( 'Shortcodes can be used independently on different pages.', 'kgsweb' ); ?></li>
+			  </ul>
+			  <hr />
+			  <div class="secure-upload-settings"></div>
+			</div>
+
+
     </div>
     <?php
 }

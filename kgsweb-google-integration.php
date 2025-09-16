@@ -24,13 +24,14 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-kgsweb-google-drive-doc
 require_once plugin_dir_path(__FILE__) . 'includes/class-kgsweb-google-rest-api.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-integration.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-admin.php';
-// require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-rest-api.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-shortcodes.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-secure-upload.php';
-// require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-drive-docs.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-ticker.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-upcoming-events.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-helpers.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-menus.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-slides.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-sheets.php';
 require_once __DIR__ . '/vendor/autoload.php';
 
 add_action( 'plugins_loaded', function() {
@@ -40,9 +41,9 @@ add_action( 'plugins_loaded', function() {
     KGSweb_Google_Shortcodes::init();
     KGSweb_Google_Secure_Upload::init();
     KGSweb_Google_Drive_Docs::init();
-    KGSweb_Google_Ticker::init();
     KGSweb_Google_Upcoming_Events::init();
     KGSweb_Google_Helpers::init();
+	KGSweb_Google_Ticker::register();
 });
 
 
@@ -80,6 +81,7 @@ register_activation_hook( KGSWEB_PLUGIN_FILE, function() {
     if ( ! wp_next_scheduled( 'kgsweb_hourly_cache_refresh' ) ) {
         wp_schedule_event( time() + 60, 'hourly', 'kgsweb_hourly_cache_refresh' );
     }
+	
 });
 
 register_deactivation_hook( KGSWEB_PLUGIN_FILE, function() {
@@ -91,9 +93,21 @@ register_deactivation_hook( KGSWEB_PLUGIN_FILE, function() {
 
 add_action( 'wp_enqueue_scripts', [ 'KGSweb_Google_Shortcodes', 'register_assets' ] );	
 
-add_action('admin_notices', function() {
-    if (rest_url('kgsweb/v1/documents')) {
-        echo '<div class="notice notice-success"><p>REST route kgsweb/v1/documents exists!</p></div>';
+
+add_action('wp_enqueue_scripts', function() {
+    if (!wp_style_is('fontawesome', 'enqueued')) {
+        wp_enqueue_style(
+            'fontawesome',
+            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+            [],
+            '5.15.4'
+        );
     }
 });
 
+
+
+
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+    require_once __DIR__ . '/wp-cli-kgsweb-test-drive.php';
+}

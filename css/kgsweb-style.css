@@ -1,29 +1,259 @@
-/* css/kgsweb-style.css */
+/* =========================================
+   KGSweb Global Styles
+   ========================================= */
 
-.kgsweb-ticker { position: relative; overflow: hidden; border: 1px solid #ddd; padding: 6px; }
-.kgsweb-ticker-track { white-space: nowrap; will-change: transform; display: inline-block; }
-.kgsweb-ticker-controls { position: absolute; right: 6px; top: 6px; display: flex; gap: 6px; }
-.kgsweb-ticker-full[hidden] { display: none; }
+body .kgsweb-ticker,
+body .kgsweb-events,
+body .kgsweb-documents,
+body .kgsweb-upload {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color: #222;
+    line-height: 1.4;
+}
 
-.kgsweb-events { border: 1px solid #eee; padding: 8px; }
+/* =========================================
+   Ticker
+   ========================================= */
+.kgsweb-ticker {
+    display: flex;
+    align-items: center;
+    width: 97vw;
+    max-width: 100vw;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    color: #222;
+    padding: 4px 8px;
+}
 
-.kgsweb-menu .kgsweb-menu-image img { max-width: 100%; height: auto; display: block; }
-.kgsweb-menu .zoom-icon { position: absolute; right: 8px; bottom: 8px; }
+.kgsweb-ticker-expand {
+    flex-shrink: 0;
+    margin-right: 8px;
+    background: none;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 4px;
+    width: 20px;
+    height: 20x;
+    color: #135e96;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-.kgsweb-documents { border: 1px solid #eee; padding: 8px; }
-.kgsweb-documents .folder { cursor: pointer; }
-.kgsweb-documents .children { margin-left: 1rem; }
+.kgsweb-ticker-expand:hover,
+.kgsweb-ticker-expand:focus {
+    background: #135e96;
+    color: #fff;
+    outline: none;
+}
 
+.kgsweb-ticker-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.kgsweb-ticker-container {
+    overflow: hidden;
+    position: relative;
+}
+
+.kgsweb-ticker-track {
+    display: block;
+    white-space: nowrap;
+    will-change: transform;
+    transform: translateX(0);
+}
+
+.kgsweb-ticker-inner {
+    display: inline-block;
+}
+
+.kgsweb-ticker-full {
+    display: none;
+    white-space: pre-wrap;
+    margin-top: 6px;
+    font-size: 16px;
+    line-height: 1.4;
+    color: #333;
+}
+
+.kgsweb-ticker.full-visible .kgsweb-ticker-full {
+    display: block;
+}
+
+/* =========================================
+   Events
+   ========================================= */
+.kgsweb-events {
+    border: 1px solid #eee;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+/* =========================================
+   Menu Images
+   ========================================= */
+.kgsweb-menu .kgsweb-menu-image img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 2px;
+}
+
+.kgsweb-menu .zoom-icon {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    font-size: 1.2em;
+    color: #135e96;
+}
+
+/* =========================================
+   Documents Container
+   ========================================= */
+.kgsweb-documents {
+    border: 1px solid #eee;
+    padding: 8px;
+    border-radius: 4px;
+    background: #fff;
+    margin-bottom: 1em;
+    font-family: inherit;
+    font-size: 14px;
+    color: #222;
+}
+
+.kgsweb-docs-loading {
+    color: #555;
+    font-size: 14px;
+    padding: 8px 0;
+}
+
+/* =========================================
+   Tree List
+   ========================================= */
+.kgsweb-tree {
+    list-style: none;
+    margin: 4px 0;
+    padding: 0;
+}
+
+.kgsweb-node {
+    display: flex;
+    flex-direction: column;
+    margin: 1px 0;
+}
+
+/* =========================================
+   Folder Toggle
+   ========================================= */
+.kgsweb-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4px 6px;
+    cursor: pointer;
+    font: inherit;
+    color: #222;
+    border-radius: 4px;
+    transition: background 0.2s ease, color 0.2s ease;
+    user-select: none;
+    text-decoration: none;
+}
+
+.kgsweb-toggle:hover,
+.kgsweb-toggle:focus {
+    background: #f0f8ff;
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.kgsweb-toggle .kgsweb-icon {
+    margin-right: 6px;
+    width: 1.2em;
+    text-align: center;
+    transition: color 0.2s ease;
+}
+
+/* Label next to icon */
+.kgsweb-toggle .kgsweb-label {
+    flex-grow: 1;
+    text-align: left;
+}
+
+/* Chevron icon on right */
+.kgsweb-toggle .kgsweb-toggle-icon {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+/* Rotate chevron when folder is open */
+.kgsweb-node.open > .kgsweb-toggle .kgsweb-toggle-icon {
+    transform: rotate(90deg);
+}
+
+/* Change folder icon when open */
+.kgsweb-node.open > .kgsweb-toggle .kgsweb-icon > i.fa-folder {
+    display: none;
+}
+.kgsweb-node.open > .kgsweb-toggle .kgsweb-icon > i.fa-folder-open {
+    display: inline-block;
+}
+
+/* Default hidden open folder icon */
+.kgsweb-toggle .kgsweb-icon > i.fa-folder-open {
+    display: none;
+}
+
+/* Children container */
+.kgsweb-children {
+    margin-left: 20px;
+    padding-left: 0;
+}
+
+/* =========================================
+   Files
+   ========================================= */
+.kgsweb-file {
+    display: flex;
+    align-items: center;
+    color: #135e96;
+    text-decoration: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.kgsweb-file:hover,
+.kgsweb-file:focus {
+    color: #0073aa;
+    text-decoration: underline;
+    background: #f0f8ff;
+}
+
+.kgsweb-file .kgsweb-icon {
+    display: inline-block;
+    width: 1.2em;
+    margin-right: 6px;
+    text-align: center;
+}
+
+/* =========================================
+   Upload Forms
+   ========================================= */
 .kgsweb-upload form { display: grid; gap: 8px; }
-.kgsweb-upload .kgsweb-upload-status { margin-top: 8px; }
+.kgsweb-upload .kgsweb-upload-status { margin-top: 8px; font-size: 13px; color: #555; }
 
-
-
-
-
-
-/* Settings page */
-
+/* =========================================
+   Tooltips
+   ========================================= */
 .kgsweb-tooltip {
     position: relative;
     display: inline-block;
@@ -32,9 +262,7 @@
     color: #555;
 }
 
-.kgsweb-tooltip .fa-question-circle:hover {
-    color: #0073aa; /* WP blue */
-}
+.kgsweb-tooltip .fa-question-circle:hover { color: #0073aa; }
 
 .kgsweb-tooltip-text {
     visibility: hidden;
@@ -54,79 +282,67 @@
     line-height: 1.4;
 }
 
-.kgsweb-tooltip:hover .kgsweb-tooltip-text {
-    visibility: visible;
+.kgsweb-tooltip:hover .kgsweb-tooltip-text { visibility: visible; }
+
+/* =========================================
+   Shortcode Help List
+========================================= */
+.kgsweb-shortcode-list { list-style-type: none; padding-left: 0; margin: 0; }
+.kgsweb-shortcode-list li { margin-bottom: 0.5em; }
+.kgsweb-shortcode-example { margin-left: 1.5em; font-size: 0.95em; color: #555; }
+
+/* =========================================
+   Slides
+========================================= */
+.kgsweb-slides-wrapper,
+.kgsweb-slides-pdf-wrapper {
+    position: relative;
+    margin: 1em 0;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-
-/* Document Tree Accordion */
-
-.kgsweb-documents {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  line-height: 1.4;
+.kgsweb-slides-iframe,
+.kgsweb-slides-pdf-wrapper iframe {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    height: 480px;
 }
 
-.kgsweb-docs-loading {
-  color: #555;
-  font-size: 14px;
-  padding: 8px 0;
+.kgsweb-slides-thumbnails {
+    display: flex;
+    overflow-x: auto;
+    padding: 4px 0;
+    margin-top: 6px;
+    gap: 4px;
+    position: relative;
 }
 
-.kgsweb-tree {
-  margin: 8px 0;
+.kgsweb-slides-thumbnails::-webkit-scrollbar { height: 6px; }
+.kgsweb-slides-thumbnails::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 3px; }
+
+.kgsweb-slides-thumbnails::before,
+.kgsweb-slides-thumbnails::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 50px;
+    height: 100%;
+    pointer-events: none;
+}
+.kgsweb-slides-thumbnails::before { left: 0; background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0)); }
+.kgsweb-slides-thumbnails::after { right: 0; background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0)); }
+
+.kgsweb-slides-thumbnails img {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s;
+    cursor: pointer;
+    height: 80px;
+    flex-shrink: 0;
+    display: block;
 }
 
-.kgsweb-node {
-  display: block;
-  margin: 2px 0;
-}
-
-.kgsweb-node .kgsweb-icon {
-  display: inline-block;
-  width: 1.2em;
-  margin-right: 6px;
-  text-align: center;
-}
-
-.kgsweb-node .kgsweb-label {
-  vertical-align: middle;
-}
-
-/* Indentation by depth */
-.kgsweb-node.depth-0 { padding-left: 0; }
-.kgsweb-node.depth-1 { padding-left: 16px; }
-.kgsweb-node.depth-2 { padding-left: 28px; }
-.kgsweb-node.depth-3 { padding-left: 40px; }
-.kgsweb-node.depth-4 { padding-left: 52px; }
-.kgsweb-node.depth-5 { padding-left: 64px; }
-
-/* Toggle button style */
-.kgsweb-toggle {
-  background: none;
-  border: none;
-  padding: 4px 0;
-  cursor: pointer;
-  font: inherit;
-  color: #1d2327;
-}
-
-.kgsweb-toggle:hover,
-.kgsweb-toggle:focus {
-  text-decoration: underline;
-}
-
-/* File links */
-.kgsweb-file {
-  color: #135e96;
-  text-decoration: none;
-}
-
-.kgsweb-file:hover,
-.kgsweb-file:focus {
-  text-decoration: underline;
-}
-
-/* Children container */
-.kgsweb-children {
-  margin-top: 2px;
-}
+.k

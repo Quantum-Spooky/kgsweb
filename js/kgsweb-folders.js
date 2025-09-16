@@ -1,5 +1,4 @@
-					   
-
+// js/kgsweb-folders.js
 (() => {
   'use strict';
 
@@ -10,57 +9,77 @@
   function $(sel, ctx = document) { return ctx.querySelector(sel); }
   function $all(sel, ctx = document) { return Array.from(ctx.querySelectorAll(sel)); }
 
+  // Map nodes to FontAwesome icons
   function iconFor(node) {
-    if (node.type === 'folder') return '📁';
-						  
+    if (node.type === 'folder') {
+      return `
+        <i class="fa fa-folder"></i>
+        <i class="fa fa-folder-open" style="display:none"></i>
+      `;
+    }
+
     const name = (node.name || '').toLowerCase();
-    if (name.endsWith('.pdf')) return '📄';
-    if (name.endsWith('.doc') || name.endsWith('.docx')) return '📝';
-    if (name.endsWith('.xls') || name.endsWith('.xlsx')) return '📊';
-    if (name.endsWith('.ppt') || name.endsWith('.pptx')) return '📈';
-    if (name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png')) return '🖼️';
-    return '📎';
+    if (name.endsWith('.pdf')) return '<i class="fa fa-file-pdf"></i>';
+    if (name.endsWith('.doc') || name.endsWith('.docx')) return '<i class="fa fa-file-word"></i>';
+    if (name.endsWith('.xls') || name.endsWith('.xlsx')) return '<i class="fa fa-file-excel"></i>';
+    if (name.endsWith('.ppt') || name.endsWith('.pptx')) return '<i class="fa fa-file-powerpoint"></i>';
+    if (name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png')) return '<i class="fa fa-file-image"></i>';
+    return '<i class="fa fa-file"></i>';
+  }
+
+  function toggleIcon(expanded) {
+    return `<i class="fa ${expanded ? 'fa-chevron-down' : 'fa-chevron-right'} kgsweb-toggle-icon"></i>`;
   }
 
   function fileLink(node) {
-	// Direct link to Google Drive file by ID										   
     return `https://drive.google.com/file/d/${encodeURIComponent(node.id)}/view`;
   }
 
   function renderNode(node, depth = 0) {
-    const el = document.createElement('div');
-    el.className = `kgsweb-node depth-${depth} type-${node.type}`;
+    const li = document.createElement('li');
+    li.className = `kgsweb-node depth-${depth} type-${node.type}`;
 
     if (node.type === 'folder') {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'kgsweb-toggle';
-      btn.setAttribute('aria-expanded', 'false');
-      btn.setAttribute('aria-controls', `children-${node.id}`);
-      btn.innerHTML = `<span class="kgsweb-icon">${iconFor(node)}</span><span class="kgsweb-label">${escapeHtml(node.name || 'Folder')}</span>`;
-      el.appendChild(btn);
+      const toggle = document.createElement('div');
+      toggle.className = 'kgsweb-toggle';
+      toggle.setAttribute('role', 'button');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-controls', `children-${node.id}`);
+      toggle.setAttribute('tabindex', '0');
 
-      const childrenWrap = document.createElement('div');
-      childrenWrap.id = `children-${node.id}`;
-      childrenWrap.className = 'kgsweb-children';
-      childrenWrap.hidden = true;
+      toggle.innerHTML = `
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">${escapeHtml(node.name || 'Folder')}</span>
+        ${toggleIcon(false)}
+      `;
+
+      li.appendChild(toggle);
+
+      const childrenUl = document.createElement('ul');
+      childrenUl.id = `children-${node.id}`;
+      childrenUl.className = 'kgsweb-children';
+      childrenUl.hidden = true;
 
       (node.children || []).forEach(child => {
-        childrenWrap.appendChild(renderNode(child, depth + 1));
+        childrenUl.appendChild(renderNode(child, depth + 1));
       });
 
-      el.appendChild(childrenWrap);
+      li.appendChild(childrenUl);
     } else {
       const link = document.createElement('a');
       link.className = 'kgsweb-file';
       link.href = fileLink(node);
       link.target = '_blank';
       link.rel = 'noopener';
-      link.innerHTML = `<span class="kgsweb-icon">${iconFor(node)}</span><span class="kgsweb-label">${escapeHtml(node.name || 'File')}</span>`;
-      el.appendChild(link);
+      link.innerHTML = `<span class="kgsweb-icon">${iconFor(node)}</span>
+                        <span class="kgsweb-label">${escapeHtml(node.name || 'File')}</span>`;
+      li.appendChild(link);
     }
 
-    return el;
+    return li;
   }
 
   function escapeHtml(str) {
@@ -74,15 +93,43 @@
 
   function attachToggles(rootEl) {
     rootEl.addEventListener('click', (e) => {
-      const btn = e.target.closest('button.kgsweb-toggle');
-      if (!btn) return;
-      const panel = document.getElementById(btn.getAttribute('aria-controls'));
-																	
+      const toggle = e.target.closest('.kgsweb-toggle');
+      if (!toggle) return;
+
+      const panel = document.getElementById(toggle.getAttribute('aria-controls'));
       if (!panel) return;
 
-      const expanded = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', String(!expanded));
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
       panel.hidden = expanded;
+
+      // Swap folder icons
+      const iconEl = toggle.querySelector('.kgsweb-icon');
+      if (iconEl) {
+        const closedIcon = iconEl.querySelector('.fa-folder');
+        const openIcon = iconEl.querySelector('.fa-folder-open');
+        if (closedIcon && openIcon) {
+          closedIcon.style.display = expanded ? 'inline-block' : 'none';
+          openIcon.style.display = expanded ? 'none' : 'inline-block';
+        }
+      }
+
+      // Update chevron icon
+      const chevron = toggle.querySelector('.kgsweb-toggle-icon');
+      if (chevron) {
+        chevron.className = `fa ${expanded ? 'fa-chevron-right' : 'fa-chevron-down'} kgsweb-toggle-icon`;
+      }
+    });
+
+    // Keyboard accessibility
+    rootEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const toggle = e.target.closest('.kgsweb-toggle');
+        if (toggle) {
+          e.preventDefault();
+          toggle.click();
+        }
+      }
     });
   }
 
@@ -97,32 +144,31 @@
   async function bootOne(container) {
     const loading = container.querySelector('.kgsweb-docs-loading');
     try {
-      // Use data-root-id override if set, otherwise localized default
-      const rootId = container.getAttribute('data-root-id') || (window.KGSwebFolders && KGSwebFolders.rootId) || '';
+      const rootId = container.getAttribute('data-root-id') || (window.KGSwebFolders && window.KGSwebFolders.rootId) || '';
+      if (!rootId) throw new Error('No root folder specified');
+
       const data = await fetchTree(KGSwebFolders.restUrl, rootId);
 
       container.classList.add('kgsweb-ready');
       if (loading) loading.remove();
 
-      const treeWrap = document.createElement('div');
-      treeWrap.className = 'kgsweb-tree';
+      const treeUl = document.createElement('ul');
+      treeUl.className = 'kgsweb-tree';
       (data.tree || []).forEach(node => {
-        treeWrap.appendChild(renderNode(node, 0));
+        treeUl.appendChild(renderNode(node, 0));
       });
 
-      container.appendChild(treeWrap);
+      container.appendChild(treeUl);
       attachToggles(container);
     } catch (err) {
       if (loading) loading.textContent = 'Unable to load documents right now.';
       container.setAttribute('data-error', '1');
-									   
       console.warn('KGSweb folders error:', err);
     }
   }
 
   function bootAll() {
     const containers = $all(SELECTORS.container);
-    if (!containers.length) return;
     containers.forEach(bootOne);
   }
 
@@ -133,5 +179,3 @@
   }
 
 })();
-
-   
