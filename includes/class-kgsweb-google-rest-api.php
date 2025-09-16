@@ -25,18 +25,32 @@ class KGSweb_Google_REST_API {
         ]);
 
         // ------------------------
-        // Calendar Events
+        // Calendar Events 
         // ------------------------
-        register_rest_route($ns, '/events', [
-            'methods'  => 'GET',
-            'callback' => [__CLASS__, 'get_events'],
-            'args'     => [
-                'calendar_id' => ['type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field'],
-                'page'        => ['type'=>'integer', 'required'=>false, 'default'=>1],
-                'per_page'    => ['type'=>'integer', 'required'=>false, 'default'=>10],
-            ],
-            'permission_callback' => '__return_true',
-        ]);
+		// Register unified REST endpoint for upcoming events
+		register_rest_route('kgsweb/v1', '/events', [
+			'methods'  => 'GET',
+			'callback' => [ new KGSweb_Google_Upcoming_Events(), 'rest_calendar_events' ],
+			'args'     => [
+				'calendar_id' => [
+					'type'              => 'string',
+					'required'          => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				],
+				'page' => [
+					'type'    => 'integer',
+					'required'=> false,
+					'default' => 1,
+				],
+				'per_page' => [
+					'type'    => 'integer',
+					'required'=> false,
+					'default' => 10,
+				],
+			],
+			'permission_callback' => '__return_true',
+		]);
+
 
         // ------------------------
         // Menu
@@ -167,13 +181,12 @@ class KGSweb_Google_REST_API {
 			]);
 		}
 
-    return rest_ensure_response([
-        'success' => true,
-        'ticker'  => $text,
-    ]);
-}
+		return rest_ensure_response([
+			'success' => true,
+			'ticker'  => $text,
+		]);
+	}
 
-}
 
     // ------------------------
     // Other callbacks
@@ -247,39 +260,19 @@ class KGSweb_Google_REST_API {
 		$result = [];
 
 		foreach ($nodes as $node) {
-			if (!isset($node['id'])) {
-				// skip nodes with no id
-				continue;
-			}
-			if (isset($seen[$node['id']])) {
+			if (!isset($node['id']) || isset($seen[$node['id']])) {
 				continue;
 			}
 			$seen[$node['id']] = true;
-
 			if (!empty($node['children']) && is_array($node['children'])) {
 				$node['children'] = self::deduplicate_nodes($node['children']);
 			}
 			$result[] = $node;
 		}
-		return $result;
-	}
-
-	private static function deduplicate_nodes(array $nodes): array {
-		$seen = [];
-		$result = [];
-
-		foreach ($nodes as $node) {
-			if (!isset($seen[$node['id']])) {
-				$seen[$node['id']] = true;
-				if (!empty($node['children']) && is_array($node['children'])) {
-					$node['children'] = self::deduplicate_nodes($node['children']);
-				}
-				$result[] = $node;
-			}
-		}
 
 		return $result;
 	}
+
 
 
     private static function normalize_empty_children(array $nodes): array {

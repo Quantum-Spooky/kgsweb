@@ -3,9 +3,14 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 use Google\Service\Calendar;
+use WP_REST_Request;
+use WP_REST_Response;
 
 class KGSweb_Google_Upcoming_Events {
 
+    /** 
+     * Init (no-op for now, placeholder for hooks) 
+     */
     public static function init() { /* no-op */ }
 
     /**
@@ -98,6 +103,53 @@ class KGSweb_Google_Upcoming_Events {
             error_log("KGSWEB: Calendar fetch error for calendar $calendar_id - " . $ex->getMessage());
         }
 
+        // Sort events by start date
+        usort($events, fn($a, $b) => strtotime($a['start']) - strtotime($b['start']));
+
         return $events;
     }
+
+    /**
+     * REST endpoint for public GET /events
+     */
+	public function rest_calendar_events(WP_REST_Request $request) {
+		$calendarId = sanitize_text_field($request->get_param('calendar_id'))
+					  ?: get_option('kgsweb_default_calendar_id', '');
+		$page      = max(1, (int) $request->get_param('page'));
+		$perPage   = max(1, (int) $request->get_param('per_page'));
+
+		if (empty($calendarId)) {
+			return new WP_REST_Response(
+				['message' => 'No calendar ID configured.'],
+				404
+			);
+		}
+
+		$cache_key = 'kgsweb_cache_events_' . md5($calendarId);
+		$cached_events = get_transient($cache_key);
+
+		// Fetch and cache events if not cached
+		if ($cached_events === false) {
+			$cached_events = KGSweb_Google_Upcoming_Events::fetch_and_normalize_events($calendarId);
+			set_transient($cache_key, wp_json_encode($cached_events), HOUR_IN_SECONDS);
+		} else {
+			$cached_events = json_decode($cached_events, true);
+		}
+
+		$total = count($cached_events);
+		$offset = ($page - 1) * $perPage;
+		$slice = array_slice($cached_events, $offset, $perPage);
+
+		$response_data = [
+			'calendar_id' => $calendarId,
+			'events'      => $slice,
+			'page'        => $page,
+			'per_page'    => $perPage,
+			'total'       => $total,
+			'total_pages' => ceil($total / $perPage),
+		];
+
+		return new WP_REST_Response($response_data, 200);
+	}
+
 }

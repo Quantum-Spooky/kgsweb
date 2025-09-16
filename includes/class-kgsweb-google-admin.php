@@ -31,11 +31,14 @@ class KGSweb_Google_Admin {
             'admin',
             'cache',
             'calendar',
-            'folders',
+            'documents',
             'helpers',
             'menus',
             'ticker',
             'upload',
+			'format',
+			'slides',
+			'sheets'
         ];
 
         foreach ($admin_js as $mod) {
@@ -55,8 +58,8 @@ class KGSweb_Google_Admin {
             82
         );
     }
-
- public function render_settings_page() {
+				
+public function render_settings_page() {
     if (!current_user_can('manage_options')) return;
 
     $integration = KGSweb_Google_Integration::init();
@@ -69,28 +72,31 @@ class KGSweb_Google_Admin {
             wp_die('Security check failed.');
         }
 
-		// Google Integration options
-		update_option('kgsweb_service_account_json', stripslashes($_POST['service_account_json']));
-		update_option('kgsweb_root_folder_id', $_POST['root_folder_id']); // Removed sanitize_text_field
-		update_option('kgsweb_breakfast_folder_id', $_POST['breakfast_folder_id']); // Removed sanitize_text_field
-		update_option('kgsweb_lunch_folder_id', $_POST['lunch_folder_id']); // Removed sanitize_text_field
-		update_option('kgsweb_ticker_file_id', $_POST['ticker_file_id'] ?? ''); // Removed sanitize_text_field
-		update_option('kgsweb_calendar_ids', $_POST['calendar_ids']); // Removed sanitize_text_field
-		update_option('kgsweb_upload_root_folder_id', $_POST['upload_root_folder_id']); // Removed sanitize_text_field
+        // Google Integration options
+        update_option('kgsweb_service_account_json', stripslashes($_POST['service_account_json']));
+        update_option('kgsweb_root_folder_id', $_POST['root_folder_id']);
+        update_option('kgsweb_breakfast_folder_id', $_POST['breakfast_folder_id']);
+        update_option('kgsweb_lunch_folder_id', $_POST['lunch_folder_id']);
+        update_option('kgsweb_ticker_file_id', $_POST['ticker_file_id'] ?? '');
+        update_option('kgsweb_calendar_ids', $_POST['calendar_ids']);
+        update_option('kgsweb_upload_root_folder_id', $_POST['upload_root_folder_id']);
 
-		// Secure Upload Settings
-		$upload_opts = [
-			'upload_auth_mode'   => sanitize_text_field($_POST['upload_auth_mode'] ?? 'password'),
-			'upload_password'    => sanitize_text_field($_POST['upload_password'] ?? ''),
-			'google_groups'      => array_map('trim', is_array($_POST['google_groups'] ?? null) ? $_POST['google_groups'] : explode(',', (string)($_POST['google_groups'] ?? ''))),
-			'upload_destination' => sanitize_text_field($_POST['upload_destination'] ?? 'drive'),
-			'wp_upload_root'     => sanitize_text_field($_POST['wp_upload_root'] ?? ''),
-		];
-		update_option('kgsweb_secure_upload_options', $upload_opts);
+        // Full Calendar URL
+        update_option('kgsweb_full_calendar_url', esc_url_raw($_POST['full_calendar_url'] ?? ''));
 
-		// Refresh ticker cache immediately
-		KGSweb_Google_Ticker::refresh_cache_cron();
-	
+        // Secure Upload Settings
+        $upload_opts = [
+            'upload_auth_mode'   => sanitize_text_field($_POST['upload_auth_mode'] ?? 'password'),
+            'upload_password'    => sanitize_text_field($_POST['upload_password'] ?? ''),
+            'google_groups'      => array_map('trim', is_array($_POST['google_groups'] ?? null) ? $_POST['google_groups'] : explode(',', (string)($_POST['google_groups'] ?? ''))),
+            'upload_destination' => sanitize_text_field($_POST['upload_destination'] ?? 'drive'),
+            'wp_upload_root'     => sanitize_text_field($_POST['wp_upload_root'] ?? ''),
+        ];
+        update_option('kgsweb_secure_upload_options', $upload_opts);
+
+        // Refresh ticker cache immediately
+        KGSweb_Google_Ticker::refresh_cache_cron();
+
         echo "<div class='updated'><p>Settings saved!</p></div>";
 
         // Initialize or refresh Google Drive client
@@ -140,8 +146,9 @@ class KGSweb_Google_Admin {
     $upload_root_folder = get_option('kgsweb_upload_root_folder_id', '');
     $breakfast          = get_option('kgsweb_breakfast_folder_id', '');
     $lunch              = get_option('kgsweb_lunch_folder_id', '');
-	$ticker             = get_option('kgsweb_ticker_file_id', '');
+    $ticker             = get_option('kgsweb_ticker_file_id', '');
     $calendars          = get_option('kgsweb_calendar_ids', '');
+    $full_calendar_url  = get_option('kgsweb_full_calendar_url', '');
     $upload_opts        = get_option('kgsweb_secure_upload_options', []);
 
     // Ensure options are arrays
@@ -154,7 +161,7 @@ class KGSweb_Google_Admin {
     $upload_opts['upload_destination'] = $upload_opts['upload_destination'] ?? '';
     $upload_opts['wp_upload_root']     = $upload_opts['wp_upload_root'] ?? '';
 
-    // Normalize calendar IDs as array for implode
+    // Normalize calendar IDs as array
     $calendars_array = is_array($calendars) ? $calendars : explode(',', (string)$calendars);
     $calendars_array = array_map('trim', $calendars_array);
 
@@ -182,7 +189,7 @@ class KGSweb_Google_Admin {
                     <tr><th>Documents Upload Root Folder</th><td><input type="text" name="upload_root_folder_id" value="<?php echo esc_attr($upload_root_folder); ?>" size="50"></td></tr>
                     <tr><th>Breakfast Folder</th><td><input type="text" name="breakfast_folder_id" value="<?php echo esc_attr($breakfast); ?>" size="50"></td></tr>
                     <tr><th>Lunch Folder</th><td><input type="text" name="lunch_folder_id" value="<?php echo esc_attr($lunch); ?>" size="50"></td></tr>
-					<tr><th>Ticker Folder</th><td><input type="text" name="ticker_file_id" value="<?php echo esc_attr($ticker); ?>" size="50"></td></tr>
+                    <tr><th>Ticker Folder</th><td><input type="text" name="ticker_file_id" value="<?php echo esc_attr($ticker); ?>" size="50"></td></tr>
 
                 </table>
 
@@ -190,6 +197,11 @@ class KGSweb_Google_Admin {
                 <h2>Calendar IDs</h2>
                 <p>Enter one or more Google Calendar IDs (comma-separated) to display upcoming events.</p>
                 <input type="text" name="calendar_ids" value="<?php echo esc_attr(implode(',', $calendars_array)); ?>" size="50">
+
+                <!-- Full Calendar URL -->
+                <h2>Full Calendar URL</h2>
+                <p>Enter the URL for the full Google Calendar view. This is used for the "View Full Calendar" link in the events shortcode.</p>
+                <input type="url" name="full_calendar_url" value="<?php echo esc_attr($full_calendar_url); ?>" size="50">
 
                 <!-- Secure Upload Settings -->
                 <h2>Secure Upload Settings</h2>
@@ -239,13 +251,13 @@ class KGSweb_Google_Admin {
                         </td>
                     </tr>
                 </table>
-				
-				 <!-- Save Settings -->
+
+                <!-- Save Settings -->
                 <p class="submit">
                     <input type="submit" name="kgsweb_save_settings" id="submit" class="button button-primary" value="Save Settings">
                 </p>
-				
-				<hr />
+
+                <hr />
 
                 <!-- Cache Buttons -->
                 <h2>Cache Management</h2>
@@ -253,13 +265,11 @@ class KGSweb_Google_Admin {
                 <button type="submit" name="kgsweb_update_cache" class="button">Update Cache Now</button>
                 <button type="submit" name="kgsweb_clear_cache" class="button">Clear All Cache</button>
 
-               
+			   
             </form>
-			
-			
-			
-			<hr />
-			<div class="kgsweb-shortcode-help">
+
+            <hr />
+            <div class="kgsweb-shortcode-help">
 			  <h2>Available Shortcodes</h2>
 			  <p>You can use these shortcodes anywhere in posts, pages, or widgets</p>
 			  <ul class="kgsweb-shortcode-list">
@@ -322,3 +332,6 @@ class KGSweb_Google_Admin {
 }
 
 }
+
+
+ 

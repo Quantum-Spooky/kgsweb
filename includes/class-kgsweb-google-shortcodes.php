@@ -27,9 +27,9 @@ class KGSweb_Google_Shortcodes {
         //add_shortcode('kgsweb_secure_upload_form', [$this, 'secure_upload_form']);
         //add_shortcode('kgsweb_menu', [KGSweb_Google_Menus::class, 'shortcode_render']);
         //add_shortcode('kgsweb_ticker', [$this, 'render_ticker']);
-        //add_shortcode('kgsweb_calendar', [$this, 'events']);
         //add_shortcode('kgsweb_sheets', [KGSweb_Google_Sheets::class, 'shortcode_render']);
         add_shortcode('kgsweb_slides', [KGSweb_Google_Slides::class, 'shortcode_render']);
+		add_shortcode('kgsweb_events', [__CLASS__, 'kgsweb_events_shortcode']);
     }
 	
     public static function enqueue_if_needed($handles = []) {
@@ -111,7 +111,44 @@ class KGSweb_Google_Shortcodes {
 		return ob_get_clean();
 	}
 	
-																	  
+	public static function kgsweb_events_shortcode( $atts ) {
+		// Get plugin settings
+		$settings = KGSweb_Google_Integration::get_settings();
+
+		// Extract shortcode attributes
+		$atts = shortcode_atts([
+			'calendar_id' => $settings['calendar_id'] ?? '', // default from settings
+		], $atts, 'kgsweb_events');
+
+		$calendar_id = sanitize_text_field($atts['calendar_id']);
+
+		// Get full calendar URL from settings
+		$full_calendar_url = esc_url($settings['full_calendar_url'] ?? 'https://calendar.google.com/');
+
+		if ( ! $calendar_id ) {
+			return '<p>' . esc_html__( 'No calendar configured.', 'kgsweb' ) . '</p>';
+		}
+
+		// Output HTML container compatible with JS
+		ob_start();
+		?>
+		<div class="kgsweb-calendar" data-calendar-id="<?php echo esc_attr($calendar_id); ?>">
+			<div class="calendar-controls">
+				<button class="prev"><?php esc_html_e('Previous', 'kgsweb'); ?></button>
+				<button class="next"><?php esc_html_e('Next', 'kgsweb'); ?></button>
+			</div>
+			<ul class="events-list">
+				<li><?php esc_html_e('Loading events…', 'kgsweb'); ?></li>
+			</ul>
+			<div class="full-calendar-link">
+				<a href="<?php echo $full_calendar_url; ?>" target="_blank" rel="noopener">
+					<?php esc_html_e('View Full Calendar', 'kgsweb'); ?>
+				</a>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
 													   
     public static function secure_upload_form( $atts ) {
         $a = shortcode_atts( [ 'upload-folder' => '', 'folders' => '', 'folder' => '' ], $atts, 'kgsweb_secure_upload_form' );

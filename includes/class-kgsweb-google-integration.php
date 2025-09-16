@@ -510,52 +510,51 @@ public function enqueue_frontend(): void {
         );
     }
 
-    // Localize folders for documents script
-    if (wp_script_is('kgsweb-documents', 'enqueued')) {
-    if (wp_script_is('kgsweb-documents', 'enqueued')) {
-        $settings = self::get_settings();
-        wp_localize_script('kgsweb-documents', 'KGSwebFolders', [
-            'restUrl' => esc_url_raw(rest_url('kgsweb/v1/documents')),
-            'rootId'  => $settings['public_docs_root_id'] ?? '',
-        ]);
-    }
+		// Localize folders for documents script
+		if (wp_script_is('kgsweb-documents', 'enqueued')) {
+			$settings = self::get_settings();
+			wp_localize_script('kgsweb-documents', 'KGSwebFolders', [
+				'restUrl' => esc_url_raw(rest_url('kgsweb/v1/documents')),
+				'rootId'  => $settings['public_docs_root_id'] ?? '',
+			]);
+		}
 
-    // Styles
-    $style_path = $base . 'css/kgsweb-style.css';
-    if (file_exists($style_path)) {
-        wp_enqueue_style(
-            'kgsweb-frontend',
-            $baseurl . 'css/kgsweb-style.css',
-            [],
-            filemtime($style_path)
-        );
-    }
+		// Styles
+		$style_path = $base . 'css/kgsweb-style.css';
+		if (file_exists($style_path)) {
+			wp_enqueue_style(
+				'kgsweb-frontend',
+				$baseurl . 'css/kgsweb-style.css',
+				[],
+				filemtime($style_path)
+			);
+		}
 
-    // Conditionally load slides assets if shortcode exists
-    if (is_singular() && has_shortcode(get_post()->post_content ?? '', 'kgsweb_slides')) {
-        $slides_js  = $base . 'js/kgsweb-slides.js';
-        $slides_css = $base . 'css/kgsweb-slides.css';
+		// Conditionally load slides assets if shortcode exists
+		if (is_singular() && has_shortcode(get_post()->post_content ?? '', 'kgsweb_slides')) {
+			$slides_js  = $base . 'js/kgsweb-slides.js';
+			$slides_css = $base . 'css/kgsweb-slides.css';
 
-        if (file_exists($slides_js)) {
-            wp_enqueue_script(
-                'kgsweb-slides',
-                $baseurl . 'js/kgsweb-slides.js',
-                ['jquery'],
-                filemtime($slides_js),
-                true
-            );
-        }
+			if (file_exists($slides_js)) {
+				wp_enqueue_script(
+					'kgsweb-slides',
+					$baseurl . 'js/kgsweb-slides.js',
+					['jquery'],
+					filemtime($slides_js),
+					true
+				);
+			}
 
-        if (file_exists($slides_css)) {
-            wp_enqueue_style(
-                'kgsweb-slides',
-                $baseurl . 'css/kgsweb-slides.css',
-                [],
-                filemtime($slides_css)
-            );
-        }
-    }
-}
+			if (file_exists($slides_css)) {
+				wp_enqueue_style(
+					'kgsweb-slides',
+					$baseurl . 'css/kgsweb-slides.css',
+					[],
+					filemtime($slides_css)
+				);
+			}
+		}
+	}
 
 
 }
