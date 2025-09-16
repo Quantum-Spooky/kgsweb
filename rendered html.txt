@@ -1,0 +1,576 @@
+4. (Optional but helpful) The rendered HTML source for the documents tree section (just one copy, or all three if possible — we’ll see if duplication is server-side or JS-side).
+
+
+<div id="kgsweb-documents-tree" class="kgsweb-documents kgsweb-ready" data-root-id="1nz-2OAaUDOTwcmcGO7396pbRS2wqkXy0">
+			<noscript>JavaScript is required to view the documents tree.</noscript>
+		<ul class="kgsweb-tree"><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1xzWgcKf0F_01WFMXSIaqcxVT-keauG_X" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">registration</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1xzWgcKf0F_01WFMXSIaqcxVT-keauG_X" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1iL2wnY7DUyr3jRRmBdxMyxTqL3K5Sj_s" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">supply-lists</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1iL2wnY7DUyr3jRRmBdxMyxTqL3K5Sj_s" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1avAOIbww6fYS2dld0vFygk3unLzVqGlO/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-word"></i></span>
+                        <span class="kgsweb-label">Kell-School-Supplies-List-2025-2026-WORD-DOC-VERSION.docx</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1RLVyvcL1q30OBpZRjZ5Xv0MBVChYfc0o/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Kell-School-Supplies-List-2025-2026-PDF-VERSION.pdf</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-10XNLwIr929mdcj7FL7ICcFLNYYjX-cka" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">school-district-policies-and-records</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-10XNLwIr929mdcj7FL7ICcFLNYYjX-cka" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-14H5MjXKoqbA4ehQQdgaq2xOxsRXxlQ8M" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">school-board-records</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-14H5MjXKoqbA4ehQQdgaq2xOxsRXxlQ8M" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1tZU6-HMc3V7cf9lbWTQIFHb54JJ0b5Hp" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">school-board-meeting-minutes</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1tZU6-HMc3V7cf9lbWTQIFHb54JJ0b5Hp" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1kp1twBE4OtS6uYST22yx1B0FFdCGkTMC" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">2023</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1kp1twBE4OtS6uYST22yx1B0FFdCGkTMC" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1VWMJ7eNPDqMjRyvFrsixS3bBnOs04dbP/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-2023-01-12-special-meeting-minutes.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1ITmnE5azvBiCcRK-d3Y9dnYwqwYnTg3Y/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-2023-01-12-meeting-minutes.pdf</span></a></li></ul></li><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1vyaVHCtGXmi2Z8Ycg_T83XWHNSlT9WD0" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">2022</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1vyaVHCtGXmi2Z8Ycg_T83XWHNSlT9WD0" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/19W28WOPcDE-781IfgPrO6mpf0KHaxoNq/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-2022-09-08-meeting-minutes.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1m0_0cz5QsYZwG6cY7YLZt7P14XAehqtX/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-2022-09-22-special-meeting-minutes-budget-hearing.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1jHZ9Dq892Kn10VfTsncJnGYSsQyCTkim/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-2022-12-08-meeting-minutes.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1SMHbEj77tpXPceRTRrkBFdxuWA2aJ2L_/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-2022-07-21-meeting-minutes.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1bqvcWUvBfwkyvqDFFbEU_OnXPveDn9-C/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-2022-11-03-special-meeting-minutes.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1lKdVb_JveEyQJA4_kG-mtrp-qy1epTqn/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-2022-11-17-meeting-minutes.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1SUZ-Lz1-pGHfjzF-sH3tCjLYO7dDDUXk/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-2022-10-13-meeting-minutes.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1zTfOhCd26Ho6YflR4ZaaBNn0azY4OYC-/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-2022-08-18-meeting-minutes.pdf</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-2 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-13y6z2wutSmWr5cpoEhSlO_Lsv6PxaLye" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">school-board-meeting-agendas</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-13y6z2wutSmWr5cpoEhSlO_Lsv6PxaLye" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-12NarsT_173Apdhnhiaoa4bhsSSyyEsIG" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">2024</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-12NarsT_173Apdhnhiaoa4bhsSSyyEsIG" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1ZVAig5oMOnLVgK95o4z2VLupeS9TIq8n/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2024-11-21 meeting agenda.pdf</span></a></li></ul></li><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1I4PhJfipCHw5yx3DQiJMuouIHikn316m" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">2022</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1I4PhJfipCHw5yx3DQiJMuouIHikn316m" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1k7EYcjUOhlh3oaEOG7OiEoh-Y33MAWOk/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2022-12-08 meeting agenda.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1vzlD6BqG4-D2lHpSEo6VhvXmago1A7vZ/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2022-10-13 meeting agenda.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1sjrn7xIZ8DZVcVHMeD5GK7i1bipX8h0N/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2022-11-17 meeting agenda.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1iXD4dW3Gn8M6VfI3FS7OzgiyGClpCNAP/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2022-09-08 meeting agenda.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1n6zCnR0ut_lh97O8zlBInCgeN-y-CbdE/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2022-11-03 special meeting agenda.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1dWaIzRpF19pdX2NS3G9SCvGyeOMFRJZb/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2022-07-21 meeting agenda.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/14q2pFJdnKYWj7pD_xTi-kSGEXdA-0CPu/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2022-09-22 special meeting agenda.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1aNbYw4Kgf40-QMyeYVO7FbpgQOedbFNZ/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2022-08-18 meeting agenda.pdf</span></a></li></ul></li><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-109MDkGBgxlrsFkrn3j8F6WOisp4n5EKG" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">2023</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-109MDkGBgxlrsFkrn3j8F6WOisp4n5EKG" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/15NpyPWuHkQ79CodDekemKdMqGHNqmFll/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2023-01-12 meeting agenda.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1YUCqOeNsjWuaWhxUOwmVldQmxni6MmoC/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2023-02-16 meeting agenda.pdf</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1nRRNF6hb8AvFpIAQU_fctYH_49yc-HXT/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school board 2023-01-12 special meeting agenda.pdf</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-2 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1k92wA-ky44hODzq45x8kTQz-GFVFBUkM" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">school-board-documents</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1k92wA-ky44hODzq45x8kTQz-GFVFBUkM" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-3 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1LUnNlfixgKEj5lAROSGgDSMCYnzR5BRH/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-board-member-training-2013-11-18.pdf</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1uuvv_InQY-xqATIe1TCNET7H4DB4N97c" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">policies</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1uuvv_InQY-xqATIe1TCNET7H4DB4N97c" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1Unw8qqf2Jv2r9lCCgbemu02byMn7fBVz/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">supplemental-educational-services_2013-11-18.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1SHtyZ-dH56bipzZkSkwif1lEoaEImAZG/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">return-to-school-plan_2021-2022.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1oHLeUxgal1To76yas7iUNG1qhqqALlDM/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">delivery-information.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1rZjwduRZ1q-zcZ0CuWYdYPfOd2I-GpWf/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">plan-for-safe-return-to-school_2021-2022.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1uMXYKeiPWsnLqlpLZbsRcyxrLS_0V_cV/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">school-choice_2013-11-18.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/12PH_ma7uXbxe1zQDndvAH3izuJBqFAOJ/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">mckinney-vento-homeless-program.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1xrlrGLs1N-y4FzQdrEMdvJpWfk9xhZ8k/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">freedom of information act.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1Vd9BI7B1CXxPdbCJQmx_lcj6L7uAyzJk/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">bullying-policy-2020-12-10.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/18ggcTLXIhva_QSInR8-I6sP1Ur_mDcSQ/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">privacy policy.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1xwLKoLdl-FGO1I4IZ05VHyjGrcOfz80u/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Handbook 2025-2026 Updated #3.docx.pdf</span></a></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-11Fsr7xUVw5O_WROHbEuE-LFytQN130z7" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">financial</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-11Fsr7xUVw5O_WROHbEuE-LFytQN130z7" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1V0fOLkE9EhQEthyID8z81YdfFA7kQyJk/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022-2023-salary-schedule.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1RrE0ve21S9PydrTYLOl6IDKaDvYa-jBH/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">collective-bargaining-agreement.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1ypgp4Yw0jPtHF1Vdt9sa8dIddsPsWL7X/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">budget_fy-2023.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1DZACSJZOc9quCWLbX0ZU2H9W1WVpygmG/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">admin-teacher-comp-report_fy-2022.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1GAx6-c2eUTYEHvNISPW71lIzdIuG1Wdg/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">contracts-exceeding-25000_fy-2022.pdf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/11JZZe9gPZp42hZf0gEUwwE3r_3MluczR/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file"></i></span>
+                        <span class="kgsweb-label">esser.rtf</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1OQZ9NhN88Dz3Jv7eeK_J5yVnI6Ul4OOz/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">esser-iii-spending-plan-2021.pdf</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1rqVaS7macf5SsPVNsQpJA6K0g1msHBpB" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">family</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1rqVaS7macf5SsPVNsQpJA6K0g1msHBpB" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-18qsMGcnDYCuwRc71ne1IhFmyW_KWezrL" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">parent-teacher-organization</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-18qsMGcnDYCuwRc71ne1IhFmyW_KWezrL" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1e3TTC82LqvNBY4HDMz0TvuJZO0uG4hpP/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">kell grade school pto.pdf</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1F8Q0gYiaisXTfGxxgemC5v_FAs_dXydh" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">cafeteria</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1F8Q0gYiaisXTfGxxgemC5v_FAs_dXydh" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1FNDGGSFfRJtmb7qwdHlSQHdD1StVDZPK" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">lunch-menu</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1FNDGGSFfRJtmb7qwdHlSQHdD1StVDZPK" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1aF8z7XdkbFytQMoTLF6l3dZAdXZNiIA1/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">lunch-menu-2025-08.pdf</span></a></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1Eqi3ReKLgDvpAIMOWNkXetFZ5XJBi7T4" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">breakfast-menu</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1Eqi3ReKLgDvpAIMOWNkXetFZ5XJBi7T4" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1TogCTIpzowL4T9kDE9sTzMqVjxpcv6wI/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">breakfast-menu-2025-08.pdf</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1GEn2hgWDAV_4JPHxXnUvbb5GRzk-kck_" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">calendar</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1GEn2hgWDAV_4JPHxXnUvbb5GRzk-kck_" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-16jKLTc-Kg5IVeNtreFooWVGtx1T7KmC5" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">monthly-calendar</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-16jKLTc-Kg5IVeNtreFooWVGtx1T7KmC5" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1zJJH3Wv289176NOmYs_PXkEnkC91m0yA/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">monthly-calendar-2025-08.pdf</span></a></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1jH6rXW3JcMDhJRJKTNK6WqZe778inB9l" tabindex="0">
+        <span class="kgsweb-icon">
+          <i class="fa fa-folder"></i>
+          <i class="fa fa-folder-open" style="display:none"></i>
+        </span>
+        <span class="kgsweb-label">academic-calendar</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1jH6rXW3JcMDhJRJKTNK6WqZe778inB9l" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/13rtZ1PqXraTOQmmi04qt8xIQFbBuqv92/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-word"></i></span>
+                        <span class="kgsweb-label">Academic-Calendar-2025-2026-WORD-DOC-VERSION.docx</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1Bl3AyxO_OA_lS_g0qXf953jFTVVwaMUc/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Academic-Calendar-2025-2026-PDF-VERSION.pdf</span></a></li></ul></li></ul></li></ul><ul class="kgsweb-tree"><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1xzWgcKf0F_01WFMXSIaqcxVT-keauG_X" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Registration</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1xzWgcKf0F_01WFMXSIaqcxVT-keauG_X" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1iL2wnY7DUyr3jRRmBdxMyxTqL3K5Sj_s" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Supply Lists</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1iL2wnY7DUyr3jRRmBdxMyxTqL3K5Sj_s" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1avAOIbww6fYS2dld0vFygk3unLzVqGlO/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-word"></i></span>
+                        <span class="kgsweb-label">Kell School Supplies List 2025 2026 WORD DOC VERSION</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1RLVyvcL1q30OBpZRjZ5Xv0MBVChYfc0o/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Kell School Supplies List 2025 2026 PDF VERSION</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-10XNLwIr929mdcj7FL7ICcFLNYYjX-cka" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">School District Policies And Records</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-10XNLwIr929mdcj7FL7ICcFLNYYjX-cka" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-14H5MjXKoqbA4ehQQdgaq2xOxsRXxlQ8M" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">School Board Records</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-14H5MjXKoqbA4ehQQdgaq2xOxsRXxlQ8M" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1tZU6-HMc3V7cf9lbWTQIFHb54JJ0b5Hp" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">School Board Meeting Minutes</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1tZU6-HMc3V7cf9lbWTQIFHb54JJ0b5Hp" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1kp1twBE4OtS6uYST22yx1B0FFdCGkTMC" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">2023</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1kp1twBE4OtS6uYST22yx1B0FFdCGkTMC" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1VWMJ7eNPDqMjRyvFrsixS3bBnOs04dbP/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2023 01 12 Special Meeting Minutes</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1ITmnE5azvBiCcRK-d3Y9dnYwqwYnTg3Y/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2023 01 12 Meeting Minutes</span></a></li></ul></li><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1vyaVHCtGXmi2Z8Ycg_T83XWHNSlT9WD0" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">2022</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1vyaVHCtGXmi2Z8Ycg_T83XWHNSlT9WD0" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/19W28WOPcDE-781IfgPrO6mpf0KHaxoNq/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 09 08 Meeting Minutes</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1m0_0cz5QsYZwG6cY7YLZt7P14XAehqtX/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 09 22 Special Meeting Minutes Budget Hearing</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1jHZ9Dq892Kn10VfTsncJnGYSsQyCTkim/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 12 08 Meeting Minutes</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1SMHbEj77tpXPceRTRrkBFdxuWA2aJ2L_/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 07 21 Meeting Minutes</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1bqvcWUvBfwkyvqDFFbEU_OnXPveDn9-C/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 11 03 Special Meeting Minutes</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1lKdVb_JveEyQJA4_kG-mtrp-qy1epTqn/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 11 17 Meeting Minutes</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1SUZ-Lz1-pGHfjzF-sH3tCjLYO7dDDUXk/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 10 13 Meeting Minutes</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1zTfOhCd26Ho6YflR4ZaaBNn0azY4OYC-/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 08 18 Meeting Minutes</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-2 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-13y6z2wutSmWr5cpoEhSlO_Lsv6PxaLye" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">School Board Meeting Agendas</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-13y6z2wutSmWr5cpoEhSlO_Lsv6PxaLye" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-12NarsT_173Apdhnhiaoa4bhsSSyyEsIG" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">2024</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-12NarsT_173Apdhnhiaoa4bhsSSyyEsIG" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1ZVAig5oMOnLVgK95o4z2VLupeS9TIq8n/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2024 11 21 Meeting Agenda</span></a></li></ul></li><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1I4PhJfipCHw5yx3DQiJMuouIHikn316m" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">2022</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1I4PhJfipCHw5yx3DQiJMuouIHikn316m" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1k7EYcjUOhlh3oaEOG7OiEoh-Y33MAWOk/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 12 08 Meeting Agenda</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1vzlD6BqG4-D2lHpSEo6VhvXmago1A7vZ/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 10 13 Meeting Agenda</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1sjrn7xIZ8DZVcVHMeD5GK7i1bipX8h0N/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 11 17 Meeting Agenda</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1iXD4dW3Gn8M6VfI3FS7OzgiyGClpCNAP/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 09 08 Meeting Agenda</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1n6zCnR0ut_lh97O8zlBInCgeN-y-CbdE/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 11 03 Special Meeting Agenda</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1dWaIzRpF19pdX2NS3G9SCvGyeOMFRJZb/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 07 21 Meeting Agenda</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/14q2pFJdnKYWj7pD_xTi-kSGEXdA-0CPu/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 09 22 Special Meeting Agenda</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1aNbYw4Kgf40-QMyeYVO7FbpgQOedbFNZ/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 08 18 Meeting Agenda</span></a></li></ul></li><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-109MDkGBgxlrsFkrn3j8F6WOisp4n5EKG" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">2023</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-109MDkGBgxlrsFkrn3j8F6WOisp4n5EKG" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/15NpyPWuHkQ79CodDekemKdMqGHNqmFll/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2023 01 12 Meeting Agenda</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1YUCqOeNsjWuaWhxUOwmVldQmxni6MmoC/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2023 02 16 Meeting Agenda</span></a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1nRRNF6hb8AvFpIAQU_fctYH_49yc-HXT/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2023 01 12 Special Meeting Agenda</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-2 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1k92wA-ky44hODzq45x8kTQz-GFVFBUkM" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">School Board Documents</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1k92wA-ky44hODzq45x8kTQz-GFVFBUkM" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-3 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1LUnNlfixgKEj5lAROSGgDSMCYnzR5BRH/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Member Training 2013 11 18</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1uuvv_InQY-xqATIe1TCNET7H4DB4N97c" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Policies</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1uuvv_InQY-xqATIe1TCNET7H4DB4N97c" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1Unw8qqf2Jv2r9lCCgbemu02byMn7fBVz/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Supplemental Educational Services 2013 11 18</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1SHtyZ-dH56bipzZkSkwif1lEoaEImAZG/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Return To School Plan 2021 2022</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1oHLeUxgal1To76yas7iUNG1qhqqALlDM/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Delivery Information</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1rZjwduRZ1q-zcZ0CuWYdYPfOd2I-GpWf/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Plan For Safe Return To School 2021 2022</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1uMXYKeiPWsnLqlpLZbsRcyxrLS_0V_cV/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">School Choice 2013 11 18</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/12PH_ma7uXbxe1zQDndvAH3izuJBqFAOJ/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Mckinney Vento Homeless Program</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1xrlrGLs1N-y4FzQdrEMdvJpWfk9xhZ8k/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Freedom Of Information Act</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1Vd9BI7B1CXxPdbCJQmx_lcj6L7uAyzJk/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Bullying Policy 2020 12 10</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/18ggcTLXIhva_QSInR8-I6sP1Ur_mDcSQ/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Privacy Policy</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1xwLKoLdl-FGO1I4IZ05VHyjGrcOfz80u/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Handbook 2025 2026 Updated #3.Docx</span></a></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-11Fsr7xUVw5O_WROHbEuE-LFytQN130z7" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Financial</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-11Fsr7xUVw5O_WROHbEuE-LFytQN130z7" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1V0fOLkE9EhQEthyID8z81YdfFA7kQyJk/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">2022 2023 Salary Schedule</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1RrE0ve21S9PydrTYLOl6IDKaDvYa-jBH/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Collective Bargaining Agreement</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1ypgp4Yw0jPtHF1Vdt9sa8dIddsPsWL7X/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Budget Fy 2023</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1DZACSJZOc9quCWLbX0ZU2H9W1WVpygmG/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Admin Teacher Comp Report Fy 2022</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1GAx6-c2eUTYEHvNISPW71lIzdIuG1Wdg/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Contracts Exceeding 25000 Fy 2022</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/11JZZe9gPZp42hZf0gEUwwE3r_3MluczR/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file"></i></span>
+                        <span class="kgsweb-label">Esser</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1OQZ9NhN88Dz3Jv7eeK_J5yVnI6Ul4OOz/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Esser Iii Spending Plan 2021</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1rqVaS7macf5SsPVNsQpJA6K0g1msHBpB" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Family</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1rqVaS7macf5SsPVNsQpJA6K0g1msHBpB" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-18qsMGcnDYCuwRc71ne1IhFmyW_KWezrL" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Parent Teacher Organization</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-18qsMGcnDYCuwRc71ne1IhFmyW_KWezrL" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1e3TTC82LqvNBY4HDMz0TvuJZO0uG4hpP/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Kell Grade School Pto</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1F8Q0gYiaisXTfGxxgemC5v_FAs_dXydh" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Cafeteria</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1F8Q0gYiaisXTfGxxgemC5v_FAs_dXydh" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1FNDGGSFfRJtmb7qwdHlSQHdD1StVDZPK" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Lunch Menu</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1FNDGGSFfRJtmb7qwdHlSQHdD1StVDZPK" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1aF8z7XdkbFytQMoTLF6l3dZAdXZNiIA1/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Lunch Menu 2025 08</span></a></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1Eqi3ReKLgDvpAIMOWNkXetFZ5XJBi7T4" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Breakfast Menu</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1Eqi3ReKLgDvpAIMOWNkXetFZ5XJBi7T4" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1TogCTIpzowL4T9kDE9sTzMqVjxpcv6wI/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Breakfast Menu 2025 08</span></a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1GEn2hgWDAV_4JPHxXnUvbb5GRzk-kck_" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Calendar</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1GEn2hgWDAV_4JPHxXnUvbb5GRzk-kck_" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-16jKLTc-Kg5IVeNtreFooWVGtx1T7KmC5" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Monthly Calendar</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-16jKLTc-Kg5IVeNtreFooWVGtx1T7KmC5" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1zJJH3Wv289176NOmYs_PXkEnkC91m0yA/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Monthly Calendar 2025 08</span></a></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1jH6rXW3JcMDhJRJKTNK6WqZe778inB9l" tabindex="0">
+        <span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>
+        <span class="kgsweb-label">Academic Calendar</span>
+        <i class="fa fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1jH6rXW3JcMDhJRJKTNK6WqZe778inB9l" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/13rtZ1PqXraTOQmmi04qt8xIQFbBuqv92/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-word"></i></span>
+                        <span class="kgsweb-label">Academic Calendar 2025 2026 WORD DOC VERSION</span></a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1Bl3AyxO_OA_lS_g0qXf953jFTVVwaMUc/view" target="_blank" rel="noopener"><span class="kgsweb-icon"><i class="fa fa-file-pdf"></i></span>
+                        <span class="kgsweb-label">Academic Calendar 2025 2026 PDF VERSION</span></a></li></ul></li></ul></li></ul><ul class="kgsweb-tree"><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1xzWgcKf0F_01WFMXSIaqcxVT-keauG_X" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">registration</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1xzWgcKf0F_01WFMXSIaqcxVT-keauG_X" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1iL2wnY7DUyr3jRRmBdxMyxTqL3K5Sj_s" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">supply-lists</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1iL2wnY7DUyr3jRRmBdxMyxTqL3K5Sj_s" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1avAOIbww6fYS2dld0vFygk3unLzVqGlO/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-word"></i></span>
+        <span class="kgsweb-label">Kell-School-Supplies-List-2025-2026-WORD-DOC-VERSION.docx</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1RLVyvcL1q30OBpZRjZ5Xv0MBVChYfc0o/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">Kell-School-Supplies-List-2025-2026-PDF-VERSION.pdf</span>
+      </a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-10XNLwIr929mdcj7FL7ICcFLNYYjX-cka" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">school-district-policies-and-records</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-10XNLwIr929mdcj7FL7ICcFLNYYjX-cka" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-14H5MjXKoqbA4ehQQdgaq2xOxsRXxlQ8M" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">school-board-records</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-14H5MjXKoqbA4ehQQdgaq2xOxsRXxlQ8M" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1tZU6-HMc3V7cf9lbWTQIFHb54JJ0b5Hp" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">school-board-meeting-minutes</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1tZU6-HMc3V7cf9lbWTQIFHb54JJ0b5Hp" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1kp1twBE4OtS6uYST22yx1B0FFdCGkTMC" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">2023</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1kp1twBE4OtS6uYST22yx1B0FFdCGkTMC" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1VWMJ7eNPDqMjRyvFrsixS3bBnOs04dbP/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-2023-01-12-special-meeting-minutes.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1ITmnE5azvBiCcRK-d3Y9dnYwqwYnTg3Y/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-2023-01-12-meeting-minutes.pdf</span>
+      </a></li></ul></li><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1vyaVHCtGXmi2Z8Ycg_T83XWHNSlT9WD0" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">2022</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1vyaVHCtGXmi2Z8Ycg_T83XWHNSlT9WD0" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/19W28WOPcDE-781IfgPrO6mpf0KHaxoNq/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-2022-09-08-meeting-minutes.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1m0_0cz5QsYZwG6cY7YLZt7P14XAehqtX/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-2022-09-22-special-meeting-minutes-budget-hearing.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1jHZ9Dq892Kn10VfTsncJnGYSsQyCTkim/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-2022-12-08-meeting-minutes.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1SMHbEj77tpXPceRTRrkBFdxuWA2aJ2L_/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-2022-07-21-meeting-minutes.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1bqvcWUvBfwkyvqDFFbEU_OnXPveDn9-C/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-2022-11-03-special-meeting-minutes.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1lKdVb_JveEyQJA4_kG-mtrp-qy1epTqn/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-2022-11-17-meeting-minutes.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1SUZ-Lz1-pGHfjzF-sH3tCjLYO7dDDUXk/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-2022-10-13-meeting-minutes.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1zTfOhCd26Ho6YflR4ZaaBNn0azY4OYC-/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-2022-08-18-meeting-minutes.pdf</span>
+      </a></li></ul></li></ul></li><li class="kgsweb-node depth-2 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-13y6z2wutSmWr5cpoEhSlO_Lsv6PxaLye" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">school-board-meeting-agendas</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-13y6z2wutSmWr5cpoEhSlO_Lsv6PxaLye" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-12NarsT_173Apdhnhiaoa4bhsSSyyEsIG" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">2024</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-12NarsT_173Apdhnhiaoa4bhsSSyyEsIG" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1ZVAig5oMOnLVgK95o4z2VLupeS9TIq8n/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2024-11-21 meeting agenda.pdf</span>
+      </a></li></ul></li><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1I4PhJfipCHw5yx3DQiJMuouIHikn316m" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">2022</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1I4PhJfipCHw5yx3DQiJMuouIHikn316m" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1k7EYcjUOhlh3oaEOG7OiEoh-Y33MAWOk/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2022-12-08 meeting agenda.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1vzlD6BqG4-D2lHpSEo6VhvXmago1A7vZ/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2022-10-13 meeting agenda.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1sjrn7xIZ8DZVcVHMeD5GK7i1bipX8h0N/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2022-11-17 meeting agenda.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1iXD4dW3Gn8M6VfI3FS7OzgiyGClpCNAP/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2022-09-08 meeting agenda.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1n6zCnR0ut_lh97O8zlBInCgeN-y-CbdE/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2022-11-03 special meeting agenda.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1dWaIzRpF19pdX2NS3G9SCvGyeOMFRJZb/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2022-07-21 meeting agenda.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/14q2pFJdnKYWj7pD_xTi-kSGEXdA-0CPu/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2022-09-22 special meeting agenda.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1aNbYw4Kgf40-QMyeYVO7FbpgQOedbFNZ/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2022-08-18 meeting agenda.pdf</span>
+      </a></li></ul></li><li class="kgsweb-node depth-3 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-109MDkGBgxlrsFkrn3j8F6WOisp4n5EKG" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">2023</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-109MDkGBgxlrsFkrn3j8F6WOisp4n5EKG" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/15NpyPWuHkQ79CodDekemKdMqGHNqmFll/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2023-01-12 meeting agenda.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1YUCqOeNsjWuaWhxUOwmVldQmxni6MmoC/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2023-02-16 meeting agenda.pdf</span>
+      </a></li><li class="kgsweb-node depth-4 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1nRRNF6hb8AvFpIAQU_fctYH_49yc-HXT/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school board 2023-01-12 special meeting agenda.pdf</span>
+      </a></li></ul></li></ul></li><li class="kgsweb-node depth-2 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1k92wA-ky44hODzq45x8kTQz-GFVFBUkM" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">school-board-documents</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1k92wA-ky44hODzq45x8kTQz-GFVFBUkM" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-3 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1LUnNlfixgKEj5lAROSGgDSMCYnzR5BRH/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-board-member-training-2013-11-18.pdf</span>
+      </a></li></ul></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1uuvv_InQY-xqATIe1TCNET7H4DB4N97c" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">policies</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1uuvv_InQY-xqATIe1TCNET7H4DB4N97c" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1Unw8qqf2Jv2r9lCCgbemu02byMn7fBVz/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">supplemental-educational-services_2013-11-18.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1SHtyZ-dH56bipzZkSkwif1lEoaEImAZG/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">return-to-school-plan_2021-2022.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1oHLeUxgal1To76yas7iUNG1qhqqALlDM/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">delivery-information.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1rZjwduRZ1q-zcZ0CuWYdYPfOd2I-GpWf/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">plan-for-safe-return-to-school_2021-2022.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1uMXYKeiPWsnLqlpLZbsRcyxrLS_0V_cV/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">school-choice_2013-11-18.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/12PH_ma7uXbxe1zQDndvAH3izuJBqFAOJ/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">mckinney-vento-homeless-program.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1xrlrGLs1N-y4FzQdrEMdvJpWfk9xhZ8k/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">freedom of information act.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1Vd9BI7B1CXxPdbCJQmx_lcj6L7uAyzJk/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">bullying-policy-2020-12-10.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/18ggcTLXIhva_QSInR8-I6sP1Ur_mDcSQ/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">privacy policy.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1xwLKoLdl-FGO1I4IZ05VHyjGrcOfz80u/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">Handbook 2025-2026 Updated #3.docx.pdf</span>
+      </a></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-11Fsr7xUVw5O_WROHbEuE-LFytQN130z7" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">financial</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-11Fsr7xUVw5O_WROHbEuE-LFytQN130z7" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1V0fOLkE9EhQEthyID8z81YdfFA7kQyJk/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">2022-2023-salary-schedule.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1RrE0ve21S9PydrTYLOl6IDKaDvYa-jBH/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">collective-bargaining-agreement.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1ypgp4Yw0jPtHF1Vdt9sa8dIddsPsWL7X/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">budget_fy-2023.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1DZACSJZOc9quCWLbX0ZU2H9W1WVpygmG/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">admin-teacher-comp-report_fy-2022.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1GAx6-c2eUTYEHvNISPW71lIzdIuG1Wdg/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">contracts-exceeding-25000_fy-2022.pdf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/11JZZe9gPZp42hZf0gEUwwE3r_3MluczR/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file"></i></span>
+        <span class="kgsweb-label">esser.rtf</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1OQZ9NhN88Dz3Jv7eeK_J5yVnI6Ul4OOz/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">esser-iii-spending-plan-2021.pdf</span>
+      </a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1rqVaS7macf5SsPVNsQpJA6K0g1msHBpB" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">family</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1rqVaS7macf5SsPVNsQpJA6K0g1msHBpB" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-18qsMGcnDYCuwRc71ne1IhFmyW_KWezrL" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">parent-teacher-organization</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-18qsMGcnDYCuwRc71ne1IhFmyW_KWezrL" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1e3TTC82LqvNBY4HDMz0TvuJZO0uG4hpP/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">kell grade school pto.pdf</span>
+      </a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1F8Q0gYiaisXTfGxxgemC5v_FAs_dXydh" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">cafeteria</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1F8Q0gYiaisXTfGxxgemC5v_FAs_dXydh" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1FNDGGSFfRJtmb7qwdHlSQHdD1StVDZPK" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">lunch-menu</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1FNDGGSFfRJtmb7qwdHlSQHdD1StVDZPK" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1aF8z7XdkbFytQMoTLF6l3dZAdXZNiIA1/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">lunch-menu-2025-08.pdf</span>
+      </a></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1Eqi3ReKLgDvpAIMOWNkXetFZ5XJBi7T4" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">breakfast-menu</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1Eqi3ReKLgDvpAIMOWNkXetFZ5XJBi7T4" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1TogCTIpzowL4T9kDE9sTzMqVjxpcv6wI/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">breakfast-menu-2025-08.pdf</span>
+      </a></li></ul></li></ul></li><li class="kgsweb-node depth-0 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1GEn2hgWDAV_4JPHxXnUvbb5GRzk-kck_" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">calendar</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1GEn2hgWDAV_4JPHxXnUvbb5GRzk-kck_" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-16jKLTc-Kg5IVeNtreFooWVGtx1T7KmC5" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">monthly-calendar</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-16jKLTc-Kg5IVeNtreFooWVGtx1T7KmC5" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1zJJH3Wv289176NOmYs_PXkEnkC91m0yA/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">monthly-calendar-2025-08.pdf</span>
+      </a></li></ul></li><li class="kgsweb-node depth-1 type-folder"><div class="kgsweb-toggle" role="button" aria-expanded="false" aria-controls="children-1jH6rXW3JcMDhJRJKTNK6WqZe778inB9l" tabindex="0">
+        <span class="kgsweb-icon"><i class="fas fa-folder"></i></span>
+        <span class="kgsweb-label">academic-calendar</span>
+        <i class="fas fa-chevron-right kgsweb-toggle-icon"></i>
+      </div><ul id="children-1jH6rXW3JcMDhJRJKTNK6WqZe778inB9l" class="kgsweb-children" hidden=""><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/13rtZ1PqXraTOQmmi04qt8xIQFbBuqv92/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-word"></i></span>
+        <span class="kgsweb-label">Academic-Calendar-2025-2026-WORD-DOC-VERSION.docx</span>
+      </a></li><li class="kgsweb-node depth-2 type-file"><a class="kgsweb-file" href="https://drive.google.com/file/d/1Bl3AyxO_OA_lS_g0qXf953jFTVVwaMUc/view" target="_blank" rel="noopener">
+        <span class="kgsweb-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="kgsweb-label">Academic-Calendar-2025-2026-PDF-VERSION.pdf</span>
+      </a></li></ul></li></ul></li></ul></div>
