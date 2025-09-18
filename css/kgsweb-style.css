@@ -107,10 +107,11 @@ body .kgsweb-upload {
 .kgsweb-calendar .events-list { list-style: none; padding: 0; margin: 0; }
 .kgsweb-calendar .events-list li { padding: 10px 0; border-bottom: 1px solid #eee; }
 .kgsweb-calendar .events-list li:last-child { border-bottom: none; }
+.kgsweb-calendar .event-date {  }
 .kgsweb-calendar .event-details { display: flex; flex-direction: column; }
-.kgsweb-calendar .event-title { font-weight: bold; color: #333; font-size: 16px; }
-.kgsweb-calendar .event-time { color: #666; font-size: 14px; margin-top: 2px; }
-.kgsweb-calendar .full-calendar-link { text-align: center; margin-top: 15px; }
+.kgsweb-calendar .event-title { font-weight: bold; color: #333; font-size: 14px; margin-top: 1px; }
+.kgsweb-calendar .event-time { color: #000000; font-size: 14px; margin-top: 1px; }
+.kgsweb-calendar .full-calendar-link { text-align: center; margin-top: 14px; }
 .kgsweb-calendar .full-calendar-link a { color: #015BA7; font-weight: bold; text-decoration: none; }
 .kgsweb-calendar .full-calendar-link a:hover { color: #014a82; text-decoration: underline; }
 
@@ -143,13 +144,13 @@ body .kgsweb-upload {
     background: #fff;
     margin-bottom: 1em;
     font-family: inherit;
-    font-size: 14px;
+    font-size: inherit;
     color: #222;
 }
 
 .kgsweb-docs-loading {
     color: #555;
-    font-size: 14px;
+    font-size: inherit;
     padding: 8px 0;
 }
 
@@ -175,7 +176,7 @@ body .kgsweb-upload {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 4px 6px;
+    padding: 0px 6px;
     cursor: pointer;
     font: inherit;
     color: #222;
@@ -308,9 +309,9 @@ body .kgsweb-upload {
 .kgsweb-shortcode-list li { margin-bottom: 0.5em; }
 .kgsweb-shortcode-example { margin-left: 1.5em; font-size: 0.95em; color: #555; }
 
-	/* =========================================
-	   Slides
-	   ========================================= */
+/* =========================================
+   Slides
+   ========================================= */
 	.kgsweb-slides-wrapper,
 	.kgsweb-slides-pdf-wrapper {
 		position: relative;
