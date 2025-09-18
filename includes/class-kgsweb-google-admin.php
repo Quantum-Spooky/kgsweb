@@ -82,7 +82,7 @@ public function render_settings_page() {
         update_option('kgsweb_upload_root_folder_id', $_POST['upload_root_folder_id']);
 
         // Full Calendar URL
-        update_option('kgsweb_full_calendar_url', esc_url_raw($_POST['full_calendar_url'] ?? ''));
+        update_option('kgsweb_calendar_url', esc_url_raw($_POST['calendar_url'] ?? ''));
 
         // Secure Upload Settings
         $upload_opts = [
@@ -148,7 +148,7 @@ public function render_settings_page() {
     $lunch              = get_option('kgsweb_lunch_folder_id', '');
     $ticker             = get_option('kgsweb_ticker_file_id', '');
     $calendars          = get_option('kgsweb_calendar_ids', '');
-    $full_calendar_url  = get_option('kgsweb_full_calendar_url', '');
+    $calendar_url  = get_option('kgsweb_calendar_url', '');
     $upload_opts        = get_option('kgsweb_secure_upload_options', []);
 
     // Ensure options are arrays
@@ -198,10 +198,10 @@ public function render_settings_page() {
                 <p>Enter one or more Google Calendar IDs (comma-separated) to display upcoming events.</p>
                 <input type="text" name="calendar_ids" value="<?php echo esc_attr(implode(',', $calendars_array)); ?>" size="50">
 
-                <!-- Full Calendar URL -->
-                <h2>Full Calendar URL</h2>
-                <p>Enter the URL for the full Google Calendar view. This is used for the "View Full Calendar" link in the events shortcode.</p>
-                <input type="url" name="full_calendar_url" value="<?php echo esc_attr($full_calendar_url); ?>" size="50">
+                <!-- Calendar URL -->
+                <h2>Calendar URL</h2>
+                <p>Enter the URL for the Calendar page view. This is used for the "View Calendar" link in the events shortcode.</p>
+                <input type="url" name="calendar_url" value="<?php echo esc_attr($calendar_url); ?>" size="50">
 
                 <!-- Secure Upload Settings -->
                 <h2>Secure Upload Settings</h2>
