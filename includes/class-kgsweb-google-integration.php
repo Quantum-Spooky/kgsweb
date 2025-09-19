@@ -9,7 +9,7 @@ use Google\Service\Drive;
 use Google\Service\Calendar;
 use Google\Service\Sheets;
 use Google\Service\Slides;
-
+		
 class KGSweb_Google_Integration
 {
     /*******************************
@@ -126,6 +126,19 @@ class KGSweb_Google_Integration
     /*******************************
      * Google Service Accessors
      *******************************/
+
+	/**
+	 * Return Google Drive service for direct API access
+	 */
+	public static function get_drive_service(): ?Drive
+	{
+		$client = self::get_google_client();
+		if (!$client) {
+			error_log("[KGSweb] get_drive_service: Google Client not available.");
+			return null;
+		}
+		return new Drive($client);
+	}
 
     /**
      * Google Drive wrapper
@@ -612,7 +625,7 @@ class KGSweb_Google_Integration
                 if (
                     in_array(
                         $meta["mimeType"],
-                        ["application/vnd.google-apps.document", "text/plain"],
+                        ["application/vnd.google-apps.document", "text/plain", "application/pdf"],
                         true
                     )
                 ) {

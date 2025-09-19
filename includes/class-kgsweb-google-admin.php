@@ -36,9 +36,9 @@ class KGSweb_Google_Admin {
             'menus',
             'ticker',
             'upload',
-			'format',
-			'slides',
-			'sheets'
+            'format',
+            'slides',
+            'sheets'
         ];
 
         foreach ($admin_js as $mod) {
@@ -58,42 +58,50 @@ class KGSweb_Google_Admin {
             82
         );
     }
-				
-public function render_settings_page() {
-    if (!current_user_can('manage_options')) return;
 
-    $integration = KGSweb_Google_Integration::init();
+    // Render Settings Page
+    public function render_settings_page() {
+        if (!current_user_can('manage_options')) return;
+
+        $integration = KGSweb_Google_Integration::init();
 
     // -------------------------------
     // Save Settings
-    // -------------------------------
-    if (isset($_POST['kgsweb_save_settings'])) {
-        if (!isset($_POST['kgsweb_save_settings_nonce']) || !wp_verify_nonce($_POST['kgsweb_save_settings_nonce'], 'kgsweb_save_settings_action')) {
-            wp_die('Security check failed.');
-        }
+    // -------------------------------							  
+        if (isset($_POST['kgsweb_save_settings'])) {
+            if (!isset($_POST['kgsweb_save_settings_nonce']) || !wp_verify_nonce($_POST['kgsweb_save_settings_nonce'], 'kgsweb_save_settings_action')) {
+                wp_die('Security check failed.');
+            }
 
-        // Google Integration options
-        update_option('kgsweb_service_account_json', stripslashes($_POST['service_account_json']));
-        update_option('kgsweb_root_folder_id', $_POST['root_folder_id']);
-        update_option('kgsweb_breakfast_folder_id', $_POST['breakfast_folder_id']);
-        update_option('kgsweb_lunch_folder_id', $_POST['lunch_folder_id']);
-        update_option('kgsweb_ticker_file_id', $_POST['ticker_file_id'] ?? '');
-        update_option('kgsweb_calendar_ids', $_POST['calendar_ids']);
-        update_option('kgsweb_upload_root_folder_id', $_POST['upload_root_folder_id']);
+        // Google Integration options									 
+            update_option('kgsweb_service_account_json', stripslashes($_POST['service_account_json']));
+            update_option('kgsweb_root_folder_id', $_POST['root_folder_id']);
+            update_option('kgsweb_breakfast_folder_id', $_POST['breakfast_folder_id']);
+            update_option('kgsweb_lunch_folder_id', $_POST['lunch_folder_id']);
+            update_option('kgsweb_ticker_file_id', $_POST['ticker_file_id'] ?? '');
+            update_option('kgsweb_calendar_ids', $_POST['calendar_ids']);
+            update_option('kgsweb_upload_root_folder_id', $_POST['upload_root_folder_id']);
 
-        // Full Calendar URL
-        update_option('kgsweb_calendar_url', esc_url_raw($_POST['calendar_url'] ?? ''));
+        // Calendar URL					   
+            update_option('kgsweb_calendar_url', esc_url_raw($_POST['calendar_url'] ?? ''));
 
-        // Secure Upload Settings
-        $upload_opts = [
-            'upload_auth_mode'   => sanitize_text_field($_POST['upload_auth_mode'] ?? 'password'),
-            'upload_password'    => sanitize_text_field($_POST['upload_password'] ?? ''),
-            'google_groups'      => array_map('trim', is_array($_POST['google_groups'] ?? null) ? $_POST['google_groups'] : explode(',', (string)($_POST['google_groups'] ?? ''))),
-            'upload_destination' => sanitize_text_field($_POST['upload_destination'] ?? 'drive'),
-            'wp_upload_root'     => sanitize_text_field($_POST['wp_upload_root'] ?? ''),
-        ];
-        update_option('kgsweb_secure_upload_options', $upload_opts);
 
+		// PDF TO PNG DEBUG IMAGICK
+			// KGSweb_Google_Menus::debug_menu_full('breakfast', '80%');
+			// KGSweb_Google_Menus::debug_menu_full('lunch', 600);
+
+
+        // Secure Upload Settings											 
+			$upload_opts = [
+                'upload_auth_mode'   => sanitize_text_field($_POST['upload_auth_mode'] ?? 'password'),
+                'upload_password'    => sanitize_text_field($_POST['upload_password'] ?? ''),
+                'google_groups'      => array_map('trim', is_array($_POST['google_groups'] ?? null) ? $_POST['google_groups'] : explode(',', (string)($_POST['google_groups'] ?? ''))),
+                'upload_destination' => sanitize_text_field($_POST['upload_destination'] ?? 'drive'),
+                'wp_upload_root'     => sanitize_text_field($_POST['wp_upload_root'] ?? ''),
+            ];
+            update_option('kgsweb_secure_upload_options', $upload_opts);
+
+										   
         // Refresh ticker cache immediately
         KGSweb_Google_Ticker::refresh_cache_cron();
 
@@ -101,55 +109,55 @@ public function render_settings_page() {
 
         // Initialize or refresh Google Drive client
         $integration->get_drive();
-    }
-
+    }	
+	
     // -------------------------------
     // Reset Lockouts
-    // -------------------------------
-    if (isset($_POST['kgsweb_reset_locked'])) {
-        delete_option('kgsweb_upload_lockouts');
-        global $wpdb;
-        $transients = $wpdb->get_results("SELECT option_name FROM $wpdb->options WHERE option_name LIKE '\_transient\_kgsweb\_attempts\_%'", ARRAY_A);
-        foreach ($transients as $t) delete_transient(str_replace('_transient_', '', $t['option_name']));
-        echo "<div class='updated'><p>Upload lockouts cleared.</p></div>";
-    }
+    // -------------------------------							  
+        if (isset($_POST['kgsweb_reset_locked'])) {
+            delete_option('kgsweb_upload_lockouts');
+            global $wpdb;
+            $transients = $wpdb->get_results("SELECT option_name FROM $wpdb->options WHERE option_name LIKE '\_transient\_kgsweb\_attempts\_%'", ARRAY_A);
+            foreach ($transients as $t) delete_transient(str_replace('_transient_', '', $t['option_name']));
+            echo "<div class='updated'><p>Upload lockouts cleared.</p></div>";
+        }
 
     // -------------------------------
     // Update Cache
-    // -------------------------------
-    if (isset($_POST['kgsweb_update_cache'])) {
-        if (!isset($_POST['kgsweb_update_cache_nonce']) || !wp_verify_nonce($_POST['kgsweb_update_cache_nonce'], 'kgsweb_update_cache_action')) {
-            wp_die('Security check failed.');
+    // -------------------------------					  
+        if (isset($_POST['kgsweb_update_cache'])) {
+            if (!isset($_POST['kgsweb_update_cache_nonce']) || !wp_verify_nonce($_POST['kgsweb_update_cache_nonce'], 'kgsweb_update_cache_action')) {
+                wp_die('Security check failed.');
+            }
+            $integration->cron_refresh_all_caches();
+            echo "<div class='updated'><p>Cache updated successfully!</p></div>";
         }
-        $integration->cron_refresh_all_caches();
-        echo "<div class='updated'><p>Cache updated successfully!</p></div>";
-    }
-
+									  
     // -------------------------------
     // Clear Cache
-    // -------------------------------
-    if (isset($_POST['kgsweb_clear_cache'])) {
-        if (!isset($_POST['kgsweb_clear_cache_nonce']) || !wp_verify_nonce($_POST['kgsweb_clear_cache_nonce'], 'kgsweb_clear_cache_action')) {
-            wp_die('Security check failed.');
+    // -------------------------------		  
+        if (isset($_POST['kgsweb_clear_cache'])) {
+            if (!isset($_POST['kgsweb_clear_cache_nonce']) || !wp_verify_nonce($_POST['kgsweb_clear_cache_nonce'], 'kgsweb_clear_cache_action')) {
+                wp_die('Security check failed.');
+            }
+            global $wpdb;
+            $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_kgsweb\_%'");
+            $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_timeout\_kgsweb\_%'");
+            echo "<div class='updated'><p>All KGSWEB caches cleared!</p></div>";
         }
-        global $wpdb;
-        $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_kgsweb\_%'");
-        $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_timeout\_kgsweb\_%'");
-        echo "<div class='updated'><p>All KGSWEB caches cleared!</p></div>";
-    }
-
+									  
     // -------------------------------
     // Load Saved Options
-    // -------------------------------
-    $service_json       = get_option('kgsweb_service_account_json', '');
-    $root_folder        = get_option('kgsweb_root_folder_id', '');
-    $upload_root_folder = get_option('kgsweb_upload_root_folder_id', '');
-    $breakfast          = get_option('kgsweb_breakfast_folder_id', '');
-    $lunch              = get_option('kgsweb_lunch_folder_id', '');
-    $ticker             = get_option('kgsweb_ticker_file_id', '');
-    $calendars          = get_option('kgsweb_calendar_ids', '');
-    $calendar_url  = get_option('kgsweb_calendar_url', '');
-    $upload_opts        = get_option('kgsweb_secure_upload_options', []);
+    // -------------------------------							  
+        $service_json       = get_option('kgsweb_service_account_json', '');
+        $root_folder        = get_option('kgsweb_root_folder_id', '');
+        $upload_root_folder = get_option('kgsweb_upload_root_folder_id', '');
+        $breakfast          = get_option('kgsweb_breakfast_folder_id', '');
+        $lunch              = get_option('kgsweb_lunch_folder_id', '');
+        $ticker             = get_option('kgsweb_ticker_file_id', '');
+        $calendars          = get_option('kgsweb_calendar_ids', '');
+        $calendar_url       = get_option('kgsweb_calendar_url', '');
+        $upload_opts        = get_option('kgsweb_secure_upload_options', []);
 
     // Ensure options are arrays
     if (!is_array($upload_opts)) $upload_opts = [];
@@ -167,6 +175,7 @@ public function render_settings_page() {
 
     $last      = (int) get_option('kgsweb_last_refresh', 0);
     $last_text = $last > 0 ? date_i18n('m/d/Y g:i A T', $last) : '';
+
     ?>
     <div class="wrap">
         <h1><?php esc_html_e('KGS Web Google Integration Plugin Settings', 'kgsweb'); ?></h1>
@@ -267,8 +276,9 @@ public function render_settings_page() {
 
 			   
             </form>
-
-            <hr />
+            </div>
+				  
+			<hr />
             <div class="kgsweb-shortcode-help">
 			  <h2>Available Shortcodes</h2>
 			  <p>You can use these shortcodes anywhere in posts, pages, or widgets</p>
@@ -325,13 +335,12 @@ public function render_settings_page() {
 			  <hr />
 			  <div class="secure-upload-settings"></div>
 			</div>
+        <?php
+    } // end render_settings_page
 
+} // end class KGSweb_Google_Admin
 
-    </div>
-    <?php
-}
-
-}
-
+		  
+ 
 
  

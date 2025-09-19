@@ -3,8 +3,6 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 use Google\Service\Calendar;
-use WP_REST_Request;
-use WP_REST_Response;
 
 class KGSweb_Google_Upcoming_Events {
 

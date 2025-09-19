@@ -25,7 +25,7 @@ class KGSweb_Google_Shortcodes {
     public function register_shortcodes() {
         add_shortcode('kgsweb_documents', [$this, 'documents']);
         // add_shortcode('kgsweb_secure_upload_form', [$this, 'secure_upload_form']);
-        // add_shortcode('kgsweb_menu', [KGSweb_Google_Menus::class, 'shortcode_render']);
+        add_shortcode('kgsweb_menu', [KGSweb_Google_Menus::class, 'shortcode_render']);
         // add_shortcode('kgsweb_ticker', [$this, 'render_ticker']);
         // add_shortcode('kgsweb_sheets', [KGSweb_Google_Sheets::class, 'shortcode_render']);
         add_shortcode('kgsweb_slides', [KGSweb_Google_Slides::class, 'shortcode_render']);
