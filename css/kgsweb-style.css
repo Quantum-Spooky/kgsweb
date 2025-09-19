@@ -7,9 +7,9 @@ body .kgsweb-ticker,
 body .kgsweb-events,
 body .kgsweb-documents,
 body .kgsweb-upload {
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-family: inherit
     color: #222;
-    line-height: 1.4;
+    line-height: 2;
 }
 
 /* =========================================
@@ -95,7 +95,7 @@ body .kgsweb-upload {
 
 .kgsweb-calendar {
     font-family: Arial, sans-serif;
-    padding: 15px;
+    padding: 5px 10px;
     background-color: #f8f8f8;
     border-radius: 8px;
     border: 1px solid #ddd;
@@ -105,7 +105,7 @@ body .kgsweb-upload {
 .kgsweb-calendar .calendar-controls button:hover:not(:disabled) { background-color: #014a82; }
 .kgsweb-calendar .calendar-controls button:disabled { background-color: #ccc; cursor: not-allowed; }
 .kgsweb-calendar .events-list { list-style: none; padding: 0; margin: 0; }
-.kgsweb-calendar .events-list li { padding: 10px 0; border-bottom: 1px solid #eee; }
+.kgsweb-calendar .events-list li { padding: 5px 0; border-bottom: 1px solid #eee; }
 .kgsweb-calendar .events-list li:last-child { border-bottom: none; }
 .kgsweb-calendar .event-date {  }
 .kgsweb-calendar .event-details { display: flex; flex-direction: column; }
@@ -430,6 +430,75 @@ body .kgsweb-upload {
 	.kgsweb-slides-thumbnails {
 		scroll-behavior: smooth;
 	}
+	
+/* =========================================
+   Breakfast and Lunch Menus
+   ========================================= */
+.kgsweb-menu {
+  position: relative;
+  display: inline-block; /* shrink-wrap to image width */
+  max-width: 100%;
+  text-align: center; /* horizontal centering */
+}
+
+.kgsweb-menu-inner {
+  display: inline-block;
+  position: relative;
+  max-width: 100%;
+}
+
+.kgsweb-menu-inner img,
+.kgsweb-menu-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0; /* optional: remove if you want rounded images */
+}
+
+/* Zoom button */
+.kgsweb-menu-zoom-wrapper {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.4);
+  cursor: pointer;
+  transition: background 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.kgsweb-menu-zoom-wrapper:hover {
+  background: rgba(0,0,0,0.6);
+  transform: scale(1.05);
+}
+
+.kgsweb-menu-zoom {
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Modal Overlay */
+.kgsweb-menu-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.kgsweb-menu-modal img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+}
+
 
 
 	/* =========================================
