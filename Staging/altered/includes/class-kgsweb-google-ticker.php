@@ -200,39 +200,35 @@ public static function shortcode_render($atts = []): string {
         ]);
     }
 	
-	public static function get_ticker_items($folderId) {
-		// Fetch all children using helper
-		$files = KGSWeb_Google_Helpers::fetch_drive_children($folderId);
+	
+	
+	
+		/**
+	 * Fetch all ticker items from a folder.
+	 *
+	 * @param string $folderId Google Drive folder ID
+	 * @return array List of items with name, modifiedTime, and content
+	 */
+	public static function get_ticker_items(string $folderId): array {
+		$children = KGSWeb_Google_Helpers::fetch_drive_children($folderId);
+		$items = [];
 
-		// Sort newest-first for ticker (descending by modifiedTime)
-		usort($files, function($a, $b) {
-			return strcmp($b['modifiedTime'], $a['modifiedTime']);
-		});
+		foreach ($children as $child) {
+			// Only include files (skip folders)
+			if ($child['mimeType'] !== 'application/vnd.google-apps.folder') {
+				$content = KGSWeb_Google_Helpers::fetch_file_contents($child['id']);
+				$items[] = [
+					'name'         => $child['name'],
+					'modifiedTime' => $child['modifiedTime'],
+					'content'      => $content,
+				];
+			}
+		}
 
-		return $files;
+		// Sort newest-first (modifiedTime descending)
+		usort($items, fn($a, $b) => strcmp($b['modifiedTime'], $a['modifiedTime']));
+
+		return $items;
 	}
-	
-	
-	    /**
-     * Get items for the ticker.
-     */
-    public function get_ticker_items($folderId) {
-        // Previously relied on Drive-Docs; now uses helper
-        $children = KGSWeb_Google_Helpers::fetch_drive_children($folderId);
-
-        $items = [];
-        foreach ($children as $child) {
-            // Only process documents (skip folders)
-            if ($child['mimeType'] !== 'application/vnd.google-apps.folder') {
-                $content = KGSWeb_Google_Helpers::fetch_file_contents($child['id']);
-                $items[] = [
-                    'name' => $child['name'],
-                    'modifiedTime' => $child['modifiedTime'],
-                    'content' => $content,
-                ];
-            }
-        }
-        return $items;
-    }
 
 }
