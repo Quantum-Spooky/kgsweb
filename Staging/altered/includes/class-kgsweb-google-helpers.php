@@ -379,29 +379,29 @@
       * @param string $folderId
       * @return array Array of nodes with keys: id, name, mimeType, modifiedTime, parents[]
       */
-     public static function fetch_drive_children($folderId)
-     {
-         $integration = new KGSWeb_Google_Integration();
-         $children = $driveDocs->list_drive_children($folderId);
+	public static function fetch_drive_children($folderId)
+	{
+		$drive_docs = new KGSweb_Google_Drive_Docs(); // instantiate the class
+		$children = $drive_docs->list_drive_children($folderId); // call non-static method
 
-         // Filter out trashed items and normalize keys
-         $normalized = [];
-         foreach ($children as $item) {
-             if (!empty($item["trashed"])) {
-                 continue;
-             }
+		// Filter out trashed items and normalize keys
+		$normalized = [];
+		foreach ($children as $item) {
+			if (!empty($item["trashed"])) {
+				continue;
+			}
 
-             $normalized[] = [
-                 "id" => $item["id"],
-                 "name" => $item["name"],
-                 "mimeType" => $item["mimeType"],
-                 "modifiedTime" => $item["modifiedTime"] ?? "",
-                 "parents" => $item["parents"] ?? [],
-             ];
-         }
+			$normalized[] = [
+				"id" => $item["id"],
+				"name" => $item["name"],
+				"mimeType" => $item["mimeType"],
+				"modifiedTime" => $item["modifiedTime"] ?? "",
+				"parents" => $item["parents"] ?? [],
+			];
+		}
 
-         return $normalized;
-     }
+		return $normalized;
+	}
 
      /**
       * Fetch file contents from Drive.
