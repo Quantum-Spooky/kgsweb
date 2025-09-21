@@ -14,6 +14,12 @@ class KGSweb_Google_Drive_Docs {
     /** @var Docs|null */
     private $docsService = null;
 
+    /** @var Drive|null */
+    private $service = null;
+
+    /*******************************
+     * Class Initialization
+     *******************************/
     public static function init() { /* no-op */ }
 
     public function __construct(Client $client) {
@@ -21,7 +27,8 @@ class KGSweb_Google_Drive_Docs {
     }
 
     /*******************************
-     * Cron Refresh
+     * CRON Refresh
+     * Rebuilds cached trees & menus
      *******************************/
     public static function refresh_cache_cron() {
         $integration = KGSweb_Google_Integration::init();
@@ -29,10 +36,10 @@ class KGSweb_Google_Drive_Docs {
         // Rebuild public docs tree
         self::rebuild_documents_tree_cache(self::get_public_root_id());
 
-        // Rebuild upload folder list
+        // Rebuild upload folder tree
         self::rebuild_upload_tree_cache(self::get_upload_root_id());
 
-        // Menus
+        // Refresh menus
         self::refresh_menu_cache('breakfast');
         self::refresh_menu_cache('lunch');
     }
@@ -49,7 +56,7 @@ class KGSweb_Google_Drive_Docs {
     }
 
     /*******************************
-     * Build & Cache Documents Tree
+     * Rebuild Documents Tree Cache
      *******************************/
     public static function rebuild_documents_tree_cache($root) {
         if (empty($root)) return;
@@ -58,8 +65,22 @@ class KGSweb_Google_Drive_Docs {
 
         $tree = self::build_documents_tree($root);
 
-        KGSweb_Google_Integration::set_transient('kgsweb_cache_documents_' . $root, $tree, HOUR_IN_SECONDS);
+        $payload_to_cache = [
+            'tree' => $tree,
+            'last_fetched' => current_time('timestamp'),
+            'max_modified_time' => self::find_max_modified_time($tree),
+            'folder_ids' => self::collect_folder_ids($tree),
+        ];
+
+        KGSweb_Google_Integration::set_transient('kgsweb_cache_documents_' . $root, $payload_to_cache, HOUR_IN_SECONDS);
         update_option('kgsweb_cache_last_refresh_documents_' . $root, current_time('timestamp'));
+
+        error_log(sprintf(
+            "KGSWEB: Cached documents tree for root %s. Items: %d, max_modified_time=%s",
+            $root,
+            count($payload_to_cache['folder_ids']),
+            $payload_to_cache['max_modified_time']
+        ));
     }
 
     public static function rebuild_upload_tree_cache($root) {
@@ -68,27 +89,170 @@ class KGSweb_Google_Drive_Docs {
         $tree = self::build_folders_only_tree($root);
         KGSweb_Google_Integration::set_transient('kgsweb_cache_upload_tree_' . $root, $tree, HOUR_IN_SECONDS);
         update_option('kgsweb_cache_last_refresh_uploadtree_' . $root, current_time('timestamp'));
-    }
-
-    public static function get_documents_tree_payload($folder_id = '') {
-        $root = $folder_id ?: self::get_public_root_id();
-        $key = 'kgsweb_cache_documents_' . $root;
-        $tree = KGSweb_Google_Integration::get_transient($key);
-
-        if ($tree === false) {
-            $tree = self::build_documents_tree($root);
-            KGSweb_Google_Integration::set_transient($key, $tree, HOUR_IN_SECONDS);
-        }
-
-        if (empty($tree)) {
-            return new WP_Error('no_docs', __('No documents available.', 'kgsweb'), ['status' => 404]);
-        }
-
-        return ['root_id' => $root, 'tree' => $tree, 'updated_at' => current_time('timestamp')];
+        error_log("KGSWEB: Cached upload tree for root {$root}");
     }
 
     /*******************************
-     * Drive Traversal
+     * Documents Tree Retrieval with Early Invalidation
+     *
+     * Accepts $folder_id (from shortcode 'folder' attribute).
+     * Uses cached tree if valid, otherwise rebuilds.
+     *******************************/
+    public static function get_documents_tree_payload($folder_id = '') {
+        $root = $folder_id ?: self::get_public_root_id();
+        if (empty($root)) {
+            return new WP_Error('no_root', __('No document root configured.', 'kgsweb'), ['status' => 404]);
+        }
+
+        $cache_key = 'kgsweb_cache_documents_' . $root;
+        $cached = KGSweb_Google_Integration::get_transient($cache_key);
+
+        if ($cached !== false && is_array($cached)) {
+            $tree = $cached['tree'] ?? [];
+            $last_fetched = $cached['last_fetched'] ?? current_time('timestamp');
+            $max_modified_time = $cached['max_modified_time'] ?? null;
+            $folder_ids = $cached['folder_ids'] ?? [];
+
+            if ($max_modified_time) {
+                // Early cache invalidation: query Drive for changes since max_modified_time
+                try {
+                    $client = KGSweb_Google_Integration::get_google_client();
+                    if ($client instanceof Client) {
+                        $service = new Drive($client);
+                        $pageToken = null;
+                        $found_new = false;
+                        $since = gmdate('Y-m-d\TH:i:s\Z', strtotime($max_modified_time));
+
+                        do {
+                            $params = [
+                                'q' => sprintf("modifiedTime > '%s' and trashed = false", $since),
+                                'fields' => 'nextPageToken, files(id, parents, modifiedTime)',
+                                'pageSize' => 100,
+                            ];
+                            if ($pageToken) $params['pageToken'] = $pageToken;
+
+                            $response = $service->files->listFiles($params);
+                            $items = $response->getFiles();
+
+                            if (!empty($items)) {
+                                foreach ($items as $f) {
+                                    $fid = $f->getId();
+                                    if (in_array($fid, $folder_ids, true)) {
+                                        $found_new = true;
+                                        error_log("KGSWEB: Early cache invalidation triggered for root {$root}. Found updated folder {$fid}.");
+                                        break;
+                                    }
+
+                                    $parents = $f->getParents() ?? [];
+                                    foreach ($parents as $p) {
+                                        if (in_array($p, $folder_ids, true)) {
+                                            $found_new = true;
+                                            error_log("KGSWEB: Early cache invalidation triggered for root {$root}. Found updated file {$fid} in parent folder {$p}.");
+                                            break 2;
+                                        }
+                                    }
+                                }
+                            }
+
+                            $pageToken = $response->getNextPageToken();
+                        } while (!$found_new && $pageToken);
+
+                        if ($found_new) {
+                            // Invalidate cached payload
+                            KGSweb_Google_Integration::set_transient($cache_key, false, 1);
+                            $cached = false;
+                        }
+                    }
+                } catch (Exception $e) {
+                    error_log("KGSWEB WARNING: Early freshness check failed for root {$root} - " . $e->getMessage() . ". Using cached tree.");
+                }
+            }
+
+            if ($cached !== false) {
+                return [
+                    'root_id' => $root,
+                    'tree' => $tree,
+                    'updated_at' => $last_fetched,
+                    'max_modified_time' => $max_modified_time,
+                    'cached' => true,
+                ];
+            }
+        }
+
+        // Cache miss or invalidated: rebuild fresh tree
+        try {
+            $tree = self::build_documents_tree($root);
+            $max_modified_time = self::find_max_modified_time($tree);
+            $folder_ids = self::collect_folder_ids($tree);
+
+            $payload_to_cache = [
+                'tree' => $tree,
+                'last_fetched' => current_time('timestamp'),
+                'max_modified_time' => $max_modified_time,
+                'folder_ids' => $folder_ids,
+            ];
+
+            KGSweb_Google_Integration::set_transient($cache_key, $payload_to_cache, HOUR_IN_SECONDS);
+            update_option('kgsweb_cache_last_refresh_documents_' . $root, current_time('timestamp'));
+
+            error_log(sprintf(
+                "KGSWEB: Rebuilt and cached documents tree for root %s. Items: %d, max_modified_time=%s",
+                $root,
+                count($folder_ids),
+                $max_modified_time
+            ));
+
+            return [
+                'root_id' => $root,
+                'tree' => $tree,
+                'updated_at' => current_time('timestamp'),
+                'max_modified_time' => $max_modified_time,
+                'cached' => false,
+            ];
+        } catch (Exception $e) {
+            error_log("KGSWEB ERROR: Failed to rebuild documents tree for {$root} - " . $e->getMessage());
+            return new WP_Error('kgsweb_drive_error', __('Failed to fetch Google Drive tree.', 'kgsweb'), ['status' => 500]);
+        }
+    }
+
+    /*******************************
+     * Helper: Collect folder IDs from tree
+     *******************************/
+    private static function collect_folder_ids($nodes) {
+        $ids = [];
+        $walk = function($items) use (&$walk, &$ids) {
+            foreach ((array)$items as $n) {
+                if (empty($n) || !is_array($n)) continue;
+                if (isset($n['type']) && $n['type'] === 'folder' && !empty($n['id'])) {
+                    $ids[] = $n['id'];
+                }
+                if (!empty($n['children'])) $walk($n['children']);
+            }
+        };
+        $walk($nodes);
+        return array_values(array_unique($ids));
+    }
+
+    /*******************************
+     * Helper: Find max modifiedTime in tree
+     *******************************/
+    private static function find_max_modified_time($nodes) {
+        $max = null;
+        $walk = function($items) use (&$walk, &$max) {
+            foreach ((array)$items as $n) {
+                if (empty($n) || !is_array($n)) continue;
+                if (!empty($n['modifiedTime']) && (!$max || strtotime($n['modifiedTime']) > strtotime($max))) {
+                    $max = $n['modifiedTime'];
+                }
+                if (!empty($n['children'])) $walk($n['children']);
+            }
+        };
+        $walk($nodes);
+        return $max;
+    }
+
+    /*******************************
+     * Build full documents tree
      *******************************/
     public static function build_documents_tree(string $root_id): array {
         if (empty($root_id)) return [];
@@ -106,7 +270,7 @@ class KGSweb_Google_Drive_Docs {
 
             foreach ($items as $item) {
                 $node = [
-                    'id'   => $item['id'],
+                    'id' => $item['id'],
                     'name' => $item['name'],
                     'type' => $item['mimeType'] === 'application/vnd.google-apps.folder' ? 'folder' : 'file',
                 ];
@@ -120,7 +284,7 @@ class KGSweb_Google_Drive_Docs {
                     $children[] = $node;
                 } else {
                     $queue[] = [
-                        'id'   => $item['id'],
+                        'id' => $item['id'],
                         'name' => $item['name'],
                         'path' => array_merge($path, [$item['name']]),
                     ];
@@ -135,7 +299,7 @@ class KGSweb_Google_Drive_Docs {
             }
         }
 
-        // Filter empty branches (remove folders without any files)
+        // Filter empty folders
         $filtered_tree = [];
         foreach ($tree as $node) {
             $n = self::filter_empty_branches($node);
@@ -146,7 +310,23 @@ class KGSweb_Google_Drive_Docs {
     }
 
     /*******************************
-     * Google API Helpers
+     * Inject children into tree recursively
+     *******************************/
+    private static function inject_children(&$nodes, $target_id, $children) {
+        foreach ($nodes as &$node) {
+            if (isset($node['id']) && $node['id'] === $target_id && $node['type'] === 'folder') {
+                $node['children'] = $children;
+                return true;
+            }
+            if (!empty($node['children'])) {
+                if (self::inject_children($node['children'], $target_id, $children)) return true;
+            }
+        }
+        return false;
+    }
+
+    /*******************************
+     * List Drive children for a folder
      *******************************/
     private static function list_drive_children($folder_id) {
         $client = KGSweb_Google_Integration::get_google_client();
@@ -154,7 +334,6 @@ class KGSweb_Google_Drive_Docs {
 
         try {
             $service = new Drive($client);
-
             $files = [];
             $pageToken = null;
 
@@ -169,47 +348,50 @@ class KGSweb_Google_Drive_Docs {
                 $response = $service->files->listFiles($params);
                 $items = $response->getFiles();
 
-                if (!empty($items)) {
-                    foreach ($items as $f) {
-                        $files[] = [
-                            'id' => $f->getId(),
-                            'name' => $f->getName(),
-                            'mimeType' => $f->getMimeType(),
-                            'size' => method_exists($f, 'getSize') ? $f->getSize() : 0,
-                            'modifiedTime' => method_exists($f, 'getModifiedTime') ? $f->getModifiedTime() : '',
-                        ];
-                    }
+                foreach ($items as $f) {
+                    $files[] = [
+                        'id' => $f->getId(),
+                        'name' => $f->getName(),
+                        'mimeType' => $f->getMimeType(),
+                        'size' => method_exists($f, 'getSize') ? $f->getSize() : 0,
+                        'modifiedTime' => method_exists($f, 'getModifiedTime') ? $f->getModifiedTime() : '',
+                    ];
                 }
 
                 $pageToken = $response->getNextPageToken();
             } while ($pageToken);
 
-/*             // 	Sort newest-first so ticker picks most recent file
-            usort($files, function($a, $b) {
-                return strcmp($b['modifiedTime'], $a['modifiedTime']);
-            }); */
-
             return $files;
-
         } catch (Exception $e) {
-            error_log("KGSWEB: Failed to list files in folder {$folder_id} - " . $e->getMessage());
+            error_log("KGSWEB ERROR: Failed to list files in folder {$folder_id} - " . $e->getMessage());
             return [];
         }
     }
 
-    private static function inject_children(&$nodes, $target_id, $children) {
-        foreach ($nodes as &$node) {
-            if (isset($node['id']) && $node['id'] === $target_id && $node['type'] === 'folder') {
-                $node['children'] = $children;
-                return true;
+    /*******************************
+     * Filter empty folders (recursive)
+     *******************************/
+    private static function filter_empty_branches($node) {
+        if (empty($node)) return null;
+        if ($node['type'] === 'file') return $node;
+
+        if (!empty($node['children'])) {
+            $filtered = [];
+            foreach ($node['children'] as $child) {
+                $c = self::filter_empty_branches($child);
+                if ($c !== null) $filtered[] = $c;
             }
-            if (!empty($node['children'])) {
-                if (self::inject_children($node['children'], $target_id, $children)) return true;
+            if (!empty($filtered)) {
+                $node['children'] = $filtered;
+                return $node;
             }
         }
-        return false;
+        return null;
     }
 
+    /*******************************
+     * Folders-only tree for uploads
+     *******************************/
     private static function build_folders_only_tree($root_id) {
         if (empty($root_id)) return [];
 
@@ -220,13 +402,11 @@ class KGSweb_Google_Drive_Docs {
 
         $fetch_folders = function($parent_id) use (&$fetch_folders, $service) {
             $folders = [];
-
             $params = [
                 'q' => sprintf("'%s' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false", $parent_id),
                 'fields' => 'nextPageToken, files(id,name)',
                 'pageSize' => 1000,
             ];
-
             $pageToken = null;
             do {
                 if ($pageToken) $params['pageToken'] = $pageToken;
@@ -257,24 +437,6 @@ class KGSweb_Google_Drive_Docs {
                 'children' => $fetch_folders($root_id),
             ]
         ];
-    }
-
-    private static function filter_empty_branches($node) {
-        if (empty($node)) return null;
-        if ($node['type'] === 'file') return $node;
-
-        if (!empty($node['children'])) {
-            $filtered = [];
-            foreach ($node['children'] as $child) {
-                $c = self::filter_empty_branches($child);
-                if ($c !== null) $filtered[] = $c;
-            }
-            if (!empty($filtered)) {
-                $node['children'] = $filtered;
-                return $node;
-            }
-        }
-        return null;
     }
 
     /*******************************

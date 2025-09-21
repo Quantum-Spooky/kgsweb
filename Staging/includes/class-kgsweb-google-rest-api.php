@@ -218,30 +218,39 @@ class KGSweb_Google_REST_API {
     // ------------------------
     // Documents callbacks
     // ------------------------
-    public static function get_documents(WP_REST_Request $req) {
-        $folder_id = $req->get_param('root') ?? KGSweb_Google_Drive_Docs::get_public_root_id();                                
-        $drive = KGSweb_Google_Integration::init()->get_drive();
+		public static function get_documents(WP_REST_Request $req) {
+		// Fetch root from query OR fallback to admin settings
+		$folder_id = $req->get_param('root') ?: KGSweb_Google_Drive_Docs::get_public_root_id();
 
-        if (!$drive) {
-            return new WP_Error('no_drive', 'Google Drive client not initialized.', ['status'=>500]);
-        }
+		if (empty($folder_id)) {
+			return new WP_Error(
+				'no_root',
+				'No document root configured. Please set the root folder in the KGSweb settings.',
+				['status' => 403]
+			);
+		}
 
-        $payload = $drive->get_documents_tree_payload($folder_id);
+		$drive = KGSweb_Google_Integration::init()->get_drive();
+		if (!$drive) {
+			return new WP_Error(
+				'no_drive',
+				'Google Drive client not initialized.',
+				['status' => 500]
+			);
+		}
 
-        if (is_wp_error($payload)) return $payload;
+		$payload = $drive->get_documents_tree_payload($folder_id);
+		if (is_wp_error($payload)) return $payload;
 
-        // Deduplicate tree
-        $tree = $payload['tree'] ?? [];
-        $tree = self::deduplicate_nodes($tree);
+		// Deduplicate & normalize
+		$tree = self::deduplicate_nodes($payload['tree'] ?? []);
+		$tree = self::normalize_empty_children($tree);
 
-        // Normalize empty children
-        $tree = self::normalize_empty_children($tree);
+		$payload['tree'] = $tree;
 
-        // Replace payload tree
-        $payload['tree'] = $tree;
+		return rest_ensure_response($payload);
+	}
 
-        return rest_ensure_response($payload);
-    }
 
     private static function deduplicate_nodes(array $nodes): array {
         $seen = [];
