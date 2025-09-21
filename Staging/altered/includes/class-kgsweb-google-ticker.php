@@ -103,6 +103,19 @@ public static function shortcode_render($atts = []): string {
 	public static function get_latest_file_from_folder(string $folder_id): ?array {
 		return KGSweb_Google_Integration::get_latest_file_from_folder($folder_id);
 	}
+	
+	public static function get_ticker_files($folder_id, $sort_by = 'date-desc') {
+        try {
+            $client = KGSweb_Google_Integration::get_google_client();
+            $service = new Google\Service\Drive($client);
+            $files = KGSweb_Google_Helpers::build_tree_recursive($service, $folder_id, $sort_by);
+            KGSweb_Google_Helpers::filter_empty_folders($files);
+            return $files;
+        } catch (Exception $e) {
+            error_log('KGSWEB TICKER ERROR: ' . $e->getMessage());
+            return [];
+        }
+    }
 
     public static function refresh_cache_cron(): bool {
         $settings  = KGSweb_Google_Integration::get_settings();
@@ -200,35 +213,15 @@ public static function shortcode_render($atts = []): string {
         ]);
     }
 	
-	
-	
-	
-		/**
-	 * Fetch all ticker items from a folder.
-	 *
-	 * @param string $folderId Google Drive folder ID
-	 * @return array List of items with name, modifiedTime, and content
-	 */
-	public static function get_ticker_items(string $folderId): array {
-		$children = KGSWeb_Google_Helpers::fetch_drive_children($folderId);
-		$items = [];
+	public static function get_ticker_items($folderId) {
+		$files = KGSWEB_Google_Drive_Docs::list_drive_children($folderId);
 
-		foreach ($children as $child) {
-			// Only include files (skip folders)
-			if ($child['mimeType'] !== 'application/vnd.google-apps.folder') {
-				$content = KGSWeb_Google_Helpers::fetch_file_contents($child['id']);
-				$items[] = [
-					'name'         => $child['name'],
-					'modifiedTime' => $child['modifiedTime'],
-					'content'      => $content,
-				];
-			}
-		}
+		// Sort newest-first for ticker only
+		usort($files, function($a, $b) {
+			return strcmp($b['modifiedTime'], $a['modifiedTime']);
+		});
 
-		// Sort newest-first (modifiedTime descending)
-		usort($items, fn($a, $b) => strcmp($b['modifiedTime'], $a['modifiedTime']));
-
-		return $items;
+		return $files;
 	}
 
 }

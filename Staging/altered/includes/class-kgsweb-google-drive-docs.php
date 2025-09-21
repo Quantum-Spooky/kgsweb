@@ -20,10 +20,34 @@ class KGSweb_Google_Drive_Docs {
     /*******************************
      * Class Initialization
      *******************************/
-    public static function init() { /* no-op */ }
+     public static function init() {
+        add_shortcode('kgsweb_documents', [__CLASS__, 'shortcode_render']);
+        add_action('rest_api_init', [__CLASS__, 'register_rest_routes']);
+    }
 
     public function __construct(Client $client) {
         $this->client = $client;
+    }
+
+
+    /*******************************
+     * REST Routes
+     *******************************/
+
+   public static function register_rest_routes() {
+        register_rest_route('kgsweb/v1', '/documents', [
+            'methods' => 'GET',
+            'callback' => [__CLASS__, 'rest_get_documents'],
+            'permission_callback' => '__return_true',
+        ]);
+    }
+
+    public static function rest_get_documents(WP_REST_Request $request) {
+        $root = $request->get_param('root');
+        $sort_by = $request->get_param('sort_by') ?: 'alpha-asc';
+        $collapsed = $request->get_param('collapsed') ?: 'false';
+
+        return self::get_documents_tree_payload($root, $sort_by, $collapsed);
     }
 
     /*******************************
@@ -53,6 +77,26 @@ class KGSweb_Google_Drive_Docs {
 
     public static function get_upload_root_id() {
         return KGSweb_Google_Integration::get_settings()['upload_root_id'] ?? '';
+    }
+
+
+    /*******************************
+     * Shortcode
+     *******************************/
+    public static function shortcode_render($atts = []) {
+        $atts = shortcode_atts([
+            'sort_by' => 'alpha-asc',
+            'collapsed' => 'false',
+        ], $atts, 'kgsweb_documents');
+
+        $payload = self::get_documents_tree_payload('', $atts['sort_by'], $atts['collapsed']);
+        if (is_wp_error($payload)) return '<p>' . esc_html($payload->get_error_message()) . '</p>';
+
+        return KGSweb_Google_Helpers::render_tree_html($payload['tree'], $atts['collapsed']);
+    }
+
+    private static function get_public_root_id() {
+        return get_option('kgsweb_documents_root');
     }
 
     /*******************************
@@ -98,7 +142,7 @@ class KGSweb_Google_Drive_Docs {
      * Accepts $folder_id (from shortcode 'folder' attribute).
      * Uses cached tree if valid, otherwise rebuilds.
      *******************************/
-    public static function get_documents_tree_payload($folder_id = '') {
+	public static function get_documents_tree_payload($folder_id = '') {
         $root = $folder_id ?: self::get_public_root_id();
         if (empty($root)) {
             return new WP_Error('no_root', __('No document root configured.', 'kgsweb'), ['status' => 404]);
@@ -192,6 +236,7 @@ class KGSweb_Google_Drive_Docs {
                 'folder_ids' => $folder_ids,
             ];
 
+													
             KGSweb_Google_Integration::set_transient($cache_key, $payload_to_cache, HOUR_IN_SECONDS);
             update_option('kgsweb_cache_last_refresh_documents_' . $root, current_time('timestamp'));
 
@@ -214,6 +259,7 @@ class KGSweb_Google_Drive_Docs {
             return new WP_Error('kgsweb_drive_error', __('Failed to fetch Google Drive tree.', 'kgsweb'), ['status' => 500]);
         }
     }
+
 
     /*******************************
      * Helper: Collect folder IDs from tree
@@ -328,12 +374,44 @@ class KGSweb_Google_Drive_Docs {
     /*******************************
      * List Drive children for a folder
      *******************************/
-        /**
-     * List children of a folder.
-     * Now a thin wrapper around helpers.
-     */
-    public function list_drive_children($folderId) {
-        return KGSWeb_Google_Helpers::fetch_drive_children($folderId);
+    private static function list_drive_children($folder_id) {
+        $client = KGSweb_Google_Integration::get_google_client();
+        if (!$client instanceof Client) return [];
+
+        try {
+            $service = new Drive($client);
+            $files = [];
+            $pageToken = null;
+
+            do {
+                $params = [
+                    'q' => sprintf("'%s' in parents and trashed = false", $folder_id),
+                    'fields' => 'nextPageToken, files(id,name,mimeType,size,modifiedTime)',
+                    'pageSize' => 1000,
+                ];
+                if ($pageToken) $params['pageToken'] = $pageToken;
+
+                $response = $service->files->listFiles($params);
+                $items = $response->getFiles();
+
+                foreach ($items as $f) {
+                    $files[] = [
+                        'id' => $f->getId(),
+                        'name' => $f->getName(),
+                        'mimeType' => $f->getMimeType(),
+                        'size' => method_exists($f, 'getSize') ? $f->getSize() : 0,
+                        'modifiedTime' => method_exists($f, 'getModifiedTime') ? $f->getModifiedTime() : '',
+                    ];
+                }
+
+                $pageToken = $response->getNextPageToken();
+            } while ($pageToken);
+
+            return $files;
+        } catch (Exception $e) {
+            error_log("KGSWEB ERROR: Failed to list files in folder {$folder_id} - " . $e->getMessage());
+            return [];
+        }
     }
 
     /*******************************
@@ -551,87 +629,79 @@ class KGSweb_Google_Drive_Docs {
         }
     }
 
- 
-/**
-     * Fetch file contents (wrapper).
-     */
-	public function get_file_contents( $file_id, $mime_type = null ) {
-		if ( ! $this->client ) {
-			error_log("KGSWEB: get_file_contents called but client not initialized!");
-			return '';
-		}
+ public function get_file_contents( $file_id, $mime_type = null ) {
+    if ( ! $this->client ) {
+        error_log("KGSWEB: get_file_contents called but client not initialized!");
+        return '';
+    }
 
-		try {
-			// 	Ensure Drive service is always available
-			if (empty($this->service)) {
-				$this->service = new Google\Service\Drive($this->client);
-				error_log("KGSWEB: get_file_contents - Drive service initialized.");
-			}
+    try {
+        // 	Ensure Drive service is always available
+        if (empty($this->service)) {
+            $this->service = new Google\Service\Drive($this->client);
+            error_log("KGSWEB: get_file_contents - Drive service initialized.");
+        }
 
-			// 	Detect MIME if not passed
-			if (!$mime_type) {
-				$file = $this->service->files->get($file_id, ['fields' => 'mimeType,name']);
-				$mime_type = $file->getMimeType();
-				error_log("KGSWEB: get_file_contents - detected MIME {$mime_type} for {$file_id}");
-			} else {
-				error_log("KGSWEB: get_file_contents - using provided MIME {$mime_type} for {$file_id}");
-			}
+        // 	Detect MIME if not passed
+        if (!$mime_type) {
+            $file = $this->service->files->get($file_id, ['fields' => 'mimeType,name']);
+            $mime_type = $file->getMimeType();
+            error_log("KGSWEB: get_file_contents - detected MIME {$mime_type} for {$file_id}");
+        } else {
+            error_log("KGSWEB: get_file_contents - using provided MIME {$mime_type} for {$file_id}");
+        }
 
-			// 	Handle Google Docs
-			if ($mime_type === 'application/vnd.google-apps.document') {
-				error_log("KGSWEB: get_file_contents - attempting Docs API extraction for {$file_id}");
+        // 	Handle Google Docs
+        if ($mime_type === 'application/vnd.google-apps.document') {
+            error_log("KGSWEB: get_file_contents - attempting Docs API extraction for {$file_id}");
 
-				try {
-					$docsService = $this->get_docs_service();
-					if ($docsService) {
-						$doc = $docsService->documents->get($file_id);
-						if ($doc && $doc->getBody() && $doc->getBody()->getContent()) {
-							$content = $this->extract_text_from_doc($doc);
-							error_log("KGSWEB: get_file_contents - Docs API extraction returned " . strlen($content) . " chars.");
-							return $content;
-						} else {
-							error_log("KGSWEB: get_file_contents - Docs API returned empty body, falling back to Drive export.");
-						}
-					} else {
-						error_log("KGSWEB: get_file_contents - Docs API unavailable, falling back to Drive export.");
-					}
-				} catch (Exception $e) {
-					error_log("KGSWEB: get_file_contents - Docs API exception: " . $e->getMessage());
-				}
+            try {
+                $docsService = $this->get_docs_service();
+                if ($docsService) {
+                    $doc = $docsService->documents->get($file_id);
+                    if ($doc && $doc->getBody() && $doc->getBody()->getContent()) {
+                        $content = $this->extract_text_from_doc($doc);
+                        error_log("KGSWEB: get_file_contents - Docs API extraction returned " . strlen($content) . " chars.");
+                        return $content;
+                    } else {
+                        error_log("KGSWEB: get_file_contents - Docs API returned empty body, falling back to Drive export.");
+                    }
+                } else {
+                    error_log("KGSWEB: get_file_contents - Docs API unavailable, falling back to Drive export.");
+                }
+            } catch (Exception $e) {
+                error_log("KGSWEB: get_file_contents - Docs API exception: " . $e->getMessage());
+            }
 
-				// 	Fallback to Drive export
-				$content = $this->export_google_doc_as_text($file_id);
-				error_log("KGSWEB: get_file_contents - fallback Drive export returned " . strlen($content) . " chars.");
-				return $content;
-			}
+            // 	Fallback to Drive export
+            $content = $this->export_google_doc_as_text($file_id);
+            error_log("KGSWEB: get_file_contents - fallback Drive export returned " . strlen($content) . " chars.");
+            return $content;
+        }
 
-			// 	Handle plain text
-			if ($mime_type === 'text/plain') {
-				error_log("KGSWEB: get_file_contents - downloading plain text file {$file_id}");
-				$response = $this->service->files->get($file_id, ['alt' => 'media']);
-				if (!$response) {
-					error_log("KGSWEB: get_file_contents - ERROR: null response for plain text file {$file_id}");
-					return '';
-				}
-				$body = $response->getBody();
-				$content = (string)$body->getContents();
-				error_log("KGSWEB: get_file_contents - downloaded " . strlen($content) . " bytes for TXT file.");
-				return $content;
-			}
+        // 	Handle plain text
+        if ($mime_type === 'text/plain') {
+            error_log("KGSWEB: get_file_contents - downloading plain text file {$file_id}");
+            $response = $this->service->files->get($file_id, ['alt' => 'media']);
+            if (!$response) {
+                error_log("KGSWEB: get_file_contents - ERROR: null response for plain text file {$file_id}");
+                return '';
+            }
+            $body = $response->getBody();
+            $content = (string)$body->getContents();
+            error_log("KGSWEB: get_file_contents - downloaded " . strlen($content) . " bytes for TXT file.");
+            return $content;
+        }
 
-			error_log("KGSWEB: get_file_contents - unsupported MIME {$mime_type}, skipping.");
-			return '';
+        error_log("KGSWEB: get_file_contents - unsupported MIME {$mime_type}, skipping.");
+        return '';
 
-		} catch (Exception $e) {
-			error_log("KGSWEB: get_file_contents - EXCEPTION for {$file_id}: " . $e->getMessage());
-			return '';
-		}
-	}
+    } catch (Exception $e) {
+        error_log("KGSWEB: get_file_contents - EXCEPTION for {$file_id}: " . $e->getMessage());
+        return '';
+    }
+}
 
- 
- 
- 
- 
 
 /**
  * Extracts plain text from a Google Docs API document object.

@@ -21,7 +21,7 @@ class KGSweb_Google_Shortcodes {
      * Register all shortcodes
      *******************************/
     public function register_shortcodes() {
-        add_shortcode('kgsweb_documents', [$this, 'documents']);
+        add_shortcode('kgsweb_documents', [KGSweb_Google_Drive_Docs::class, 'shortcode_render']);
         add_shortcode('kgsweb_menu', [KGSweb_Google_Menus::class, 'shortcode_render']);
         add_shortcode('kgsweb_slides', [KGSweb_Google_Slides::class, 'shortcode_render']);
         add_shortcode('kgsweb_events', [__CLASS__, 'kgsweb_events_shortcode']);
