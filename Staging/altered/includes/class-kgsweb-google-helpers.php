@@ -1,4 +1,4 @@
-	<?php
+<?php
  // includes/class-kgsweb-google-helpers.php
  if (!defined("ABSPATH")) {
      exit();
@@ -382,7 +382,7 @@
      public static function fetch_drive_children($folderId)
      {
          $integration = new KGSWeb_Google_Integration();
-         $children = $integration->list_drive_children($folderId);
+         $children = $driveDocs->list_drive_children($folderId);
 
          // Filter out trashed items and normalize keys
          $normalized = [];
@@ -514,4 +514,3 @@
          return $html;
      }
  }
-
