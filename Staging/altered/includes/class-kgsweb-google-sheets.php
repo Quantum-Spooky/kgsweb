@@ -27,15 +27,38 @@ class KGSweb_Google_Sheets {
     /*******************************
      * Cache helpers
      *******************************/
-    public static function get_sheet_payload($sheet_id, $range) {
-        if (!$sheet_id) return new WP_Error('no_file', __('Sheet file not set.', 'kgsweb'), ['status'=>404]);
+	public static function get_sheet_data(string $sheet_id): array {
+		if (empty($sheet_id)) {
+			error_log("KGSWEB: Missing sheet ID in get_sheet_data()");
+			return [];
+		}
 
-        $key = 'kgsweb_cache_sheets_' . $sheet_id . '_' . md5($range);
+		$cache_key = 'kgsweb_sheet_' . md5($sheet_id);
 
-        return KGSweb_Google_Helpers::get_transient_or_fetch($key, function() use ($sheet_id, $range) {
-            return self::fetch_sheet_from_google($sheet_id, $range);
-        }, HOUR_IN_SECONDS);
-    }
+		// Try cached data first
+		$cached = get_transient($cache_key);
+		if ($cached !== false) {
+			return $cached;
+		}
+
+		// Fetch from API
+		try {
+			$data = self::fetch_sheet_data_from_api($sheet_id); // your API call
+		} catch (Exception $e) {
+			error_log("KGSWEB: Sheets API fetch failed for {$sheet_id}: " . $e->getMessage());
+			return [];
+		}
+
+		// Only cache non-empty results
+		if (!empty($data)) {
+			set_transient($cache_key, $data, HOUR_IN_SECONDS);
+			update_option('kgsweb_last_refresh_sheet_' . $sheet_id, current_time('timestamp'), false);
+		} else {
+			error_log("KGSWEB: Sheets API returned empty data for {$sheet_id}. Not caching.");
+		}
+
+		return $data;
+	}
 
     public static function refresh_cache($sheet_id, $range) {
         $data = self::fetch_sheet_from_google($sheet_id, $range);

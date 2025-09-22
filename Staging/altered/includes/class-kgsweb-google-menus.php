@@ -77,29 +77,44 @@ class KGSweb_Google_Menus
     /*******************************
      * Menus (Breakfast / Lunch)
      *******************************/
-    public static function get_menu_payload(string $type)
-    {
-        $key = 'kgsweb_cache_menu_' . $type;
-        $data = get_transient($key);
+    public static function get_menu_payload(string $type) {
+		$key = 'kgsweb_cache_menu_' . $type;
+		$data = get_transient($key);
 
-        if ($data === false) {
-            $data = self::build_latest_menu_image($type);
-            set_transient($key, $data, HOUR_IN_SECONDS);
-        }
+		if ($data !== false) {
+			// Ensure cached data has valid image URL
+			if (!empty($data['image_url'])) {
+				return $data;
+			} else {
+				error_log("KGSWEB: Cached menu for type '{$type}' is empty. Refreshing...");
+			}
+		}
 
-        if (empty($data['image_url'])) {
-            return new WP_Error('no_menu', __('Menu not available.', 'kgsweb'), ['status' => 404]);
-        }
+		// Build latest menu image
+		$data = self::build_latest_menu_image($type);
 
-        return $data;
-    }
+		if (!empty($data['image_url'])) {
+			set_transient($key, $data, HOUR_IN_SECONDS);
+			update_option('kgsweb_cache_last_refresh_menu_' . $type, current_time('timestamp'));
+		} else {
+			error_log("KGSWEB: Failed to build menu payload for type '{$type}'. Returning empty payload.");
+			// Optionally: return previous transient if exists to avoid complete empty display
+			$data = $data ?? ['type' => $type, 'image_url' => '', 'width' => 0, 'height' => 0, 'updated_at' => current_time('timestamp')];
+		}
 
-    public static function refresh_menu_cache(string $type): void
-    {
-        $data = self::build_latest_menu_image($type);
-        set_transient('kgsweb_cache_menu_' . $type, $data, HOUR_IN_SECONDS);
-        update_option('kgsweb_cache_last_refresh_menu_' . $type, current_time('timestamp'));
-    }
+		return $data;
+	}
+
+    public static function refresh_menu_cache(string $type): void {
+		$data = self::build_latest_menu_image($type);
+
+		if (!empty($data['image_url'])) {
+			set_transient('kgsweb_cache_menu_' . $type, $data, HOUR_IN_SECONDS);
+			update_option('kgsweb_cache_last_refresh_menu_' . $type, current_time('timestamp'));
+		} else {
+			error_log("KGSWEB: refresh_menu_cache() failed for type '{$type}'. Transient not updated.");
+		}
+	}
 
     private static function build_latest_menu_image(string $type): array
     {

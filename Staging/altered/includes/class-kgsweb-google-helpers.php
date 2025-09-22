@@ -254,16 +254,36 @@ class KGSweb_Google_Helpers {
     // -----------------------------
     // Cached Documents Tree
     // -----------------------------
-    public static function get_cached_documents_tree(string $root_id) {
-        $cache_key = "kgsweb_docs_tree_" . md5($root_id);
-        $cached = get_transient($cache_key);
-        if ($cached !== false) return $cached;
+	public static function get_cached_documents_tree(string $root_id): array {
+		// Ensure root ID is valid
+		$root_safe = !empty($root_id) ? $root_id : 'default_root';
+		$cache_key = 'kgsweb_docs_tree_' . md5($root_safe);
 
-        $tree = self::build_documents_tree($root_id);
-		$tree = array_values(array_filter(array_map([self::class, 'filter_empty_branches'], $tree)));
-        set_transient($cache_key, $tree, HOUR_IN_SECONDS);
-        return $tree;
-    }
+		// Try retrieving cached tree
+		$cached = get_transient($cache_key);
+		if ($cached !== false) {
+			return $cached;
+		}
+
+		// Fetch documents tree from Google Drive
+		try {
+			$tree = self::build_documents_tree($root_id);
+			$tree = array_values(array_filter(array_map([self::class, 'filter_empty_branches'], $tree)));
+
+			if (!empty($tree)) {
+				set_transient($cache_key, $tree, HOUR_IN_SECONDS);
+			} else {
+				error_log("KGSWEB: Documents tree is empty for root ID '{$root_id}'. Not caching.");
+			}
+
+			return $tree;
+
+		} catch (Exception $e) {
+			error_log("KGSWEB: Failed to fetch documents tree for root ID '{$root_id}': " . $e->getMessage());
+			return [];
+		}
+	}
+
 
     // -----------------------------
     // Icon selection

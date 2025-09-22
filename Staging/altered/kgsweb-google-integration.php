@@ -43,7 +43,7 @@ add_action( 'plugins_loaded', function() {
     KGSweb_Google_Drive_Docs::init();
     KGSweb_Google_Upcoming_Events::init();
     KGSweb_Google_Helpers::init();
-	KGSweb_Google_Ticker::register();
+	KGSweb_Google_Ticker::init(); 
 });
 
 

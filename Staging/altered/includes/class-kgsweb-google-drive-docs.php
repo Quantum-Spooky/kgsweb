@@ -88,7 +88,8 @@ class KGSweb_Google_Drive_Docs {
     public static function rebuild_documents_tree_cache(string $root): void {
         if (empty($root)) return;
 
-        delete_transient('kgsweb_docs_tree_' . md5($root));
+        $root_safe = $root ?: 'default_root';
+        delete_transient('kgsweb_docs_tree_' . md5($root_safe));
         KGSweb_Google_Helpers::get_cached_documents_tree($root);
     }
 
@@ -97,7 +98,8 @@ class KGSweb_Google_Drive_Docs {
      *******************************/
     public static function folder_exists_in_upload_tree(string $folder_id): bool {
         $root = self::get_upload_root_id();
-        $tree = get_transient('kgsweb_cache_upload_tree_' . $root);
+        $root_safe = $root ?: 'default_root';
+        $tree = get_transient('kgsweb_cache_upload_tree_' . md5($root_safe));
 
         if ($tree === false) {
             $tree = KGSweb_Google_Helpers::get_cached_documents_tree($root);
@@ -118,29 +120,30 @@ class KGSweb_Google_Drive_Docs {
         return sanitize_title($folder_id);
     }
 
-																				   /*******************************
-																					 * CRON Refresh
-																					 * Rebuilds cached trees & menus
-																					 *******************************/
-																					public static function refresh_cache_cron() {
-																						$integration = KGSweb_Google_Integration::init();
+    /*******************************
+     * CRON Refresh
+	* Rebuilds cached trees & menus
+													 
+     *******************************/
+    public static function refresh_cache_cron() {
+        $integration = KGSweb_Google_Integration::init();
 
-																						// Rebuild public docs tree
-																						self::rebuild_documents_tree_cache(self::get_public_root_id());
+		// Rebuild public docs tree										 
+        self::rebuild_documents_tree_cache(self::get_public_root_id());
 
-																					}
+    }
 
     /*******************************
      * Force-refresh file cache
      *******************************/
     public static function force_refresh_file_cache(string $file_id): ?string {
         $content = KGSweb_Google_Helpers::get_file_contents($file_id);
-        if ($content !== null) {
+        if ($content !== null && $content !== '') {
             $cache_key = 'kgsweb_cache_file_' . $file_id;
             KGSweb_Google_Integration::set_transient($cache_key, $content, MINUTE_IN_SECONDS * 5);
             error_log("KGSWEB: Force-refreshed cache for file {$file_id}, length=" . strlen($content));
         } else {
-            error_log("KGSWEB: Failed to force-refresh cache for {$file_id}");
+            error_log("KGSWEB: Failed to force-refresh cache for file {$file_id}");
         }
         return $content;
     }
@@ -200,6 +203,16 @@ class KGSweb_Google_Drive_Docs {
     }
 
     public function get_file_contents(string $file_id, ?string $mime_type = null): string {
-        return KGSweb_Google_Helpers::get_file_contents($file_id, $mime_type) ?? '';
+        $content = KGSweb_Google_Helpers::get_file_contents($file_id, $mime_type) ?? '';
+
+        // Only cache if non-empty
+        if (!empty($content)) {
+            $cache_key = 'kgsweb_cache_file_' . $file_id;
+            KGSweb_Google_Integration::set_transient($cache_key, $content, MINUTE_IN_SECONDS * 5);
+        } else {
+            error_log("KGSWEB: Docs fetch returned empty for file ID {$file_id}");
+        }
+
+        return $content;
     }
 }
