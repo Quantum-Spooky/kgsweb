@@ -48,26 +48,34 @@ class KGSweb_Google_Helpers {
 
 		return $sanitized;
 	}
+public static function sort_items(&$items, $sort_by) {
+    usort($items, function($a, $b) use ($sort_by) {
+        $isFolderA = ($a['type'] ?? $a['mimeType'] ?? '') === 'folder';
+        $isFolderB = ($b['type'] ?? $b['mimeType'] ?? '') === 'folder';
 
-    // -----------------------------
-    // Item Sorting
-    // -----------------------------
-    public static function sort_items($items) {
-        usort($items, function($a, $b) {
-            $isFolderA = ($a['type'] ?? $a['mimeType'] ?? '') === 'folder';
-            $isFolderB = ($b['type'] ?? $b['mimeType'] ?? '') === 'folder';
-            if ($isFolderA && !$isFolderB) return -1;
-            if (!$isFolderA && $isFolderB) return 1;
+        // Always prioritize folders
+        if ($isFolderA && !$isFolderB) return -1;
+        if (!$isFolderA && $isFolderB) return 1;
 
-            $dateA = self::extract_date($a['name'] ?? '') ?? '99999999';
-            $dateB = self::extract_date($b['name'] ?? '') ?? '99999999';
-            if ($dateA !== $dateB) return strcmp($dateB, $dateA); // newest first
-
-            return strcasecmp($a['name'] ?? '', $b['name'] ?? '');
-        });
-        return $items;
-    }
-
+        $cmp = strcasecmp($a['name'], $b['name']);
+        switch ($sort_by) {
+            case 'alpha-desc':
+                return -$cmp;
+            case 'date-asc':
+                return strcmp($a['modifiedTime'], $b['modifiedTime']);
+            case 'date-desc':
+                return strcmp($b['modifiedTime'], $a['modifiedTime']);
+            default:
+                // If no sort_by is specified, use the old sorting logic
+                $dateA = self::extract_date($a['name'] ?? '') ?? '99999999';
+                $dateB = self::extract_date($b['name'] ?? '') ?? '99999999';
+                if ($dateA !== $dateB) return strcmp($dateB, $dateA);
+                return $cmp;
+        }
+    });
+}
+	
+	
     // -----------------------------
     // Icon Selection
     // -----------------------------
@@ -300,17 +308,7 @@ class KGSweb_Google_Helpers {
         return $files;
     }
 
-    public static function sort_items(&$items, $sort_by) {
-        usort($items, function($a, $b) use ($sort_by) {
-            $cmp = strcasecmp($a['name'], $b['name']);
-            switch ($sort_by) {
-                case 'alpha-desc': return -$cmp;
-                case 'date-asc': return strcmp($a['modifiedTime'], $b['modifiedTime']);
-                case 'date-desc': return strcmp($b['modifiedTime'], $a['modifiedTime']);
-                default: return $cmp;
-            }
-        });
-    }
+
 
     public static function filter_empty_folders(&$tree) {
         $tree = array_filter($tree, function($item) {

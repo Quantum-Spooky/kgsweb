@@ -95,9 +95,6 @@ class KGSweb_Google_Drive_Docs {
         return KGSweb_Google_Helpers::render_tree_html($payload['tree'], $atts['collapsed']);
     }
 
-    private static function get_public_root_id() {
-        return get_option('kgsweb_documents_root');
-    }
 
     /*******************************
      * Rebuild Documents Tree Cache
