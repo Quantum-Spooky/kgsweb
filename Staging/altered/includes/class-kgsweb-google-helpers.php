@@ -1,7 +1,8 @@
-<?php 
+<?php
 // includes/class-kgsweb-google-helpers.php
 if (!defined('ABSPATH')) exit;
 
+use Google\Client;
 use Google\Service\Drive;
 
 class KGSweb_Google_Helpers {
@@ -11,75 +12,181 @@ class KGSweb_Google_Helpers {
     // -----------------------------
     // Folder / File Name Formatting
     // -----------------------------
-    public static function format_folder_name($name) {
+    public static function format_folder_name(string $name): string {
         $name = preg_replace('/[-_]+/', ' ', $name);
         $name = preg_replace('/\s+/', ' ', $name);
         return ucwords(trim($name));
     }
 
-    public static function extract_date($name) {
+    public static function extract_date(string $name): ?string {
         if (preg_match('/(\d{4})[-_]?(\d{2})[-_]?(\d{2})/', $name, $m)) {
             return $m[1] . $m[2] . $m[3];
         }
         return null;
     }
 
-//  public static function sanitize_file_name($name) {
-//        $base = preg_replace('/\.[^.]+$/', '', $name); // remove extension
-//        $base = preg_replace('/^school[\s-_]*board[\s-_]*/i', '', $base);
-//        $base = preg_replace('/[-_]+/', ' ', $base);
-//        if (preg_match('/(\d{4})[-_]?(\d{2})[-_]?(\d{2})/', $base, $m)) {
-//           $base = str_replace($m[0], sprintf('%s/%s/%s', $m[2], $m[3], $m[1]), $base);
-//        }
-//        return ucwords(trim($base));
- // }
-
-	public static function sanitize_file_name($filename) {
-		if (!$filename) return '';
-
-		// Safe regex: place dash at start or end to avoid "invalid range" warnings
-		$sanitized = preg_replace('/[^a-zA-Z0-9_.-]/', '', $filename);
-
-		// Fallback in case preg_replace returns null
-		if ($sanitized === null || $sanitized === '') {
-			error_log("[KGSweb] WARNING: sanitize_file_name() returned empty for filename: $filename");
-			$sanitized = 'file-' . time();
-		}
-
-		return $sanitized;
-	}
-public static function sort_items(&$items, $sort_by) {
-    usort($items, function($a, $b) use ($sort_by) {
-        $isFolderA = ($a['type'] ?? $a['mimeType'] ?? '') === 'folder';
-        $isFolderB = ($b['type'] ?? $b['mimeType'] ?? '') === 'folder';
-
-        // Always prioritize folders
-        if ($isFolderA && !$isFolderB) return -1;
-        if (!$isFolderA && $isFolderB) return 1;
-
-        $cmp = strcasecmp($a['name'], $b['name']);
-        switch ($sort_by) {
-            case 'alpha-desc':
-                return -$cmp;
-            case 'date-asc':
-                return strcmp($a['modifiedTime'], $b['modifiedTime']);
-            case 'date-desc':
-                return strcmp($b['modifiedTime'], $a['modifiedTime']);
-            default:
-                // If no sort_by is specified, use the old sorting logic
-                $dateA = self::extract_date($a['name'] ?? '') ?? '99999999';
-                $dateB = self::extract_date($b['name'] ?? '') ?? '99999999';
-                if ($dateA !== $dateB) return strcmp($dateB, $dateA);
-                return $cmp;
+    public static function sanitize_file_name(string $filename): string {
+        if (!$filename) return '';
+        $sanitized = preg_replace('/[^a-zA-Z0-9_.-]/', '', $filename);
+        if (!$sanitized) {
+            error_log("[KGSweb] WARNING: sanitize_file_name() returned empty for filename: $filename");
+            $sanitized = 'file-' . time();
         }
-    });
-}
-	
-	
+        return $sanitized;
+    }
+
+    public static function sort_items(array &$items, string $sort_by): void {
+        usort($items, function($a, $b) use ($sort_by) {
+            $isFolderA = ($a['type'] ?? $a['mimeType'] ?? '') === 'folder';
+            $isFolderB = ($b['type'] ?? $b['mimeType'] ?? '') === 'folder';
+
+            if ($isFolderA && !$isFolderB) return -1;
+            if (!$isFolderA && $isFolderB) return 1;
+
+            $cmp = strcasecmp($a['name'], $b['name']);
+            switch ($sort_by) {
+                case 'alpha-desc':
+                    return -$cmp;
+                case 'date-asc':
+                    return strcmp($a['modifiedTime'], $b['modifiedTime']);
+                case 'date-desc':
+                    return strcmp($b['modifiedTime'], $a['modifiedTime']);
+                default:
+                    $dateA = self::extract_date($a['name'] ?? '') ?? '99999999';
+                    $dateB = self::extract_date($b['name'] ?? '') ?? '99999999';
+                    if ($dateA !== $dateB) return strcmp($dateB, $dateA);
+                    return $cmp;
+            }
+        });
+    }
+
+    // -----------------------------
+    // Google Drive Files / Folders
+    // -----------------------------
+    public static function list_drive_files(Drive $service, string $parent_id): array {
+        $files = [];
+        $pageToken = null;
+        do {
+            $params = [
+                'q' => sprintf("'%s' in parents and trashed = false", esc_sql($parent_id)),
+                'fields' => 'nextPageToken, files(id, name, mimeType, modifiedTime, size, parents)',
+                'pageSize' => 1000,
+            ];
+            if ($pageToken) $params['pageToken'] = $pageToken;
+
+            $response = $service->files->listFiles($params);
+            foreach ($response->getFiles() as $file) {
+                $files[] = [
+                    'id' => $file->getId(),
+                    'name' => $file->getName(),
+                    'mimeType' => $file->getMimeType(),
+                    'modifiedTime' => $file->getModifiedTime(),
+                    'size' => $file->getSize(),
+                    'parents' => $file->getParents(),
+                ];
+            }
+            $pageToken = $response->getNextPageToken();
+        } while ($pageToken);
+
+        return $files;
+    }
+
+    public static function drive_list_children_raw(string $folder_id): array {
+        try {
+            $client = KGSweb_Google_Integration::get_google_client();
+            if (!$client) throw new Exception('Google Client not available.');
+
+            $service = new Drive($client);
+            $files = [];
+            $pageToken = null;
+
+            do {
+                $params = [
+                    'q' => sprintf("'%s' in parents and trashed = false", $folder_id),
+                    'fields' => 'nextPageToken, files(id, name, mimeType, modifiedTime, size, parents)',
+                    'pageSize' => 1000,
+                ];
+                if ($pageToken) $params['pageToken'] = $pageToken;
+
+                $response = $service->files->listFiles($params);
+                foreach ($response->getFiles() as $file) {
+                    $files[] = [
+                        'id' => $file->getId(),
+                        'name' => $file->getName(),
+                        'mimeType' => $file->getMimeType(),
+                        'modifiedTime' => $file->getModifiedTime(),
+                        'size' => $file->getSize(),
+                        'parents' => $file->getParents(),
+                    ];
+                }
+                $pageToken = $response->getNextPageToken();
+            } while ($pageToken);
+
+            return $files;
+
+        } catch (Exception $e) {
+            error_log("KGSWEB ERROR: Failed to list children for folder {$folder_id} - " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public static function filter_empty_folders(array &$tree): void {
+        $tree = array_filter($tree, function($item) {
+            if (($item['mimeType'] ?? '') === 'application/vnd.google-apps.folder') {
+                if (!empty($item['children'])) {
+                    self::filter_empty_folders($item['children']);
+                    return !empty($item['children']);
+                }
+                return false;
+            }
+            return true;
+        });
+    }
+
+    public static function build_tree_recursive(Drive $service, string $parent_id, string $sort_by = ''): array {
+        $items = self::list_drive_files($service, $parent_id);
+        $tree = [];
+        foreach ($items as $file) {
+            $node = [
+                'id' => $file['id'],
+                'name' => $file['name'],
+                'mimeType' => $file['mimeType'],
+                'modifiedTime' => $file['modifiedTime'],
+                'children' => [],
+            ];
+            if ($node['mimeType'] === 'application/vnd.google-apps.folder') {
+                $node['children'] = self::build_tree_recursive($service, $node['id'], $sort_by);
+            }
+            $tree[] = $node;
+        }
+        self::sort_items($tree, $sort_by);
+        return $tree;
+    }
+
+    public static function render_tree_html(array $tree, string $collapsed = 'false'): string {
+        $html = '<ul class="kgsweb-documents">';
+        foreach ($tree as $item) {
+            $is_folder = ($item['mimeType'] ?? '') === 'application/vnd.google-apps.folder';
+            $toggle_class = ($collapsed === 'false-static') ? 'no-toggle' : 'toggle';
+            $html .= '<li data-id="' . esc_attr($item['id']) . '">';
+            if ($is_folder) {
+                $html .= '<span class="folder ' . $toggle_class . '">' . esc_html($item['name']) . '</span>';
+                if (!empty($item['children'])) {
+                    $html .= self::render_tree_html($item['children'], $collapsed);
+                }
+            } else {
+                $html .= '<a class="file" href="https://drive.google.com/file/d/' . esc_attr($item['id']) . '/view" target="_blank">' . esc_html($item['name']) . '</a>';
+            }
+            $html .= '</li>';
+        }
+        $html .= '</ul>';
+        return $html;
+    }
+
     // -----------------------------
     // Icon Selection
     // -----------------------------
-    public static function icon_for_mime_or_ext($mime, $ext) {
+    public static function icon_for_mime_or_ext(?string $mime, ?string $ext): string {
         $mime = strtolower($mime ?? '');
         $ext = strtolower($ext ?? '');
         if ($mime === 'application/vnd.google-apps.folder') return 'fa-folder';
@@ -94,22 +201,18 @@ public static function sort_items(&$items, $sort_by) {
     }
 
     // -----------------------------
-    // Fetch raw file contents (generic)
+    // Fetch raw file contents
     // -----------------------------
     public static function fetch_file_contents_raw(string $file_id): ?string {
         try {
-            // Get the Google Drive service directly
-            $driveService = KGSweb_Google_Integration::get_drive_service(); // must return Google\Service\Drive
+            $driveService = KGSweb_Google_Integration::get_drive_service();
             if (!$driveService) {
                 error_log("[KGSweb] fetch_file_contents_raw: Drive service not initialized.");
                 return null;
             }
-
-            // Fetch the file contents
             $response = $driveService->files->get($file_id, ['alt' => 'media']);
             $body = $response->getBody();
             return $body ? (string)$body->getContents() : null;
-
         } catch (Exception $e) {
             error_log("[KGSweb] fetch_file_contents_raw ERROR for $file_id: " . $e->getMessage());
             return null;
@@ -117,256 +220,70 @@ public static function sort_items(&$items, $sort_by) {
     }
 
     // -----------------------------
-    // Helper to convert local path to URL
+    // Cached file helpers
     // -----------------------------
-    public static function get_cached_file_url($path) {
+    public static function get_cached_file_url(string $path): string {
         $upload_dir = wp_upload_dir();
-        $base_dir = $upload_dir['basedir'];
-        $base_url = $upload_dir['baseurl'];
-        if (strpos($path, $base_dir) === 0) {
-            return str_replace($base_dir, $base_url, $path);
-        }
-        return $path;
+        return str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $path);
     }
 
-	 // -----------------------------
-	// Convert PDF to PNG (cached)
-	// -----------------------------
-	public static function convert_pdf_to_png_cached($pdf_path, $filename = null) {
-		$upload_dir = wp_upload_dir();
-		$cache_dir  = $upload_dir['basedir'] . '/kgsweb-cache/';
-		if (!file_exists($cache_dir)) wp_mkdir_p($cache_dir);
-	  
-		$basename = $filename ? self::sanitize_file_name($filename) : basename($pdf_path);
-		$png_path = $cache_dir . pathinfo($basename, PATHINFO_FILENAME) . '.png';
-			 
-		$meta_path = $png_path . '.meta.json';
+    public static function convert_pdf_to_png_cached($pdf_path, $filename = null) {
+        $upload_dir = wp_upload_dir();
+        $cache_dir  = $upload_dir['basedir'] . '/kgsweb-cache/';
+        if (!file_exists($cache_dir)) wp_mkdir_p($cache_dir);
 
-		// Return cached PNG if exists
-		if (file_exists($png_path)) {
-			error_log("[KGSweb] PDF already converted: $png_path");
+        $basename = $filename ? self::sanitize_file_name($filename) : basename($pdf_path);
+        $png_path = $cache_dir . pathinfo($basename, PATHINFO_FILENAME) . '.png';
+        $meta_path = $png_path . '.meta.json';
 
-			// Ensure meta file exists (self-heal if missing)										
-			if (!file_exists($meta_path)) {
-				[$width, $height] = getimagesize($png_path);
-				file_put_contents($meta_path, json_encode(['width' => $width, 'height' => $height]));
-				error_log("[KGSweb] Created missing meta.json for cached PNG: {$width}x{$height}");
-			}
-
-			return $png_path;
-		}
-
-		// Verify PDF exists before converting	
-		if (!file_exists($pdf_path)) {
-			error_log("[KGSweb] ERROR: PDF file not found for conversion: $pdf_path");
-			return false;
-		}
-
-		// Debug: report file size and header
-		$filesize = filesize($pdf_path);
-		$header = bin2hex(file_get_contents($pdf_path, false, null, 0, 16));
-		error_log("[KGSweb] Ready to convert PDF $pdf_path ($filesize bytes, header: $header)");
-
-		// Ensure Imagick is available									 
-		if (!class_exists('Imagick')) {
-			error_log("[KGSweb] Imagick extension is NOT installed.");
-			return false;
-		}
-
-		// Convert PDF to PNG	    
-		try {
-					   
-			$img = new Imagick();
-			$img->setResolution(150, 150); // optional: improve quality
-			$img->readImage($pdf_path . '[0]'); // read first page only
-
-			// Convert to PNG
-			$img->setImageFormat('png');
-
-			// Resize if wider than 1000px				  
-			if ($img->getImageWidth() > 1000) {
-				$img->resizeImage(1000, 0, Imagick::FILTER_LANCZOS, 1);
-			}
-
-			$img->setImageCompression(Imagick::COMPRESSION_JPEG);
-			$img->setImageCompressionQuality(85);
-			$img->stripImage();
-			$img->writeImage($png_path);
-			$img->clear();
-			$img->destroy();
-
-			if (!file_exists($png_path)) {
-				error_log("[KGSweb] Conversion failed: PNG file not created");
-				return false;
-			}
-
-			// Immediately store dimensions in meta.json												
-			[$width, $height] = getimagesize($png_path);
-			file_put_contents($meta_path, json_encode(['width' => $width, 'height' => $height]));
-			error_log("[KGSweb] Converted PDF -> PNG: {$width}x{$height}, saved to $png_path");
-
-			return $png_path;
-
-		} catch (Exception $e) {
-			error_log("[KGSweb] Imagick ERROR converting PDF: " . $e->getMessage());
-			return false;
-		}
-
-							
-	}
-
-	// -----------------------------
-	// Optimize Image (JPEG/PNG)
-	// -----------------------------
-	public static function optimize_image_cached($file_id, $filename, $max_width = 1200) {
-		if (empty($file_id)) return null;
-
-		$upload_dir = wp_upload_dir();
-		$cache_dir = $upload_dir['basedir'] . '/kgsweb-cache';
-		if (!file_exists($cache_dir)) wp_mkdir_p($cache_dir);
-
-		$ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-		$safe_name = self::sanitize_file_name(pathinfo($filename, PATHINFO_FILENAME)) . '.' . $ext;
-		$cached_file = $cache_dir . '/' . $safe_name;
-		$meta_path   = $cached_file . '.meta.json';
-
-		// 1. If cached file already exists, ensure meta.json exists
-		if (file_exists($cached_file)) {
-			if (!file_exists($meta_path)) {
-				[$width, $height] = getimagesize($cached_file);
-				file_put_contents($meta_path, json_encode(['width' => $width, 'height' => $height]));
-				error_log("[KGSweb] Created missing meta.json for cached image: {$width}x{$height}");
-			}
-			return $cached_file;
-		}
-
-		// 2. Download fresh file
-		$content = KGSweb_Google_Integration::download_file($file_id);
-		if (!$content) return null;
-
-		file_put_contents($cached_file, $content);
-
-		// 3. Optimize with Imagick if available
-		if (class_exists('Imagick')) {
-			try {
-				$img = new Imagick($cached_file);
-				$width  = $img->getImageWidth();
-				$height = $img->getImageHeight();
-
-				if ($width > $max_width) {
-					$img->resizeImage($max_width, 0, Imagick::FILTER_LANCZOS, 1);
-					$width  = $img->getImageWidth();  // update after resize
-					$height = $img->getImageHeight();
-				}
-
-				$img->setImageCompression(Imagick::COMPRESSION_JPEG);
-				$img->setImageCompressionQuality(85);
-				$img->stripImage();
-				$img->writeImage($cached_file);
-				$img->clear();
-				$img->destroy();
-
-		// Store dimensions after optimization												  
-				file_put_contents($meta_path, json_encode(['width' => $width, 'height' => $height]));
-				error_log("[KGSweb] Optimized & cached image {$safe_name}: {$width}x{$height}");
-
-			} catch (Exception $e) {
-				error_log("[KGSweb] Image optimization failed for $filename - " . $e->getMessage());
-			}
-		} else {
-			// Fallback: just store dimensions without optimization															   
-			[$width, $height] = getimagesize($cached_file);
-			file_put_contents($meta_path, json_encode(['width' => $width, 'height' => $height]));
-			error_log("[KGSweb] Cached unoptimized image {$safe_name}: {$width}x{$height}");
-		}
-
-		return $cached_file;
-	}
-
-
-	// -----------------------------
-	// Google Documents 
-	// -----------------------------
-
-	public static function list_drive_files($service, $parent_id) {
-        $files = [];
-        $pageToken = null;
-
-        do {
-            $params = [
-                'q' => sprintf("'%s' in parents and trashed = false", esc_sql($parent_id)),
-                'fields' => 'nextPageToken, files(id, name, mimeType, modifiedTime)',
-                'pageSize' => 1000,
-            ];
-            if ($pageToken) $params['pageToken'] = $pageToken;
-
-            $response = $service->files->listFiles($params);
-            $files = array_merge($files, $response->getFiles());
-            $pageToken = $response->getNextPageToken();
-        } while ($pageToken);
-
-        return $files;
-    }
-
-
-
-    public static function filter_empty_folders(&$tree) {
-        $tree = array_filter($tree, function($item) {
-            if ($item['mimeType'] === 'application/vnd.google-apps.folder') {
-                if (!empty($item['children'])) {
-                    self::filter_empty_folders($item['children']);
-                    return !empty($item['children']);
-                }
-                return false;
+        if (file_exists($png_path)) {
+            if (!file_exists($meta_path)) {
+                [$width, $height] = getimagesize($png_path);
+                file_put_contents($meta_path, json_encode(['width' => $width, 'height' => $height]));
             }
-            return true;
-        });
-    }
-
-    public static function build_tree_recursive($service, $parent_id, $sort_by) {
-        $items = self::list_drive_files($service, $parent_id);
-        $tree = [];
-
-        foreach ($items as $file) {
-            $node = [
-                'id' => $file->getId(),
-                'name' => $file->getName(),
-                'mimeType' => $file->getMimeType(),
-                'modifiedTime' => $file->getModifiedTime(),
-                'children' => [],
-            ];
-
-            if ($node['mimeType'] === 'application/vnd.google-apps.folder') {
-                $node['children'] = self::build_tree_recursive($service, $node['id'], $sort_by);
-            }
-
-            $tree[] = $node;
+            return $png_path;
         }
 
-        self::sort_items($tree, $sort_by);
-        return $tree;
-    }
+        if (!file_exists($pdf_path)) return false;
+        if (!class_exists('Imagick')) return false;
 
-    public static function render_tree_html($tree, $collapsed = 'false') {
-        $html = '<ul class="kgsweb-documents">';
-        foreach ($tree as $item) {
-            $is_folder = $item['mimeType'] === 'application/vnd.google-apps.folder';
-            $toggle_class = ($collapsed === 'false-static') ? 'no-toggle' : 'toggle';
-            $html .= '<li data-id="' . esc_attr($item['id']) . '">';
-
-            if ($is_folder) {
-                $html .= '<span class="folder ' . $toggle_class . '">' . esc_html($item['name']) . '</span>';
-                if (!empty($item['children'])) {
-                    $html .= self::render_tree_html($item['children'], $collapsed);
-                }
-            } else {
-                $html .= '<a class="file" href="https://drive.google.com/file/d/' . esc_attr($item['id']) . '/view" target="_blank">' . esc_html($item['name']) . '</a>';
+        try {
+            $img = new Imagick();
+            $img->setResolution(150, 150);
+            $img->readImage($pdf_path . '[0]');
+            $img->setImageFormat('png');
+            if ($img->getImageWidth() > 1000) {
+                $img->resizeImage(1000, 0, Imagick::FILTER_LANCZOS, 1);
             }
-
-            $html .= '</li>';
+            $img->setImageCompression(Imagick::COMPRESSION_JPEG);
+            $img->setImageCompressionQuality(85);
+            $img->stripImage();
+            $img->writeImage($png_path);
+            [$width, $height] = getimagesize($png_path);
+            file_put_contents($meta_path, json_encode(['width' => $width, 'height' => $height]));
+            $img->clear();
+            $img->destroy();
+            return $png_path;
+        } catch (Exception $e) {
+            error_log("[KGSweb] PDF to PNG conversion failed for $pdf_path: " . $e->getMessage());
+            return false;
         }
-        $html .= '</ul>';
-        return $html;
     }
 
+    // -----------------------------
+    // Deprecated / legacy functions
+    // -----------------------------
+    /*
+    public static function old_drive_fetch_method() {
+        // ORIGINAL: used to fetch files with a simpler API call, replaced by drive_list_children_raw()
+    }
+
+    public static function legacy_sort_folders() {
+        // ORIGINAL: handled folder sorting differently, now replaced by sort_items()
+    }
+
+    public static function old_pdf_helper() {
+        // ORIGINAL: older Imagick PDF conversion, replaced by convert_pdf_to_png_cached()
+    }
+    */
 }

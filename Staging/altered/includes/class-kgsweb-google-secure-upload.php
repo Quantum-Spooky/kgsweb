@@ -144,4 +144,12 @@ class KGSweb_Google_Secure_Upload {
             delete_transient( 'kgsweb_attempts_'.$key );
         }
     }
+
+	
+	
+	
+	
+	
+	
+	
 }

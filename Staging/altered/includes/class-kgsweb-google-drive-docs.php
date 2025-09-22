@@ -258,6 +258,7 @@ class KGSweb_Google_Drive_Docs {
     }
 
 
+
     /*******************************
      * Helper: Collect folder IDs from tree
      *******************************/
@@ -294,110 +295,99 @@ class KGSweb_Google_Drive_Docs {
         return $max;
     }
 
-    /*******************************
-     * Build full documents tree
-     *******************************/
-    public static function build_documents_tree(string $root_id): array {
-        if (empty($root_id)) return [];
+ 	/*******************************
+	 * Build full documents tree
+	 *******************************/
+	public static function build_documents_tree(string $root_id): array {
+		if (empty($root_id)) return [];
 
-        $tree = [];
-        $queue = [['id' => $root_id, 'name' => '', 'path' => []]];
+		$tree = [];
+		$queue = [['id' => $root_id, 'name' => '', 'path' => []]];
 
-        while (!empty($queue)) {
-            $current = array_shift($queue);
-            $folder_id = $current['id'];
-            $path = $current['path'];
+		while (!empty($queue)) {
+			$current = array_shift($queue);
+			$folder_id = $current['id'];
+			$path = $current['path'];
 
-            $items = self::list_drive_children($folder_id);
-            $children = [];
+			// Use the unified list_drive_children()
+			$items = self::list_drive_children($folder_id);
+			$children = [];
 
-            foreach ($items as $item) {
-                $node = [
-                    'id' => $item['id'],
-                    'name' => $item['name'],
-                    'type' => $item['mimeType'] === 'application/vnd.google-apps.folder' ? 'folder' : 'file',
-                ];
+			foreach ($items as $item) {
+				$node = [
+					'id' => $item['id'],
+					'name' => $item['name'],
+					'type' => $item['mimeType'] === 'application/vnd.google-apps.folder' ? 'folder' : 'file',
+				];
 
-                if ($node['type'] === 'file') {
-                    $node['mime'] = $item['mimeType'];
-                    $node['size'] = $item['size'] ?? 0;
-                    $node['modifiedTime'] = $item['modifiedTime'] ?? '';
-                    $ext = strtolower(pathinfo($item['name'], PATHINFO_EXTENSION));
-                    $node['icon'] = KGSweb_Google_Helpers::icon_for_mime_or_ext($item['mimeType'], $ext);
-                    $children[] = $node;
-                } else {
-                    $queue[] = [
-                        'id' => $item['id'],
-                        'name' => $item['name'],
-                        'path' => array_merge($path, [$item['name']]),
-                    ];
-                    $children[] = $node + ['children' => []]; // placeholder
-                }
-            }
+				if ($node['type'] === 'file') {
+					$node['mime'] = $item['mimeType'];
+					$node['size'] = $item['size'] ?? 0;
+					$node['modifiedTime'] = $item['modifiedTime'] ?? '';
+					$ext = strtolower(pathinfo($item['name'], PATHINFO_EXTENSION));
+					$node['icon'] = KGSweb_Google_Helpers::icon_for_mime_or_ext($item['mimeType'], $ext);
+					$children[] = $node;
+				} else {
+					$queue[] = [
+						'id' => $item['id'],
+						'name' => $item['name'],
+						'path' => array_merge($path, [$item['name']]),
+					];
+					$children[] = $node + ['children' => []]; // placeholder
+				}
+			}
 
-            if ($folder_id === $root_id) {
-                $tree = $children;
-            } else {
-                self::inject_children($tree, $folder_id, $children);
-            }
-        }
+			if ($folder_id === $root_id) {
+				$tree = $children;
+			} else {
+				self::inject_children($tree, $folder_id, $children);
+			}
+		}
 
-        // Filter empty folders
-        $filtered_tree = [];
-        foreach ($tree as $node) {
-            $n = self::filter_empty_branches($node);
-            if ($n !== null) $filtered_tree[] = $n;
-        }
+		// Filter empty folders
+		$filtered_tree = [];
+		foreach ($tree as $node) {
+			$n = self::filter_empty_branches($node);
+			if ($n !== null) $filtered_tree[] = $n;
+		}
 
-        return $filtered_tree;
-    }
+		return $filtered_tree;
+	}
 
-    /*******************************
-     * Inject children into tree recursively
-     *******************************/
-    private static function inject_children(&$nodes, $target_id, $children) {
-        foreach ($nodes as &$node) {
-            if (isset($node['id']) && $node['id'] === $target_id && $node['type'] === 'folder') {
-                $node['children'] = $children;
-                return true;
-            }
-            if (!empty($node['children'])) {
-                if (self::inject_children($node['children'], $target_id, $children)) return true;
-            }
-        }
-        return false;
-    }
-
-    /*******************************
+	
+	/*******************************
      * List Drive children for a folder
      *******************************/
-    private static function list_drive_children($folder_id) {
-        $client = KGSweb_Google_Integration::get_google_client();
-        if (!$client instanceof Client) return [];
-
+    public static function list_drive_children(string $folder_id): array {
+		return KGSweb_Google_Helpers::drive_list_children_raw($folder_id);
+	}
+	
+	/*******************************
+     * List files in folder
+     *******************************/
+    public function list_files_in_folder(string $folder_id): array {
         try {
-            $service = new Drive($client);
+            $service = new Drive($this->client);
+
             $files = [];
             $pageToken = null;
 
             do {
                 $params = [
                     'q' => sprintf("'%s' in parents and trashed = false", $folder_id),
-                    'fields' => 'nextPageToken, files(id,name,mimeType,size,modifiedTime)',
+                    'fields' => 'nextPageToken, files(id, name, mimeType, modifiedTime)',
                     'pageSize' => 1000,
                 ];
+
                 if ($pageToken) $params['pageToken'] = $pageToken;
 
                 $response = $service->files->listFiles($params);
-                $items = $response->getFiles();
-
-                foreach ($items as $f) {
+                foreach ($response->getFiles() as $file) {
                     $files[] = [
-                        'id' => $f->getId(),
-                        'name' => $f->getName(),
-                        'mimeType' => $f->getMimeType(),
-                        'size' => method_exists($f, 'getSize') ? $f->getSize() : 0,
-                        'modifiedTime' => method_exists($f, 'getModifiedTime') ? $f->getModifiedTime() : '',
+                        'id' => $file->getId(),
+                        'name' => $file->getName(),
+                        'mimeType' => $file->getMimeType(),
+                        'modifiedTime' => $file->getModifiedTime(),
                     ];
                 }
 
@@ -405,34 +395,16 @@ class KGSweb_Google_Drive_Docs {
             } while ($pageToken);
 
             return $files;
+
         } catch (Exception $e) {
-            error_log("KGSWEB ERROR: Failed to list files in folder {$folder_id} - " . $e->getMessage());
+            error_log("KGSWEB: Failed to list files in folder {$folder_id} - " . json_encode([
+                'error' => $e->getMessage(),
+            ]));
             return [];
         }
     }
-
-    /*******************************
-     * Filter empty folders (recursive)
-     *******************************/
-    private static function filter_empty_branches($node) {
-        if (empty($node)) return null;
-        if ($node['type'] === 'file') return $node;
-
-        if (!empty($node['children'])) {
-            $filtered = [];
-            foreach ($node['children'] as $child) {
-                $c = self::filter_empty_branches($child);
-                if ($c !== null) $filtered[] = $c;
-            }
-            if (!empty($filtered)) {
-                $node['children'] = $filtered;
-                return $node;
-            }
-        }
-        return null;
-    }
-
-    /*******************************
+	
+	/*******************************
      * Folders-only tree for uploads
      *******************************/
     private static function build_folders_only_tree($root_id) {
@@ -508,6 +480,48 @@ class KGSweb_Google_Drive_Docs {
     public static function folder_path_from_id($folder_id) {
         return sanitize_title($folder_id);
     }
+	
+	
+	
+
+    /*******************************
+     * Inject children into tree recursively
+     *******************************/
+    private static function inject_children(&$nodes, $target_id, $children) {
+        foreach ($nodes as &$node) {
+            if (isset($node['id']) && $node['id'] === $target_id && $node['type'] === 'folder') {
+                $node['children'] = $children;
+                return true;
+            }
+            if (!empty($node['children'])) {
+                if (self::inject_children($node['children'], $target_id, $children)) return true;
+            }
+        }
+        return false;
+    }
+
+    /*******************************
+     * Filter empty folders (recursive)
+     *******************************/
+    private static function filter_empty_branches($node) {
+        if (empty($node)) return null;
+        if ($node['type'] === 'file') return $node;
+
+        if (!empty($node['children'])) {
+            $filtered = [];
+            foreach ($node['children'] as $child) {
+                $c = self::filter_empty_branches($child);
+                if ($c !== null) $filtered[] = $c;
+            }
+            if (!empty($filtered)) {
+                $node['children'] = $filtered;
+                return $node;
+            }
+        }
+        return null;
+    }
+
+ 
 
     /*******************************
      * Menus (Breakfast/Lunch)
@@ -541,47 +555,7 @@ class KGSweb_Google_Drive_Docs {
         ];
     }
 
-    /*******************************
-     * List files in folder
-     *******************************/
-    public function list_files_in_folder(string $folder_id): array {
-        try {
-            $service = new Drive($this->client);
-
-            $files = [];
-            $pageToken = null;
-
-            do {
-                $params = [
-                    'q' => sprintf("'%s' in parents and trashed = false", $folder_id),
-                    'fields' => 'nextPageToken, files(id, name, mimeType, modifiedTime)',
-                    'pageSize' => 1000,
-                ];
-
-                if ($pageToken) $params['pageToken'] = $pageToken;
-
-                $response = $service->files->listFiles($params);
-                foreach ($response->getFiles() as $file) {
-                    $files[] = [
-                        'id' => $file->getId(),
-                        'name' => $file->getName(),
-                        'mimeType' => $file->getMimeType(),
-                        'modifiedTime' => $file->getModifiedTime(),
-                    ];
-                }
-
-                $pageToken = $response->getNextPageToken();
-            } while ($pageToken);
-
-            return $files;
-
-        } catch (Exception $e) {
-            error_log("KGSWEB: Failed to list files in folder {$folder_id} - " . json_encode([
-                'error' => $e->getMessage(),
-            ]));
-            return [];
-        }
-    }
+ 
 
     /*******************************
      * Manual Cache Refresh (New)

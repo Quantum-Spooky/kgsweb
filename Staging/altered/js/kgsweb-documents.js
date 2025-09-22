@@ -1,12 +1,12 @@
 // js/kgsweb-documents.js
-(() => {
+(function($) { // <--- Add $ parameter here
 	'use strict';
 
 	window.KGSWEB = window.KGSWEB || {};
 	KGSWEB.Documents = KGSWEB.Documents || {};
 	KGSWEB.Helpers = KGSWEB.Helpers || {};
 	KGSWEB.Format = KGSWEB.Format || {};
-
+	
 	const $ = KGSWEB.Helpers.qs;
 	const $all = KGSWEB.Helpers.qsa;
 	const KGSWEB = window.KGSWEB || {};
@@ -177,23 +177,22 @@
 		container.classList.add('kgsweb-ready');
 	}
 
-	// ------------------- Boot all containers -------------------
+ 	// ------------------- Boot all containers -------------------
+	KGSWEB.Documents = { // The old code was trying to define KGSWEB.Documents here. This is a syntax error.
+        bootAll: function(){
+            $('.kgsweb-documents').each(function(){
+                const root = $(this).data('root');
+                $.getJSON('/wp-json/kgsweb/v1/documents', { root: root })
+                    .done(function(data){
+                        console.log('KGSWEB: Documents tree loaded', data);
+                    })
+                    .fail(function(xhr){
+                        console.warn('KGSWEB: Could not fetch documents tree', xhr.status);
+                    });
+            });
+        }
+    };
 
-        bootAll: function(){
-            $('.kgsweb-documents').each(function(){
-                const root = $(this).data('root');
-                $.getJSON('/wp-json/kgsweb/v1/documents', { root: root })
-                    .done(function(data){
-                        console.log('KGSWEB: Documents tree loaded', data);
-                    })
-                    .fail(function(xhr){
-                        console.warn('KGSWEB: Could not fetch documents tree', xhr.status);
-                    });
-            });
-        }
-    };
-
-    $(document).ready(function(){ KGSWEB.Documents.bootAll(); });
+    $(document).ready(function(){ KGSWEB.Documents.bootAll(); });
 	
-	
-})(jQuery);
+})(jQuery); // <--- Pass jQuery here
