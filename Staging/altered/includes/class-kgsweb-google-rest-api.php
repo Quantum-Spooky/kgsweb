@@ -1,342 +1,191 @@
 <?php
 // includes/class-kgsweb-google-rest-api.php
-if (!defined('ABSPATH')) { exit; }
+if (!defined('ABSPATH')) exit;
 
 class KGSweb_Google_REST_API {
 
-    // ------------------------
-    // Init
-    // ------------------------
     public static function init() {
         add_action('rest_api_init', [__CLASS__, 'register_rest_routes']);
     }
 
-    // ------------------------
-    // Register REST routes
-    // ------------------------
     public static function register_rest_routes() {
         $ns = 'kgsweb/v1';
 
-        // ------------------------
         // Ticker
-        // ------------------------
         register_rest_route($ns, '/ticker', [
-            'methods'  => 'GET',
+            'methods' => 'GET',
             'callback' => [__CLASS__, 'handle_ticker_request'],
-            'args'     => [
-                'folder' => ['type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field'],
-                'file'   => ['type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field'],
+            'args' => [
+                'folder' => ['type'=>'string','required'=>false,'sanitize_callback'=>'sanitize_text_field'],
+                'file'   => ['type'=>'string','required'=>false,'sanitize_callback'=>'sanitize_text_field'],
             ],
             'permission_callback' => '__return_true',
         ]);
 
-        // ------------------------
-        // Calendar Events 
-        // ------------------------
-													   
-		// Register unified REST endpoint for upcoming events
-		register_rest_route('kgsweb/v1', '/events', [
-            'methods'  => 'GET',
-            'callback' => [ new KGSweb_Google_Upcoming_Events(), 'rest_calendar_events' ],
-            'args'     => [
-                'calendar_id' => [
-                    'type'              => 'string',
-                    'required'          => false,
-                    'sanitize_callback' => 'sanitize_text_field',
-                ],
-                'page' => [
-                    'type'    => 'integer',
-                    'required'=> false,
-                    'default' => 1,
-                ],
-                'per_page' => [
-                    'type'    => 'integer',
-                    'required'=> false,
-                    'default' => 10,
-                ],
+        // Calendar Events
+        register_rest_route($ns, '/events', [
+            'methods' => 'GET',
+            'callback' => [new KGSweb_Google_Upcoming_Events(), 'rest_calendar_events'],
+            'args' => [
+                'calendar_id' => ['type'=>'string','required'=>false,'sanitize_callback'=>'sanitize_text_field'],
+                'page' => ['type'=>'integer','required'=>false,'default'=>1],
+                'per_page' => ['type'=>'integer','required'=>false,'default'=>10],
             ],
             'permission_callback' => '__return_true',
         ]);
 
-
-        // ------------------------
         // Menu
-        // ------------------------
         register_rest_route($ns, '/menu', [
-            'methods'  => 'GET',
+            'methods' => 'GET',
             'callback' => [__CLASS__, 'get_menu'],
-            'args'     => [
-                'type' => ['type'=>'string', 'required'=>true, 'enum'=>['breakfast','lunch']],
+            'args' => [
+                'type' => ['type'=>'string','required'=>true,'enum'=>['breakfast','lunch']],
             ],
             'permission_callback' => '__return_true',
         ]);
 
-        // ------------------------
-        // Documents (Google Drive)
-        // ------------------------
+        // Documents
         register_rest_route($ns, '/documents', [
             'methods' => 'GET',
             'callback' => [__CLASS__, 'get_documents'],
-            'args' => [
-                'root' => [
-                    'type' => 'string',
-                    'required' => false,
-                ],
-            ],
+            'args' => ['root'=>['type'=>'string','required'=>false]],
             'permission_callback' => '__return_true',
         ]);
 
-        // ------------------------
-        // Force-refresh Documents Tree (admin only)
-        // ------------------------
         register_rest_route($ns, '/documents/refresh', [
             'methods' => 'POST',
             'callback' => function(WP_REST_Request $req) {
                 $folder_id = $req->get_param('root') ?: KGSweb_Google_Drive_Docs::get_public_root_id();
                 if (!current_user_can('manage_options')) {
-                    return new WP_Error('forbidden', 'You do not have permission to refresh the documents tree.', ['status'=>403]);
+                    return new WP_Error('forbidden','No permission',['status'=>403]);
                 }
                 KGSweb_Google_Drive_Docs::rebuild_documents_tree_cache($folder_id);
-                return rest_ensure_response(['success'=>true, 'folder'=>$folder_id]);
+                return rest_ensure_response(['success'=>true,'folder'=>$folder_id]);
             },
-            'args' => [
-                'root'=>['type'=>'string','required'=>false],
-            ],
+            'args' => ['root'=>['type'=>'string','required'=>false]],
             'permission_callback' => '__return_true',
         ]);
 
-        // ------------------------
         // Slides
-        // ------------------------
         register_rest_route($ns, '/slides', [
-            'methods'  => 'GET',
-            'callback' => [__CLASS__, 'get_slides'],
-            'args'     => [
-                'file_id' => ['type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field'],
-            ],
-            'permission_callback' => '__return_true',
+            'methods'=>'GET',
+            'callback'=>[__CLASS__,'get_slides'],
+            'args'=>['file_id'=>['type'=>'string','required'=>false,'sanitize_callback'=>'sanitize_text_field']],
+            'permission_callback'=>'__return_true',
         ]);
 
-        // ------------------------
         // Sheets
-        // ------------------------
         register_rest_route($ns, '/sheets', [
-            'methods'  => 'GET',
-            'callback' => [__CLASS__, 'get_sheets'],
-            'args'     => [
-                'sheet_id' => ['type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field'],
-                'range'    => ['type'=>'string', 'required'=>false, 'sanitize_callback'=>'sanitize_text_field'],
+            'methods'=>'GET',
+            'callback'=>[__CLASS__,'get_sheets'],
+            'args'=>[
+                'sheet_id'=>['type'=>'string','required'=>false,'sanitize_callback'=>'sanitize_text_field'],
+                'range'=>['type'=>'string','required'=>false,'sanitize_callback'=>'sanitize_text_field'],
             ],
-            'permission_callback' => '__return_true',
+            'permission_callback'=>'__return_true',
         ]);
 
-        // ------------------------
         // Upload
-        // ------------------------
         register_rest_route($ns, '/upload', [
-            'methods'  => 'POST',
-            'callback' => [__CLASS__, 'post_upload'],
-            'args'     => [
-                'upload-folder' => ['type'=>'string', 'required'=>true, 'sanitize_callback'=>'sanitize_text_field'],
-            ],
-            'permission_callback' => function($request) {
-                return wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest');
+            'methods'=>'POST',
+            'callback'=>[__CLASS__,'post_upload'],
+            'args'=>['upload-folder'=>['type'=>'string','required'=>true,'sanitize_callback'=>'sanitize_text_field']],
+            'permission_callback'=>function($request){
+                return wp_verify_nonce($request->get_header('X-WP-Nonce'),'wp_rest');
             },
         ]);
     }
 
     // ------------------------
-    // Ticker callback
+    // Ticker
     // ------------------------
-
     public static function handle_ticker_request(WP_REST_Request $request) {
         $folder = sanitize_text_field($request->get_param('folder') ?: '');
         $file   = sanitize_text_field($request->get_param('file') ?: '');
-        
-        // If no specific file provided, fetch newest-first list
+
         if (!$file && $folder) {
             $files = KGSweb_Google_Ticker::get_ticker_items($folder);
-            if (!empty($files)) {
-                $file = $files[0]['id']; // newest file
-            }
+            $file = $files[0]['id'] ?? null;
         }
 
-        // fetch cached ticker
         $text = KGSweb_Google_Ticker::get_cached_ticker($folder, $file);
 
-        // If there's no ticker content, try to rebuild the ticker cache (if supported)
-        if (!$text && method_exists('KGSweb_Google_Ticker', 'refresh_cache_cron')) {
-            // Use refresh logic to get a fresh version
+        if (!$text && method_exists('KGSweb_Google_Ticker','refresh_cache_cron')) {
             KGSweb_Google_Ticker::refresh_cache_cron();
             $text = KGSweb_Google_Ticker::get_cached_ticker($folder, $file);
         }
 
-        if (!$text || trim($text) === '') {
-            // Log for debugging
-            error_log("KGSWEB REST Ticker: Empty after rebuild (folder={$folder}, file={$file})");
-            return rest_ensure_response([
-                'success' => false,
-                'ticker'  => '',
-            ]);
-        }
-
         return rest_ensure_response([
-            'success' => true,
-            'ticker'  => $text,
+            'success' => (bool)$text,
+            'ticker' => $text ?: '',
         ]);
     }
 
-
     // ------------------------
-    // Calendar callback
-    // ------------------------
-    public static function get_events(WP_REST_Request $req) {
-        $calendar_id = $req->get_param('calendar_id');
-        $page        = max(1, intval($req->get_param('page')));
-        $per         = max(1, intval($req->get_param('per_page')));
-        $data        = KGSweb_Google_Upcoming_Events::get_events_payload($calendar_id, $page, $per);
-
-        if (is_wp_error($data)) {
-            return $data;
-        }
-        return rest_ensure_response($data);
-    }
-
-    // ------------------------
-    // Menu callback
+    // Menu
     // ------------------------
     public static function get_menu(WP_REST_Request $req) {
-        $type = $req->get_param('type');
-        $data = KGSweb_Google_Drive_Docs::get_menu_payload($type);
-
-        if (is_wp_error($data)) {
-            return $data;
-        }
+        $data = KGSweb_Google_Drive_Docs::get_menu_payload($req->get_param('type'));
         return rest_ensure_response($data);
     }
 
     // ------------------------
-    // Documents callbacks
+    // Documents
     // ------------------------
-		public static function get_documents(WP_REST_Request $req) {
-		// Fetch root from query OR fallback to admin settings
-		$folder_id = $req->get_param('root') ?: KGSweb_Google_Drive_Docs::get_public_root_id();
+    public static function get_documents(WP_REST_Request $req) {
+        $folder_id = $req->get_param('root') ?: KGSweb_Google_Drive_Docs::get_public_root_id();
+        if (!$folder_id) return new WP_Error('no_root','No document root configured',['status'=>403]);
 
-		if (empty($folder_id)) {
-			return new WP_Error(
-				'no_root',
-				'No document root configured. Please set the root folder in the KGSweb settings.',
-				['status' => 403]
-			);
-		}
-
-		$drive = KGSweb_Google_Integration::init()->get_drive();
-		if (!$drive) {
-			return new WP_Error(
-				'no_drive',
-				'Google Drive client not initialized.',
-				['status' => 500]
-			);
-		}
-
-		$payload = $drive->get_documents_tree_payload($folder_id);
-		if (is_wp_error($payload)) return $payload;
-
-		// Deduplicate & normalize
-		$tree = self::deduplicate_nodes($payload['tree'] ?? []);
-		$tree = self::normalize_empty_children($tree);
-
-		$payload['tree'] = $tree;
-
-		return rest_ensure_response($payload);
-	}
-
-
-    private static function deduplicate_nodes(array $nodes): array {
-        $seen = [];
-        $result = [];
-
-        foreach ($nodes as $node) {
-            if (!isset($node['id']) || isset($seen[$node['id']])) {
-                continue;
-            }
-            $seen[$node['id']] = true;
-            if (!empty($node['children']) && is_array($node['children'])) {
-                $node['children'] = self::deduplicate_nodes($node['children']);
-            }
-            $result[] = $node;
-        }
-
-        return $result;
-    }
-
-    private static function normalize_empty_children(array $nodes): array {
-        foreach ($nodes as &$node) {
-            if ($node['type'] === 'folder') {
-                if (empty($node['children'])) {
-                    $node['children'] = null;
-                } else {
-                    $node['children'] = self::normalize_empty_children($node['children']);
-                }
-            }
-        }
-        return $nodes;
+        $payload = KGSweb_Google_Helpers::get_cached_documents_tree($folder_id);
+        return rest_ensure_response($payload);
     }
 
     // ------------------------
-    // Slides callback
+    // Slides
     // ------------------------
     public static function get_slides(WP_REST_Request $req) {
         $file_id = $req->get_param('file_id');
-        if (!$file_id) {
-            return new WP_Error('missing_file', 'Slide file ID is required.', ['status' => 400]);
-        }
+        if (!$file_id) return new WP_Error('missing_file','Slide file ID required',['status'=>400]);
 
         $cache_key = "kgsweb_cache_slides_{$file_id}";
-        $data = get_transient($cache_key);
 
-        if ($data === false) {
-            $data = [
+        $data = KGSweb_Google_Helpers::get_transient_or_fetch($cache_key, function() use ($file_id) {
+            return [
                 'file_id'   => $file_id,
                 'embed_url' => "https://docs.google.com/presentation/d/{$file_id}/embed",
                 'message'   => 'Slides fetched or placeholder',
             ];
-            set_transient($cache_key, $data, HOUR_IN_SECONDS);
-        }
+        }, HOUR_IN_SECONDS);
 
         return rest_ensure_response($data);
     }
 
     // ------------------------
-    // Sheets callback
+    // Sheets
     // ------------------------
     public static function get_sheets(WP_REST_Request $req) {
         $sheet_id = $req->get_param('sheet_id');
         $range    = $req->get_param('range') ?: (KGSweb_Google_Integration::get_settings()['sheets_default_range'] ?? 'A1:Z100');
 
-        if (!$sheet_id) {
-            return new WP_Error('missing_sheet', 'Sheet ID is required.', ['status' => 400]);
-        }
+        if (!$sheet_id) return new WP_Error('missing_sheet','Sheet ID required',['status'=>400]);
 
         $cache_key = "kgsweb_cache_sheet_{$sheet_id}_" . md5($range);
-        $data = get_transient($cache_key);
 
-        if ($data === false) {
-            $data = [
-                'sheet_id' => $sheet_id,
-                'range'    => $range,
-                'rows'     => [],
-                'headers'  => [],
-                'message'  => 'Sheet fetched or placeholder',
+        $data = KGSweb_Google_Helpers::get_transient_or_fetch($cache_key, function() use ($sheet_id,$range){
+            return [
+                'sheet_id'=>$sheet_id,
+                'range'=>$range,
+                'rows'=>[],
+                'headers'=>[],
+                'message'=>'Sheet fetched or placeholder',
             ];
-            set_transient($cache_key, $data, HOUR_IN_SECONDS);
-        }
+        }, HOUR_IN_SECONDS);
 
         return rest_ensure_response($data);
     }
 
     // ------------------------
-    // Upload callback
+    // Upload
     // ------------------------
     public static function post_upload(WP_REST_Request $req) {
         return KGSweb_Google_Secure_Upload::handle_upload_rest($req);

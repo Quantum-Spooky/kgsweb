@@ -1,6 +1,6 @@
 <?php
 // includes/class-kgsweb-google-sheets.php
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+if (!defined('ABSPATH')) exit;
 
 class KGSweb_Google_Sheets {
 
@@ -10,13 +10,16 @@ class KGSweb_Google_Sheets {
      * Shortcode renderer
      *******************************/
     public static function shortcode_render($atts = []) {
+        $settings = KGSweb_Google_Integration::get_settings();
         $atts = shortcode_atts([
-            'sheet_id' => KGSweb_Google_Integration::get_settings()['sheets_file_id'] ?? '',
-            'range' => 'A1:Z100'
+            'sheet_id' => $settings['sheets_file_id'] ?? '',
+            'range'    => 'A1:Z100'
         ], $atts, 'kgsweb_sheets');
 
         $payload = self::get_sheet_payload($atts['sheet_id'], $atts['range']);
-        if (is_wp_error($payload)) return '<div class="kgsweb-sheets-empty">Sheet not available.</div>';
+        if (is_wp_error($payload)) {
+            return '<div class="kgsweb-sheets-empty">Sheet not available.</div>';
+        }
 
         return '<div class="kgsweb-sheets">' . esc_html(json_encode($payload)) . '</div>';
     }
@@ -28,19 +31,16 @@ class KGSweb_Google_Sheets {
         if (!$sheet_id) return new WP_Error('no_file', __('Sheet file not set.', 'kgsweb'), ['status'=>404]);
 
         $key = 'kgsweb_cache_sheets_' . $sheet_id . '_' . md5($range);
-        $data = get_transient($key);
 
-        if ($data === false) {
-            $data = self::fetch_sheet_from_google($sheet_id, $range);
-            set_transient($key, $data, HOUR_IN_SECONDS);
-        }
-
-        return $data;
+        return KGSweb_Google_Helpers::get_transient_or_fetch($key, function() use ($sheet_id, $range) {
+            return self::fetch_sheet_from_google($sheet_id, $range);
+        }, HOUR_IN_SECONDS);
     }
 
     public static function refresh_cache($sheet_id, $range) {
         $data = self::fetch_sheet_from_google($sheet_id, $range);
-        set_transient('kgsweb_cache_sheets_' . $sheet_id . '_' . md5($range), $data, HOUR_IN_SECONDS);
+        $key = 'kgsweb_cache_sheets_' . $sheet_id . '_' . md5($range);
+        KGSweb_Google_Helpers::set_transient($key, $data, HOUR_IN_SECONDS);
         update_option('kgsweb_cache_last_refresh_sheets_' . $sheet_id, current_time('timestamp'));
     }
 
@@ -48,11 +48,11 @@ class KGSweb_Google_Sheets {
      * Google fetch stub
      *******************************/
     private static function fetch_sheet_from_google($sheet_id, $range) {
-        // TODO: Use Google Sheets API to fetch sheet content
+        // TODO: Implement Google Sheets API fetch
         return [
-            'sheet_id' => $sheet_id,
-            'range' => $range,
-            'values' => [],
+            'sheet_id'   => $sheet_id,
+            'range'      => $range,
+            'values'     => [],
             'updated_at' => current_time('timestamp')
         ];
     }

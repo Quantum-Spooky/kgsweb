@@ -130,7 +130,7 @@ class KGSweb_Google_Integration
 	/**
 	 * Return Google Drive service for direct API access
 	 */
-	public static function get_drive_service(): ?Drive
+/* 	public static function get_drive_service(): ?Drive
 	{
 		$client = self::get_google_client();
 		if (!$client) {
@@ -138,12 +138,12 @@ class KGSweb_Google_Integration
 			return null;
 		}
 		return new Drive($client);
-	}
+	} */
 
     /**
      * Google Drive wrapper
      */
-    public static function get_drive(): ?KGSweb_Google_Drive_Docs
+/*     public static function get_drive(): ?KGSweb_Google_Drive_Docs
     {
         $instance = self::init();
         if (!$instance->client) {
@@ -153,7 +153,15 @@ class KGSweb_Google_Integration
             $instance->drive = new KGSweb_Google_Drive_Docs($instance->client);
         }
         return $instance->drive;
-    }
+    } */
+	
+	/**
+	 * Google Drive wrapper
+	 */
+	public static function get_drive(): ?KGSweb_Google_Drive_Docs
+	{
+		return KGSweb_Google_Helpers::get_drive();
+	}
 
     /**
      * Calendar service
@@ -480,177 +488,7 @@ class KGSweb_Google_Integration
         }
     }
 
-    /*******************************
-     * Standardized Google Drive Helpers
-     *******************************/
 
-    /**
-     * List files in a folder
-     * @param string $folder_id
-     * @param array $options Optional keys: 'mimeType', 'orderBy', 'pageSize'
-     * @return array List of files with keys: id, name, mimeType, modifiedTime
-     */
-    public static function list_files_in_folder(
-        string $folder_id,
-        array $options = []
-    ): array {
-        $drive = self::get_drive();
-        if (!$drive) {
-            return [];
-        }
-
-        // drive->list_files_in_folder currently accepts only folder_id; pass options if implemented later
-        return $drive->list_files_in_folder($folder_id);
-    }
-
-    /**
-     * Get contents of a Google file (Docs or plain text)
-     * @param string $file_id
-     * @param string|null $mimeType Optional, if known
-     * @return string|null File contents or null on error
-     */
-    public static function get_file_contents(
-        string $file_id,
-        ?string $mimeType = null
-    ): ?string {
-        $drive = self::get_drive();
-        if (!$drive) {
-            return null;
-        }
-
-        return $drive->get_file_contents($file_id, $mimeType);
-    }
-
-    /**
-     * Get the latest file in a folder.
-     *
-     * Strategy:
-     * 1) Try to use cached documents tree (transient 'kgsweb_docs_tree_' . md5($folder_id))
-     *    - If present, traverse it to find the newest file by modifiedTime.
-     * 2) If cache missing or empty, call Drive API directly with orderBy modifiedTime desc, pageSize=1.
-     *
-     * Returns array with keys: id, name, mimeType, modifiedTime OR null if none found.
-     */
-    public static function get_latest_file_from_folder(
-        string $folder_id
-    ): ?array {
-        if (empty($folder_id)) {
-            return null;
-        }
-
-        $drive = self::get_drive();
-        if (!$drive) {
-            return null;
-        }
-
-        // 1) Try cached tree
-        $cache_key = "kgsweb_docs_tree_" . md5($folder_id);
-        $tree = self::get_transient($cache_key);
-
-        $latest = null;
-
-        if ($tree !== false && !empty($tree) && is_array($tree)) {
-            // tree is an array of nodes; traverse recursively
-            $walker = function ($nodes) use (&$walker, &$latest) {
-                foreach ((array) $nodes as $n) {
-                    if (!is_array($n)) {
-                        continue;
-                    }
-                    if (($n["type"] ?? "") === "file") {
-                        $mt = $n["modifiedTime"] ?? "";
-                        // store minimal file info
-                        $file = [
-                            "id" => $n["id"] ?? "",
-                            "name" => $n["name"] ?? "",
-                            "mimeType" => $n["mime"] ?? ($n["mimeType"] ?? ""),
-                            "modifiedTime" => $mt,
-                        ];
-                        if (
-                            empty($latest) ||
-                            strcmp(
-                                $file["modifiedTime"],
-                                $latest["modifiedTime"]
-                            ) > 0
-                        ) {
-                            $latest = $file;
-                        }
-                    }
-                    if (!empty($n["children"]) && is_array($n["children"])) {
-                        $walker($n["children"]);
-                    }
-                }
-            };
-            $walker($tree);
-            if ($latest) {
-                return $latest;
-            }
-        }
-
-        // 2) Fallback: call Drive API directly to get newest file
-        $client = self::get_google_client();
-        if (!$client instanceof Client) {
-            error_log(
-                "KGSWEB: get_latest_file_from_folder - google client not available"
-            );
-            return null;
-        }
-
-        try {
-            $service = new Drive($client);
-
-            // Query for docs or plain text files; include other types if needed
-            $q = sprintf("'%s' in parents and trashed = false", $folder_id);
-
-            // Try to prioritize docs & text. The Drive API won't accept OR with complex grouping easily,
-            // so we will not restrict MIME types here to allow any file; but we will order by modifiedTime.
-            $params = [
-                "q" => $q,
-                "orderBy" => "modifiedTime desc",
-                "pageSize" => 50,
-                "fields" => "files(id,name,mimeType,modifiedTime)",
-            ];
-
-            $response = $service->files->listFiles($params);
-            $files = $response->getFiles() ?: [];
-
-            // Prefer google-docs or text/plain first, but still return first modified file if none match.
-            $preferred = null;
-            foreach ($files as $f) {
-                $meta = [
-                    "id" => $f->getId(),
-                    "name" => $f->getName(),
-                    "mimeType" => $f->getMimeType(),
-                    "modifiedTime" => $f->getModifiedTime() ?? "",
-                ];
-                if (
-                    in_array(
-                        $meta["mimeType"],
-                        ["application/vnd.google-apps.document", "text/plain", "application/pdf"],
-                        true
-                    )
-                ) {
-                    $preferred = $meta;
-                    break;
-                }
-                // keep first as fallback
-                if ($preferred === null) {
-                    $preferred = $meta;
-                }
-            }
-
-            if ($preferred) {
-                return $preferred;
-            }
-
-            return null;
-        } catch (Exception $e) {
-            error_log(
-                "KGSWEB: get_latest_file_from_folder - Drive API error: " .
-                    $e->getMessage()
-            );
-            return null;
-        }
-    }
 
     /*******************************
      * Google Client Lazy Loader
@@ -692,7 +530,7 @@ class KGSweb_Google_Integration
             $this->calendar = new Calendar($client);
             $this->sheets = new Sheets($client);
             $this->slides = new Slides($client);
-            $this->drive = new KGSweb_Google_Drive_Docs($client);
+            // $this->drive = new KGSweb_Google_Drive_Docs($client);
 
             return $client;
         } catch (Exception $e) {
@@ -701,19 +539,6 @@ class KGSweb_Google_Integration
         }
     }
 
-    /*******************************
-     * Cached Documents Tree
-     *******************************/
-    public static function get_cached_documents_tree(string $root_id)
-    {
-        $cache_key = "kgsweb_docs_tree_" . md5($root_id);
-        $cached = get_transient($cache_key);
-        if ($cached !== false) {
-            return $cached;
-        }
-        $tree = KGSweb_Google_Drive_Docs::build_documents_tree($root_id);
-        $tree = KGSweb_Google_Drive_Docs::filter_empty_branches($tree);
-        set_transient($cache_key, $tree, HOUR_IN_SECONDS);
-        return $tree;
-    }
+
+
 }

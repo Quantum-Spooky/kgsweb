@@ -21,15 +21,17 @@ class KGSweb_Google_Shortcodes {
      * Register all shortcodes
      *******************************/
     public function register_shortcodes() {
-        add_shortcode('kgsweb_documents', [KGSweb_Google_Drive_Docs::class, 'shortcode_render']);
+        add_shortcode('kgsweb_documents', [__CLASS__, 'documents']);
         add_shortcode('kgsweb_menu', [KGSweb_Google_Menus::class, 'shortcode_render']);
         add_shortcode('kgsweb_slides', [KGSweb_Google_Slides::class, 'shortcode_render']);
         add_shortcode('kgsweb_events', [__CLASS__, 'kgsweb_events_shortcode']);
         add_shortcode('kgsweb_calendar', [__CLASS__, 'kgsweb_events_shortcode']);
+        add_shortcode('kgsweb_secure_upload_form', [__CLASS__, 'secure_upload_form']);
+        add_shortcode('kgsweb_sheets', [__CLASS__, 'sheets']);
     }
 
     /*******************************
-     * Asset registration
+     * Asset registration / enqueue
      *******************************/
     public static function enqueue_if_needed($handles = []) {
         wp_enqueue_style('kgsweb-style');
@@ -85,151 +87,124 @@ class KGSweb_Google_Shortcodes {
     /*******************************
      * Documents shortcode
      *******************************/
-   public static function documents($atts = []) {
-    $atts = shortcode_atts([
-        'doc-folder'    => '',
-        'folder'        => '',
-        'folders'       => '',
-        'class'         => '',
-        'id'            => 'kgsweb-documents-tree',
-        'sort_mode'     => 'alpha-asc',
-        'folders_first' => 'true',
-        'collapsed'     => 'true',
-        'expanded'      => null,
-        'search'        => 'false',
-    ], $atts, 'kgsweb_documents');
+    public static function documents($atts = []) {
+        $atts = shortcode_atts([
+            'doc-folder'    => '',
+            'folder'        => '',
+            'folders'       => '',
+            'class'         => '',
+            'id'            => 'kgsweb-documents-tree',
+            'sort_mode'     => 'alpha-asc',
+            'folders_first' => 'true',
+            'collapsed'     => 'true',
+            'expanded'      => null,
+            'search'        => 'false',
+        ], $atts, 'kgsweb_documents');
 
-    wp_enqueue_style('kgsweb-style');
+        wp_enqueue_style('kgsweb-style');
 
-    $settings = KGSweb_Google_Integration::get_settings();
-    $root = $atts['doc-folder'] ?: $atts['folder'] ?: $atts['folders'] ?: ($settings['public_docs_root_id'] ?? '');
-    if (!$root) {
-        return '<p>No root folder configured for documents.</p>';
-    }
-
-    $id = preg_replace('/[^a-zA-Z0-9\-\_]/', '-', $atts['id']);
-    $class = esc_attr($atts['class']);
-    $folders_first = filter_var($atts['folders_first'], FILTER_VALIDATE_BOOLEAN);
-    $collapsed_attr = filter_var($atts['collapsed'], FILTER_VALIDATE_BOOLEAN);
-    $expanded_attr = $atts['expanded'] !== null ? filter_var($atts['expanded'], FILTER_VALIDATE_BOOLEAN) : null;
-    $expanded = $expanded_attr !== null ? $expanded_attr : ! $collapsed_attr;
-    $sort_mode = in_array(strtolower($atts['sort_mode']), ['alpha-asc','alpha-desc','date-asc','date-desc'])
-        ? strtolower($atts['sort_mode'])
-        : 'alpha-asc';
-    $show_search = filter_var($atts['search'], FILTER_VALIDATE_BOOLEAN);
-
-    // Get the documents tree payload **once, server-side**
-    $payload = KGSweb_Google_Drive_Docs::get_documents_tree_payload($root);
-    if (is_wp_error($payload)) {
-        error_log('KGSWEB: get_documents_tree_payload error: ' . $payload->get_error_message());
-        return '<p>Unable to load documents at this time.</p>';
-    }
-
-    $tree = $payload['tree'] ?? [];
-
-    $render_node = function($node, $depth = 0) use (&$render_node, $folders_first, $sort_mode, $expanded) {
-        $html = '';
-        $type = $node['type'] ?? 'file';
-
-        if ($type === 'folder') {
-            $children = $node['children'] ?? [];
-
-            if ($folders_first || str_starts_with($sort_mode, 'alpha') || str_starts_with($sort_mode, 'date')) {
-                usort($children, function($a, $b) use ($sort_mode, $folders_first) {
-                    if ($folders_first) {
-                        if (($a['type'] ?? '') === 'folder' && ($b['type'] ?? '') !== 'folder') return -1;
-                        if (($a['type'] ?? '') !== 'folder' && ($b['type'] ?? '') === 'folder') return 1;
-                    }
-                    $valA = $a['name'] ?? '';
-                    $valB = $b['name'] ?? '';
-                    if (str_starts_with($sort_mode, 'date')) {
-                        $dateA = preg_replace('/[^0-9]/', '', $valA);
-                        $dateB = preg_replace('/[^0-9]/', '', $valB);
-                        $valA = $dateA ?: '99999999';
-                        $valB = $dateB ?: '99999999';
-                    } else {
-                        $valA = strtolower($valA);
-                        $valB = strtolower($valB);
-                    }
-                    $cmp = strcmp($valA, $valB);
-                    if (str_ends_with($sort_mode, '-desc')) $cmp *= -1;
-                    return $cmp;
-                });
-            }
-
-            $folder_name = esc_html($node['name'] ?: 'Folder');
-            $html .= '<li class="kgsweb-node type-folder depth-' . intval($depth) . '">';
-            $html .= '<span class="kgsweb-toggle" role="button" tabindex="0" aria-expanded="' . ($expanded ? 'true' : 'false') . '">';
-            $html .= '<span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>';
-            $html .= '<span class="kgsweb-label">' . $folder_name . '</span>';
-            $html .= '<i class="fa fa-chevron-right kgsweb-toggle-icon"></i>';
-            $html .= '</span>';
-
-            if (!empty($children)) {
-                $html .= '<ul class="kgsweb-children"' . ($expanded ? '' : ' hidden')
-                    . ' data-sort-mode="' . esc_attr($sort_mode) . '"'
-                    . ' data-folders-first="' . ($folders_first ? 'true' : 'false') . '">';
-                foreach ($children as $child) {
-                    $html .= $render_node($child, $depth + 1);
-                }
-                $html .= '</ul>';
-            }
-
-            $html .= '</li>';
-        } else {
-            $file_name = $node['name'] ?? 'File';
-            $file_id = $node['id'] ?? '';
-            $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-            $icon_class = 'fa-file';
-            switch($ext) {
-                case 'pdf': $icon_class = 'fa-file-pdf'; break;
-                case 'doc': case 'docx': $icon_class = 'fa-file-word'; break;
-                case 'xls': case 'xlsx': $icon_class = 'fa-file-excel'; break;
-                case 'ppt': case 'pptx': $icon_class = 'fa-file-powerpoint'; break;
-                case 'jpg': case 'jpeg': case 'png': $icon_class = 'fa-file-image'; break;
-            }
-            $url = esc_url("https://drive.google.com/file/d/{$file_id}/view");
-            $html .= '<li class="kgsweb-node type-file depth-' . intval($depth) . '">';
-            $html .= '<a class="kgsweb-file" href="' . $url . '" target="_blank" rel="noopener">';
-            $html .= '<span class="kgsweb-icon"><i class="fa ' . esc_attr($icon_class) . '"></i></span>';
-            $html .= '<span class="kgsweb-label">' . esc_html($file_name) . '</span>';
-            $html .= '</a>';
-            $html .= '</li>';
+        $settings = KGSweb_Google_Integration::get_settings();
+        $root = $atts['doc-folder'] ?: $atts['folder'] ?: $atts['folders'] ?: ($settings['public_docs_root_id'] ?? '');
+        if (!$root) {
+            return '<p>No root folder configured for documents.</p>';
         }
 
-        return $html;
-    };
+        $id = preg_replace('/[^a-zA-Z0-9\-\_]/', '-', $atts['id']);
+        $class = esc_attr($atts['class']);
+        $folders_first = filter_var($atts['folders_first'], FILTER_VALIDATE_BOOLEAN);
+        $collapsed_attr = filter_var($atts['collapsed'], FILTER_VALIDATE_BOOLEAN);
+        $expanded_attr = $atts['expanded'] !== null ? filter_var($atts['expanded'], FILTER_VALIDATE_BOOLEAN) : null;
+        $expanded = $expanded_attr !== null ? $expanded_attr : ! $collapsed_attr;
+        $sort_mode = in_array(strtolower($atts['sort_mode']), ['alpha-asc','alpha-desc','date-asc','date-desc'])
+            ? strtolower($atts['sort_mode'])
+            : 'alpha-asc';
+        $show_search = filter_var($atts['search'], FILTER_VALIDATE_BOOLEAN);
 
-    $tree_html = '<ul class="kgsweb-tree"'
-        . ' data-sort-mode="' . esc_attr($sort_mode) . '"'
-        . ' data-folders-first="' . ($folders_first ? 'true' : 'false') . '"'
-        . ' data-expanded="' . ($expanded ? 'true' : 'false') . '">';
-    foreach ($tree as $node) {
-        $tree_html .= $render_node($node);
+        // Get the documents tree payload **once, server-side**
+        $payload = KGSweb_Google_Drive_Docs::get_documents_tree_payload($root);
+        if (is_wp_error($payload)) {
+            error_log('KGSWEB: get_documents_tree_payload error: ' . $payload->get_error_message());
+            return '<p>Unable to load documents at this time.</p>';
+        }
+
+        $tree = $payload['tree'] ?? [];
+
+        // Recursive renderer
+        $render_node = function($node, $depth = 0) use (&$render_node, $folders_first, $sort_mode, $expanded) {
+            $html = '';
+            $type = $node['type'] ?? 'file';
+
+            if ($type === 'folder') {
+                $children = $node['children'] ?? [];
+                KGSweb_Google_Helpers::sort_items($children, $sort_mode);
+
+                $folder_name = esc_html(KGSweb_Google_Helpers::format_folder_name($node['name'] ?? 'Folder'));
+                $html .= '<li class="kgsweb-node type-folder depth-' . intval($depth) . '">';
+                $html .= '<span class="kgsweb-toggle" role="button" tabindex="0" aria-expanded="' . ($expanded ? 'true' : 'false') . '">';
+                $html .= '<span class="kgsweb-icon"><i class="fa fa-folder"></i><i class="fa fa-folder-open" style="display:none"></i></span>';
+                $html .= '<span class="kgsweb-label">' . $folder_name . '</span>';
+                $html .= '<i class="fa fa-chevron-right kgsweb-toggle-icon"></i>';
+                $html .= '</span>';
+
+                if (!empty($children)) {
+                    $html .= '<ul class="kgsweb-children"' . ($expanded ? '' : ' hidden')
+                        . ' data-sort-mode="' . esc_attr($sort_mode) . '"'
+                        . ' data-folders-first="' . ($folders_first ? 'true' : 'false') . '">';
+                    foreach ($children as $child) {
+                        $html .= $render_node($child, $depth + 1);
+                    }
+                    $html .= '</ul>';
+                }
+
+                $html .= '</li>';
+
+            } else {
+                $file_name = $node['name'] ?? 'File';
+                $file_id = $node['id'] ?? '';
+                $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+                $icon_class = KGSweb_Google_Helpers::icon_for_mime_or_ext($node['mimeType'] ?? '', $ext);
+                $url = esc_url("https://drive.google.com/file/d/{$file_id}/view");
+
+                $html .= '<li class="kgsweb-node type-file depth-' . intval($depth) . '">';
+                $html .= '<a class="kgsweb-file" href="' . $url . '" target="_blank" rel="noopener">';
+                $html .= '<span class="kgsweb-icon"><i class="fa ' . esc_attr($icon_class) . '"></i></span>';
+                $html .= '<span class="kgsweb-label">' . esc_html($file_name) . '</span>';
+                $html .= '</a>';
+                $html .= '</li>';
+            }
+
+            return $html;
+        };
+
+        $tree_html = '<ul class="kgsweb-tree"'
+            . ' data-sort-mode="' . esc_attr($sort_mode) . '"'
+            . ' data-folders-first="' . ($folders_first ? 'true' : 'false') . '"'
+            . ' data-expanded="' . ($expanded ? 'true' : 'false') . '">';
+        foreach ($tree as $node) {
+            $tree_html .= $render_node($node);
+        }
+        $tree_html .= '</ul>';
+
+        ob_start(); ?>
+        <div
+            id="<?php echo esc_attr($id); ?>"
+            class="kgsweb-documents <?php echo $class; ?>"
+            data-root-id="<?php echo esc_attr($root); ?>"
+            data-sort-mode="<?php echo esc_attr($sort_mode); ?>"
+            data-folders-first="<?php echo ($folders_first ? 'true' : 'false'); ?>"
+            data-expanded="<?php echo ($expanded ? 'true' : 'false'); ?>"
+        >
+            <?php if ($show_search) : ?>
+                <input type="search" class="kgsweb-doc-search" placeholder="<?php echo esc_attr__('Search documents...', 'kgsweb'); ?>" />
+            <?php endif; ?>
+
+            <?php echo $tree_html; ?>
+
+            <noscript>JavaScript is required for folder toggling.</noscript>
+        </div>
+        <?php
+        return ob_get_clean();
     }
-    $tree_html .= '</ul>';
-
-    ob_start(); ?>
-    <div
-        id="<?php echo esc_attr($id); ?>"
-        class="kgsweb-documents <?php echo $class; ?>"
-        data-root-id="<?php echo esc_attr($root); ?>"
-        data-sort-mode="<?php echo esc_attr($sort_mode); ?>"
-        data-folders-first="<?php echo ($folders_first ? 'true' : 'false'); ?>"
-        data-expanded="<?php echo ($expanded ? 'true' : 'false'); ?>"
-    >
-        <?php if ($show_search) : ?>
-            <input type="search" class="kgsweb-doc-search" placeholder="<?php echo esc_attr__('Search documents...', 'kgsweb'); ?>" />
-        <?php endif; ?>
-
-        <?php echo $tree_html; ?>
-
-        <noscript>JavaScript is required for folder toggling.</noscript>
-    </div>
-    <?php
-    return ob_get_clean();
-}
-
 
     /*******************************
      * Events shortcode
@@ -319,7 +294,7 @@ class KGSweb_Google_Shortcodes {
     }
 
     /*******************************
-     * Placeholder methods for other shortcodes
+     * Placeholder methods
      *******************************/
     public static function events($atts) { /* ... */ }
     public static function menu($atts) { /* ... */ }

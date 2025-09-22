@@ -8,7 +8,7 @@ if (!defined("ABSPATH")) {
  * KGSweb_Google_Menus
  *
  * Handles fetching, caching, and rendering of breakfast/lunch menus from Google Drive.
- * This class is now purely feature-specific; all generic logic is in KGSweb_Google_Helpers.
+ * All generic logic is delegated to KGSweb_Google_Helpers.
  */
 class KGSweb_Google_Menus
 {
@@ -26,7 +26,7 @@ class KGSweb_Google_Menus
     public static function shortcode_render(array $atts = []): string
     {
         $atts = shortcode_atts([
-            "type" => "lunch",
+            "type"  => "lunch",
             "width" => "",
         ], $atts, "kgsweb_menu");
 
@@ -111,60 +111,52 @@ class KGSweb_Google_Menus
         ];
         $folder_id = $folder_map[$type] ?? '';
         if (!$folder_id) {
-            return [
-                'type' => $type,
-                'image_url' => '',
-                'width' => 0,
-                'height' => 0,
-                'updated_at' => current_time('timestamp')
-            ];
+            return self::empty_payload($type);
         }
 
-        // --- Generic logic moved to Helpers ---
+        // Fetch files via Helpers
         $files = KGSweb_Google_Helpers::list_files_in_folder($folder_id);
-        if (empty($files)) {
-            return [
-                'type' => $type,
-                'image_url' => '',
-                'width' => 0,
-                'height' => 0,
-                'updated_at' => current_time('timestamp')
-            ];
-        }
+        if (empty($files)) return self::empty_payload($type);
 
-        // Filter for PDFs/images
+        // Filter menu-relevant files (PDFs / images)
         $files = KGSweb_Google_Helpers::filter_menu_files($files);
+        if (empty($files)) return self::empty_payload($type);
 
-        // Sort newest first
-        $latest = KGSweb_Google_Helpers::sort_files_newest_first($files)[0];
+        // Sort newest-first
+        $files = KGSweb_Google_Helpers::sort_files_newest_first($files);
+        $latest = $files[0] ?? null;
+        if (!$latest) return self::empty_payload($type);
 
+        // Fetch/cache locally (PDF → PNG if needed)
         $local_path = KGSweb_Google_Helpers::fetch_and_cache_file(
             $latest['id'],
             $latest['name'],
             $latest['mimeType'],
             $type
         );
+        if (!$local_path || !file_exists($local_path)) return self::empty_payload($type);
 
-        if (!$local_path || !file_exists($local_path)) {
-            return [
-                'type' => $type,
-                'image_url' => '',
-                'width' => 0,
-                'height' => 0,
-                'updated_at' => current_time('timestamp')
-            ];
-        }
-
-        // Get width/height metadata
+        // Image dimensions
         [$width, $height] = KGSweb_Google_Helpers::get_image_dimensions($local_path);
 
         $url = KGSweb_Google_Helpers::get_cached_file_url($local_path);
 
         return [
-            'type' => $type,
-            'image_url' => esc_url($url),
-            'width' => $width,
-            'height' => $height,
+            'type'       => $type,
+            'image_url'  => esc_url($url),
+            'width'      => $width,
+            'height'     => $height,
+            'updated_at' => current_time('timestamp')
+        ];
+    }
+
+    private static function empty_payload(string $type): array
+    {
+        return [
+            'type'       => $type,
+            'image_url'  => '',
+            'width'      => 0,
+            'height'     => 0,
             'updated_at' => current_time('timestamp')
         ];
     }

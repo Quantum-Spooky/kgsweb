@@ -1,6 +1,6 @@
-<?php 
+<?php
 // includes/class-kgsweb-google-slides.php
-if (!defined('ABSPATH')) { exit; }
+if (!defined('ABSPATH')) exit;
 
 use Google\Client;
 
@@ -37,22 +37,21 @@ class KGSweb_Google_Slides {
             return '<div class="kgsweb-slides-empty">Slides not available.</div>';
         }
 
-        // Determine slides to show
         $slides_to_show = $metadata['slides'];
         if ($atts['show_thumbnails']) {
             $start = max(1, intval($atts['start_slide']));
             $end   = $atts['end_slide'] ? intval($atts['end_slide']) : count($slides_to_show);
-            $slides_to_show = array_slice($slides_to_show, $start-1, $end-$start+1);
+            $slides_to_show = array_slice($slides_to_show, $start - 1, $end - $start + 1);
         }
 
         $pdf_url = self::get_pdf_url($file_id);
 
         // Embed URL for first slide
         $embed_url = "https://docs.google.com/presentation/d/{$file_id}/embed?start=false&loop=" 
-            . ($atts['loop'] ? 'true' : 'false') 
+            . ($atts['loop'] ? 'true' : 'false')
             . "&delayms=" . ($atts['autoplay'] ? intval($atts['delay']) : 0);
 
-        // Build thumbnails only
+        // Thumbnails
         $thumb_html = '';
         if ($atts['show_thumbnails']) {
             $thumb_html .= '<div class="kgsweb-slides-thumbnails">';
@@ -70,12 +69,9 @@ class KGSweb_Google_Slides {
             $thumb_html .= '</div>';
         }
 
-        // Force PDF
         if ($atts['force_pdf']) {
             return sprintf(
-                '<div class="kgsweb-slides-pdf-wrapper">
-                    <iframe src="%s" width="%s" height="%s" frameborder="0"></iframe>
-                </div>%s',
+                '<div class="kgsweb-slides-pdf-wrapper"><iframe src="%s" width="%s" height="%s" frameborder="0"></iframe></div>%s',
                 esc_url($pdf_url),
                 esc_attr($atts['width']),
                 esc_attr($atts['height']),
@@ -83,7 +79,7 @@ class KGSweb_Google_Slides {
             );
         }
 
-        // Live embed output (JS handles everything else)
+        // Live embed output
         return sprintf(
             '<div class="kgsweb-slides-wrapper" data-autoplay="%s" data-delay="%d">
                 <iframe class="kgsweb-slides-iframe" src="%s" width="%s" height="%s" frameborder="0" allowfullscreen mozallowfullscreen webkitallowfullscreen></iframe>
@@ -117,17 +113,15 @@ class KGSweb_Google_Slides {
     public static function get_slides_metadata($file_id) {
         if (!$file_id) return new WP_Error('no_file', __('Slides file not set.', 'kgsweb'), ['status'=>404]);
         $key = 'kgsweb_cache_slides_meta_' . $file_id;
-        $data = get_transient($key);
-        if ($data === false) {
-            $data = self::fetch_slides_metadata_from_drive($file_id);
-            set_transient($key, $data, HOUR_IN_SECONDS);
-        }
-        return $data;
+        return KGSweb_Google_Helpers::get_transient_or_fetch($key, function() use ($file_id) {
+            return self::fetch_slides_metadata_from_drive($file_id);
+        }, HOUR_IN_SECONDS);
     }
 
     public static function refresh_cache($file_id) {
         $data = self::fetch_slides_metadata_from_drive($file_id);
-        set_transient('kgsweb_cache_slides_meta_' . $file_id, $data, HOUR_IN_SECONDS);
+        $key = 'kgsweb_cache_slides_meta_' . $file_id;
+        KGSweb_Google_Helpers::set_transient($key, $data, HOUR_IN_SECONDS);
         update_option('kgsweb_cache_last_refresh_slides_' . $file_id, current_time('timestamp'));
     }
 
@@ -135,29 +129,26 @@ class KGSweb_Google_Slides {
      * Fetch slide metadata from Drive
      *******************************/
     private static function fetch_slides_metadata_from_drive($file_id) {
-        $drive = KGSweb_Google_Integration::get_drive();
-        if (!$drive || !method_exists($drive, 'get_file_contents')) {
-            return ['file_id' => $file_id, 'slides' => [], 'updated_at' => current_time('timestamp')];
-        }
+        $slides_service = new \Google\Service\Slides(KGSweb_Google_Integration::get_google_client());
 
         try {
-        $slides_service = new \Google\Service\Slides(KGSweb_Google_Integration::get_google_client());
-        $presentation = $slides_service->presentations->get($file_id);
+            $presentation = $slides_service->presentations->get($file_id);
 
-        $slides = [];
-        foreach ($presentation->getSlides() as $index => $slide) {
-            $slide_id = $slide->getObjectId();
-            $slides[] = [
-                'slide_number' => $index + 1,
-                'slide_id'     => $slide_id,
-                'thumbnail'    => "https://docs.google.com/presentation/d/{$file_id}/export/png?id={$file_id}&pageid={$slide_id}",
-            ];
+            $slides = [];
+            foreach ($presentation->getSlides() as $index => $slide) {
+                $slide_id = $slide->getObjectId();
+                $slides[] = [
+                    'slide_number' => $index + 1,
+                    'slide_id'     => $slide_id,
+                    'thumbnail'    => "https://docs.google.com/presentation/d/{$file_id}/export/png?id={$file_id}&pageid={$slide_id}",
+                ];
+            }
+
+            return ['file_id' => $file_id, 'slides' => $slides, 'updated_at' => current_time('timestamp')];
+
+        } catch (Exception $e) {
+            error_log('KGSWEB: Failed to fetch slides metadata - ' . $e->getMessage());
+            return ['file_id' => $file_id, 'slides' => [], 'updated_at' => current_time('timestamp')];
         }
-
-                return ['file_id'=>$file_id,'slides'=>$slides,'updated_at'=>current_time('timestamp')];
-		} catch (Exception $e) {
-			error_log('KGSWEB: Failed to fetch slides metadata - ' . $e->getMessage());
-			return ['file_id'=>$file_id,'slides'=>[],'updated_at'=>current_time('timestamp')];
-		}
     }
 }
