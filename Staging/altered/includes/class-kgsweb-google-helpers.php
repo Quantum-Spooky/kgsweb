@@ -121,6 +121,11 @@ class KGSweb_Google_Helpers {
 			
 			
 											KGSweb_Google_Helpers::test(); // TEST
+											
+											error_log("KGSWEB DEBUG: _fetch_files_from_drive returning " . count($files) . " files for folder $folder_id");
+												foreach ($files as $f) {
+													error_log("KGSWEB DEBUG: File: " . $f['name'] . " (" . $f['id'] . ")");
+												}
 			
 			
 			
