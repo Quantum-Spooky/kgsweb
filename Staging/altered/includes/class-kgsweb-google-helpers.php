@@ -90,62 +90,82 @@ class KGSweb_Google_Helpers {
     }
 
     private static function _fetch_files_from_drive($drive, string $folder_id, array $options = []): array {
-        $files = [];
-        $pageToken = null;
+		$files = [];
+		$pageToken = null;
 
-        $pageSize = $options['pageSize'] ?? 1000;
-        $fields = $options['fields'] ?? 'nextPageToken, files(id, name, mimeType, modifiedTime, size, parents)';
-        $orderBy = $options['orderBy'] ?? null;
+		$pageSize = $options['pageSize'] ?? 1000;
+		$fields = $options['fields'] ?? 'nextPageToken, files(id, name, mimeType, modifiedTime, size, parents)';
+		$orderBy = $options['orderBy'] ?? null;
 
-        do {
-            $params = [
-                'q' => sprintf("'%s' in parents and trashed = false", $folder_id),
-                'fields' => $fields,
-                'pageSize' => $pageSize,
-            ];
-            if ($orderBy) $params['orderBy'] = $orderBy;
-            if ($pageToken) $params['pageToken'] = $pageToken;
+		do {
+			$params = [
+				'q' => sprintf("'%s' in parents and trashed = false", $folder_id),
+				'fields' => $fields,
+				'pageSize' => $pageSize,
+				// Shared drive support
+				'supportsAllDrives' => true,
+				'includeItemsFromAllDrives' => true,
+				'corpora' => 'allDrives',
+			];
+			if ($orderBy) $params['orderBy'] = $orderBy;
+			if ($pageToken) $params['pageToken'] = $pageToken;
 
-            try {
-                $response = $drive->files->listFiles($params);
-            } catch (Exception $e) {
-                error_log("KGSWEB ERROR: Failed fetching folder $folder_id - " . $e->getMessage());
-                return [];
-            }
+			try {
+				$response = $drive->files->listFiles($params);
+			} catch (Exception $e) {
+				error_log("KGSWEB ERROR: Failed fetching folder $folder_id - " . $e->getMessage());
+				return [];
+			}
 
-            foreach ($response->getFiles() as $file) {
-                $files[] = [
-                    'id' => $file->getId(),
-                    'name' => $file->getName(),
-                    'mimeType' => $file->getMimeType(),
-                    'modifiedTime' => $file->getModifiedTime(),
-                    'size' => $file->getSize(),
-                    'parents' => $file->getParents(),
-                ];
-            }
+			$fetchedFiles = $response->getFiles();
+			
+			
+											KGSweb_Google_Helpers::test(); // TEST
+			
+			
+			
+			error_log("KGSWEB: Fetched " . count($fetchedFiles) . " files from folder $folder_id");
 
-            $pageToken = $response->getNextPageToken();
-        } while ($pageToken);
+			foreach ($fetchedFiles as $file) {
+				$files[] = [
+					'id' => $file->getId(),
+					'name' => $file->getName(),
+					'mimeType' => $file->getMimeType(),
+					'modifiedTime' => $file->getModifiedTime(),
+					'size' => $file->getSize(),
+					'parents' => $file->getParents(),
+				];
+			}
 
-        return $files;
-    }
+			$pageToken = $response->getNextPageToken();
+		} while ($pageToken);
+
+		return $files;
+	}
+
 
     // -----------------------------
     // Fetch file contents
     // -----------------------------
-    public static function get_file_contents(string $file_id, ?string $mimeType = null): ?string {
-        $drive = self::get_drive();
-        if (!$drive) return null;
+	public static function get_file_contents(string $file_id, ?string $mimeType = null): ?string {
+    $drive = self::get_drive();
+    if (!$drive) return null;
 
-        try {
-            $response = $drive->files->get($file_id, ['alt' => 'media']);
-            $body = $response->getBody();
-            return $body ? (string)$body->getContents() : null;
-        } catch (Exception $e) {
-            error_log("[KGSweb] get_file_contents ERROR for $file_id: " . $e->getMessage());
-            return null;
-        }
+    try {
+        // Create a request to download the file
+        $response = $drive->files->get($file_id, ['alt' => 'media']);
+
+        // Use the Google client’s HTTP client to fetch the raw body
+        $http = $drive->getClient()->getHttpClient();
+        $req  = $http->request('GET', $response->getHeader('Location')[0] ?? $response->getHeader('Content-Location')[0] ?? $response->getBody()->getUri());
+        $body = $req->getBody();
+
+        return $body ? (string)$body->getContents() : null;
+    } catch (Exception $e) {
+        error_log("[KGSweb] get_file_contents ERROR for $file_id: " . $e->getMessage());
+        return null;
     }
+}
 
     // -----------------------------
     // Tree traversal / latest file
@@ -348,6 +368,7 @@ class KGSweb_Google_Helpers {
         }
     }
 
+	
     // -----------------------------
     // Cached file URL
     // -----------------------------
@@ -355,5 +376,34 @@ class KGSweb_Google_Helpers {
         $upload_dir = wp_upload_dir();
         return str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $path);
     }
+
+
+
+				// -----------------------------
+				// TEST
+				// -----------------------------
+				public static function test() {
+					$test_folder_id = '1nz-2OAaUDOTwcmcGO7396pbRS2wqkXy0'; 
+					$files = self::list_files_in_folder($test_folder_id);
+
+					if (empty($files)) {
+						echo "No files returned for folder $test_folder_id\n";
+					} else {
+						echo "Files in folder $test_folder_id:\n";
+						foreach ($files as $file) {
+							echo sprintf(
+								"- %s (ID: %s, MIME: %s, Size: %s)\n",
+								$file['name'],
+								$file['id'],
+								$file['mimeType'],
+								$file['size'] ?? 'unknown'
+							);
+						}
+					}
+				}
+	
+
+
+
 
 }
