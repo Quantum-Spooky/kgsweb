@@ -9,35 +9,32 @@ class KGSweb_Google_Ticker {
     /*******************************
      * Drive / Docs Fetching
      *******************************/
-    public static function get_latest_file_from_folder($folderId) {
-        $drive = KGSweb_Google_Integration::get_drive_service();
+	public static function get_latest_file_from_folder($folderId) {
+		try {
+			// Use Docs helper with explicit date-desc sort
+			$files = KGSweb_Google_Drive_Docs::list_drive_children($folderId, 'date-desc');
 
-        if (!$drive) {
-            error_log("KGSWEB: [Ticker] Drive service unavailable, cannot fetch folder {$folderId}");
-            return null;
-        }
+			if (empty($files)) {
+				error_log("KGSWEB: [Ticker] No files returned from folder {$folderId}");
+				return null;
+			}
 
-        try {
-            $params = [
-                'q' => "'{$folderId}' in parents and trashed = false",
-                'orderBy' => 'modifiedTime desc',
-                'pageSize' => 1,
-                'fields' => 'files(id, name, modifiedTime, mimeType)',
-            ];
+			// Take the first file (newest due to date-desc)
+			$latestFile = $files[0];
 
-            $results = $drive->files->listFiles($params);
-            if (count($results->files) === 0) {
-                error_log("KGSWEB: [Ticker] No files returned from folder {$folderId}");
-                return null;
-            }
+			if (!isset($latestFile['id'])) {
+				error_log("KGSWEB: [Ticker] Latest file missing ID in folder {$folderId}");
+				return null;
+			}
 
-            return $results->files[0];
+			// Return as object to match old behavior
+			return (object) $latestFile;
 
-        } catch (\Exception $e) {
-            error_log("KGSWEB: [Ticker] Error fetching latest file from folder {$folderId} - " . $e->getMessage());
-            return null;
-        }
-    }
+		} catch (Exception $e) {
+			error_log("KGSWEB: [Ticker] Error fetching latest file from folder {$folderId} - " . $e->getMessage());
+			return null;
+		}
+	}
 
     public static function extract_ticker_text($fileId) {
         $docs = KGSweb_Google_Integration::get_docs_service();

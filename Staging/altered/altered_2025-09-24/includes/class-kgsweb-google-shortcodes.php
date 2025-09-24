@@ -87,12 +87,14 @@ class KGSweb_Google_Shortcodes {
  
     public static function documents($atts = []) {
         $atts = shortcode_atts([
-            'doc-folder' => '',
-            'folder'     => '',
-            'folders'    => '',
-            'class'      => '',
-            'id'         => 'kgsweb-documents-tree',
-        ], $atts, 'kgsweb_documents');
+			'doc-folder' => '',
+			'folder'     => '',
+			'folders'    => '',
+			'class'      => '',
+			'id'         => 'kgsweb-documents-tree',
+			'sort_by'    => 'alpha-asc',         // new: default alphabetical ascending
+			'collapsed'  => 'true',              // new: default collapsed
+		], $atts, 'kgsweb_documents');
 
         // Enqueue assets only when shortcode is used
         self::enqueue_documents_assets();
@@ -104,6 +106,12 @@ class KGSweb_Google_Shortcodes {
         $class = esc_attr($atts['class']);
 
         $data_attrs = sprintf(' data-root-id="%s"', esc_attr($root));
+		
+		$data_attrs .= sprintf(
+			' data-sort="%s" data-collapsed="%s"',
+			esc_attr($atts['sort_by']),
+			esc_attr($atts['collapsed'])
+		);
 
         ob_start();
         ?>
