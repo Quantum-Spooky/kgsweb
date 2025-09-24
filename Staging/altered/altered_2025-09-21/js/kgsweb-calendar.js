@@ -9,6 +9,28 @@
   }
 
   /**
+   * Format event date without local timezone shift
+   * Uses UTC components so the raw calendar time (CST in feed) is preserved
+   */
+  function formatDateUTC(date) {
+    return date.toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+  }
+
+  function formatTimeUTC(date) {
+    return date.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "UTC",
+    });
+  }
+
+  /**
    * Render events list and update pagination
    */
   function renderEvents(container, events, page = 1, perPage = 10) {
@@ -22,29 +44,19 @@
     pageEvents.forEach((ev) => {
       const li = document.createElement("li");
 
+      // Use raw strings as given by API, no local shift
       const startDate = new Date(ev.start);
       const endDate = new Date(ev.end);
       const isAllDay = ev.all_day;
 
-      // Format date like "Tue, Sep 16, 2025"
-      const dateLine = startDate.toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
+      // Format date line
+      const dateLine = formatDateUTC(startDate);
 
       // Format time line
       let timeLine = "All Day";
       if (!isAllDay) {
-        const startTime = startDate.toLocaleTimeString([], {
-          hour: "numeric",
-          minute: "2-digit",
-        });
-        const endTime = endDate.toLocaleTimeString([], {
-          hour: "numeric",
-          minute: "2-digit",
-        });
+        const startTime = formatTimeUTC(startDate);
+        const endTime = formatTimeUTC(endDate);
         timeLine = startTime === endTime ? startTime : `${startTime} – ${endTime}`;
       }
 
@@ -127,5 +139,4 @@
   document.addEventListener("DOMContentLoaded", () => {
     $all(".kgsweb-calendar").forEach(initCalendar);
   });
-
 })();
