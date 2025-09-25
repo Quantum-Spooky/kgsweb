@@ -345,7 +345,7 @@ class KGSweb_Google_Drive_Docs {
 					if ($docsService) {
 						$doc = $docsService->documents->get($file_id);
 						if ($doc && $doc->getBody() && $doc->getBody()->getContent()) {
-							$content = $this->extract_text_from_doc($doc);
+							$content = KGSweb_Google_Helpers::extract_text_from_doc($doc);
 							error_log("KGSWEB: get_file_contents - Docs API extraction returned " . strlen($content) . " chars.");
 							return $content;
 						} else {

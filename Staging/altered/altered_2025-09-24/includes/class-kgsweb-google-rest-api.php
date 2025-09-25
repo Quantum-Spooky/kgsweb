@@ -214,7 +214,7 @@ class KGSweb_Google_REST_API {
 
     public static function get_menu(WP_REST_Request $req) {
         $type = $req->get_param('type');
-        $data = KGSweb_Google_Drive_Docs::get_menu_payload($type);
+        $data = KGSweb_Google_Menus::get_menu_payload($type);
 
         if (is_wp_error($data)) {
             return $data;
