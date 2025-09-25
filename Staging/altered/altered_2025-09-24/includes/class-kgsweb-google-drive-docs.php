@@ -290,7 +290,7 @@ class KGSweb_Google_Drive_Docs {
 	/*******************************
 	 * Docs API helpers & file content extraction
 	 *******************************/
-	/*
+	
 	private function get_docs_service() {
 		if ($this->docsService !== null) return $this->docsService;
 
@@ -313,9 +313,7 @@ class KGSweb_Google_Drive_Docs {
 		}
 	}
 
-	*/
 
-	/*
 	 public function get_file_contents( $file_id, $mime_type = null ) {
 		if ( ! $this->client ) {
 			error_log("KGSWEB: get_file_contents called but client not initialized!");
@@ -388,7 +386,7 @@ class KGSweb_Google_Drive_Docs {
 			return '';
 		}
 	} 
-	*/
+	
 
 
 }

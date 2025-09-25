@@ -460,6 +460,14 @@ class KGSweb_Google_Integration
                 "6.5.1"
             );
         }
+        // --- User-Accessible Cache Refresh ---	
+		if (wp_script_is("kgsweb-cache", "enqueued")) { 
+			$secret = get_option('kgsweb_cache_refresh_secret', '');
+			wp_localize_script("kgsweb-cache", "KGSwebCache", [
+				"secret" => $secret,
+				"restUrl" => esc_url_raw(rest_url("kgsweb/v1/cache-refresh"))
+		]);
+}
 
         // Localize folders for documents script
         if (wp_script_is("kgsweb-documents", "enqueued")) {

@@ -82,7 +82,7 @@ class KGSweb_Google_REST_API {
         // ------------------------
         // Force-refresh Documents Tree (admin only)
         // ------------------------
-        register_rest_route($ns, '/documents/refresh', [
+/*         register_rest_route($ns, '/documents/refresh', [
             'methods' => 'POST',
             'callback' => function(WP_REST_Request $req) {
                 $folder_id = $req->get_param('root') ?: KGSweb_Google_Drive_Docs::get_public_root_id();
@@ -96,7 +96,16 @@ class KGSweb_Google_REST_API {
                 'root'=>['type'=>'string','required'=>false],
             ],
             'permission_callback' => '__return_true',
-        ]);
+        ]); */
+		
+		// ------------------------
+        // User-Accessible Cache Refresh 
+        // ------------------------
+		register_rest_route('kgsweb/v1', '/cache-refresh', [
+			'methods' => 'POST',
+			'callback' => [__CLASS__, 'kgsweb_refresh_cache_endpoint'],
+			'permission_callback' => '__return_true',
+		]);
 
         // ------------------------
         // Slides
@@ -337,4 +346,45 @@ class KGSweb_Google_REST_API {
     public static function post_upload(WP_REST_Request $req) {
         return KGSweb_Google_Secure_Upload::handle_upload_rest($req);
     }
+	
+	
+	
+		// ------------------------------------------------
+		// User-Accessible Cache Refresh 
+		// ------------------------------------------------
+		
+		public static function kgsweb_refresh_cache_endpoint(WP_REST_Request $request) {
+			$secret = $request->get_param('secret');
+			$expected_secret = get_option('kgsweb_cache_refresh_secret');
+
+			if (!$secret || $secret !== $expected_secret) {
+				return new WP_REST_Response([
+					'success' => false,
+					'message' => 'Invalid secret.'
+				], 403);
+			}
+
+			// Rate limiting: 1 call per minute per IP
+			$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+			$last_call = get_transient('kgsweb_cache_refresh_' . md5($ip));
+			if ($last_call) {
+				return new WP_REST_Response([
+					'success' => false,
+					'message' => 'Rate limit exceeded. Try again later.'
+				], 429);
+			}
+			set_transient('kgsweb_cache_refresh_' . md5($ip), time(), MINUTE_IN_SECONDS);
+
+			// Call the integration class
+			if (class_exists('KGSweb_Google_Integration')) {
+				$integration = KGSweb_Google_Integration::init();
+				$integration->cron_refresh_all_caches();
+				error_log('KGSWEB: Global cache refreshed via REST endpoint.');
+			}
+
+			return new WP_REST_Response([
+				'success' => true,
+				'message' => 'Cache refreshed successfully.'
+			]);
+		}
 }

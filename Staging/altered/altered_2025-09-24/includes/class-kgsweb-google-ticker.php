@@ -119,7 +119,7 @@ class KGSweb_Google_Ticker {
 
         if ($text === false) {
             error_log("KGSWEB: [Ticker] Cache miss for file {$file_id}, fetching fresh content");
-            $text = KGSweb_Google_Integration::get_file_contents($file_id) ?? '';
+            $text = KGSweb_Google_Helpers::get_file_contents($file_id) ?? '';
             if ($text) {
                 self::set_ticker_cache($folder_id, $file_id, $text);
                 update_option('kgsweb_ticker_last_file_id', $file_id);

@@ -132,7 +132,16 @@ class KGSweb_Google_Admin {
             $integration->cron_refresh_all_caches();
             echo "<div class='updated'><p>Cache updated successfully!</p></div>";
         }
-									  
+		
+	// -------------------------------
+    // Run This Once to Set a Secret Cache Key for User-Accessible Cache Refresh
+    // -------------------------------	
+				/*
+				if (!get_option('kgsweb_cache_refresh_secret')) {
+						update_option('kgsweb_cache_refresh_secret', bin2hex(random_bytes(16)));
+					}
+				 */	
+	 
     // -------------------------------
     // Clear Cache
     // -------------------------------		  
@@ -188,8 +197,26 @@ class KGSweb_Google_Admin {
 
                 <!-- Service Account JSON -->
                 <h2>Google Service Account JSON</h2>
-                <p>Paste the JSON content of your service account key file.</p>
-                <textarea name="service_account_json" rows="12" cols="80"><?php echo esc_textarea($service_json); ?></textarea>
+					<p>Paste the JSON content of your service account key file.</p>
+					<button type="button" id="toggle-json" class="button">Show JSON</button>
+					<textarea id="service-account-json" name="service_account_json" rows="12" cols="80" style="display:none;"><?php echo esc_textarea($service_json); ?></textarea>
+
+					<script>
+					document.addEventListener('DOMContentLoaded', function() {
+						const toggleBtn = document.getElementById('toggle-json');
+						const jsonTextarea = document.getElementById('service-account-json');
+
+						toggleBtn.addEventListener('click', function() {
+							if (jsonTextarea.style.display === 'none') {
+								jsonTextarea.style.display = 'block';
+								toggleBtn.textContent = 'Hide JSON';
+							} else {
+								jsonTextarea.style.display = 'none';
+								toggleBtn.textContent = 'Show JSON';
+							}
+						});
+					});
+					</script>
 
                 <!-- Google Drive Folder IDs -->
                 <h2>Google Drive Folder IDs (Global Defaults)</h2>
@@ -337,6 +364,7 @@ class KGSweb_Google_Admin {
 			</div>
         <?php
     } // end render_settings_page
+	
 
 } // end class KGSweb_Google_Admin
 
