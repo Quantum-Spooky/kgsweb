@@ -390,7 +390,7 @@ class KGSweb_Google_Integration
                 true
             );
         }
-
+		
         // Localize scripts
         wp_localize_script("kgsweb-helpers", "KGSWEB_CFG", [
             "rest" => [
@@ -404,6 +404,11 @@ class KGSweb_Google_Integration
             ],
             "assets" => ["fontawesome" => true],
         ]);
+		
+		wp_localize_script('kgsweb-upload', 'kgsweb', [
+			'ajax_url' => admin_url('admin-ajax.php')
+		]);
+
     }
     /*******************************
      * Assets Enqueue (Frontend)

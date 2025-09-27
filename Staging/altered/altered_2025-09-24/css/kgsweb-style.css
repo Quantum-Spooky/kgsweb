@@ -269,6 +269,44 @@ body .kgsweb-upload {
 .kgsweb-upload form { display: grid; gap: 8px; }
 .kgsweb-upload .kgsweb-upload-status { margin-top: 8px; font-size: 13px; color: #555; }
 
+
+/* =========================================
+   Password Forms
+   ========================================= */
+
+.password-container {
+    position: relative;
+    display: inline-block;
+    width: 370px;
+}
+
+.password-container input[type="password"],
+.password-container input[type="text"] {
+    padding-right: 2.5rem; /* room for eye icon */
+    width: 370px;
+    box-sizing: border-box;
+}
+
+/* Eye icon - hidden by default */
+.toggle_password {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+    font-size: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Show icon on hover */
+.password-container:hover .toggle_password {
+    opacity: 1;
+}
+
+
+
 /* =========================================
    Tooltips
    ========================================= */
@@ -304,7 +342,7 @@ body .kgsweb-upload {
 
 /* =========================================
    Shortcode Help List
-========================================= */
+   ========================================= */
 .kgsweb-shortcode-list { list-style-type: none; padding-left: 0; margin: 0; }
 .kgsweb-shortcode-list li { margin-bottom: 0.5em; }
 .kgsweb-shortcode-example { margin-left: 1.5em; font-size: 0.95em; color: #555; }
