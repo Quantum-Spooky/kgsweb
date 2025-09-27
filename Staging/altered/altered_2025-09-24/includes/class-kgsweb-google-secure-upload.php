@@ -12,14 +12,48 @@ class KGSweb_Google_Secure_Upload {
         add_action('init', [__CLASS__, 'check_for_upload_and_process']);
 		add_action('wp_ajax_kgsweb_check_password', [__CLASS__, 'ajax_check_password']);
         add_action('wp_ajax_nopriv_kgsweb_check_password', [__CLASS__, 'ajax_check_password']);
+		// AJAX handler for upload
+		add_action('wp_ajax_kgsweb_handle_upload', [KGSweb_Google_Secure_Upload::class, 'check_for_upload_and_process']);
+		add_action('wp_ajax_nopriv_kgsweb_handle_upload', [KGSweb_Google_Secure_Upload::class, 'check_for_upload_and_process']);
+
     }
 	
 	// AJAX validate password input
 	public static function ajax_check_password() {
+		$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+		$lock_key = 'kgsweb_lockout_' . md5($ip);
+		$fail_key = 'kgsweb_failures_' . md5($ip);
+
+		// 🔒 Bypass lockout if logged-in admin
+		if (!current_user_can('manage_options')) {
+			$locked_until = get_transient($lock_key);
+			if ($locked_until && time() < $locked_until) {
+				wp_send_json_error([
+					'message' => 'Too many failed attempts. Try again later.'
+				]);
+			}
+		}
+
 		$password = sanitize_text_field($_POST['password'] ?? '');
+
 		if (self::check_password($password)) {
+			// ✅ Success: reset failure counter
+			delete_transient($fail_key);
 			wp_send_json_success();
 		} else {
+			// ❌ Failure: increment counter
+			$failures = (int) get_transient($fail_key);
+			$failures++;
+			set_transient($fail_key, $failures, HOUR_IN_SECONDS);
+
+			if ($failures >= 50) {
+				// Lock for 1 hour
+				set_transient($lock_key, time() + HOUR_IN_SECONDS, HOUR_IN_SECONDS);
+				wp_send_json_error([
+					'message' => 'Too many failed attempts. Locked for 1 hour.'
+				]);
+			}
+
 			wp_send_json_error(['message' => 'Invalid password']);
 		}
 	}
@@ -160,4 +194,37 @@ class KGSweb_Google_Secure_Upload {
             ];
         }
     }
+	
+	
+	
+	
+	
+	
+	// REST endpoint for cached folders
+	add_action('wp_ajax_kgsweb_get_cached_folders', function() {
+		$root = sanitize_text_field($_GET['root'] ?? '');
+		if (!$root) {
+			wp_send_json_error(['message' => 'No root folder specified']);
+		}
+
+		$folders = KGSweb_Google_Integration::init()->get_cached_folders($root);
+		$list = [];
+
+		foreach ($folders as $f) {
+			// Only show folders, not files
+			if ($f['mimeType'] === 'application/vnd.google-apps.folder') {
+				$list[] = [
+					'id' => $f['id'],
+					'name' => $f['name']
+				];
+			}
+		}
+
+		wp_send_json_success($list);
+	});
+
+
+
+
+
 }
