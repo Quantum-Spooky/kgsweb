@@ -411,7 +411,8 @@ class KGSweb_Google_Integration
         ]);
 		
 		wp_localize_script('kgsweb-upload', 'kgsweb', [
-			'ajax_url' => admin_url('admin-ajax.php')
+			'ajax_url' => admin_url('admin-ajax.php'),
+			'uploadRootId' => get_option('kgsweb_upload_root_folder_id', '')
 		]);
 
     }

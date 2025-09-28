@@ -175,9 +175,12 @@ class KGSweb_Google_Shortcodes {
 			'upload-folder' => ''
 		], $atts);
 
+		// Use stored option as default if shortcode attribute is empty
+		$root_folder = $atts['upload-folder'] ?: get_option('kgsweb_upload_root_folder_id', '');
+
 		ob_start();
 		?>
-		<div class="kgsweb-secure-upload-form" data-upload-folder="<?php echo esc_attr($atts['upload-folder']); ?>">
+		<div class="kgsweb-secure-upload-form" data-upload-folder="<?php echo esc_attr($root_folder); ?>">
 			<form class="kgsweb-password-form">
 				<label for="upload_password">Password:</label>
 				<div class="password-container">

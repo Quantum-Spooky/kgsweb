@@ -272,9 +272,7 @@ class KGSweb_Google_Secure_Upload {
 	}
 
 
-	
 
-    // Google Drive upload
 	// Google Drive upload
 	protected static function upload_to_drive($file, $folder_id) {
 		if (!$file || empty($file['name'])) {

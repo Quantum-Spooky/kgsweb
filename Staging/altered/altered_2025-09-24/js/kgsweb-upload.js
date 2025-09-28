@@ -1,7 +1,6 @@
 // js/kgsweb-upload.js
 document.addEventListener('DOMContentLoaded', () => {
 
-  // small helper
   const el = (q, root = document) => root.querySelector(q);
 
   // -----------------------------
@@ -59,7 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = el('.kgsweb-upload-file', uploadUI);
     const uploadBtn = el('.kgsweb-upload-btn', uploadUI);
 
-    // create local error/success elements once
+    if (!folderSelect) return;
+
+    // -----------------------------
+    // Error / success elements
+    // -----------------------------
     const errorDiv = document.createElement('div');
     errorDiv.style.color = 'red';
     errorDiv.style.marginTop = '0.5rem';
@@ -72,36 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
     successDiv.style.display = 'none';
     uploadUI.appendChild(successDiv);
 
-    // Helper: populate folder dropdown from cached endpoint
-    const populateFolders = (rootFolder) => {
-      if (!folderSelect || !rootFolder) return;
-      folderSelect.innerHTML = '<option>Loading…</option>';
-      const url = `${kgsweb.ajax_url}?action=kgsweb_get_cached_folders&root=${encodeURIComponent(rootFolder)}`;
-      fetch(url, { credentials: 'same-origin' })
-        .then(r => r.json())
-        .then(j => {
-          folderSelect.innerHTML = '';
-          if (j.success && Array.isArray(j.data) && j.data.length) {
-            j.data.forEach(f => {
-              const opt = document.createElement('option');
-              opt.value = f.id;
-              opt.textContent = f.label || f.name || f.id;
-              folderSelect.appendChild(opt);
-            });
-          } else {
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.textContent = 'No folders available';
-            folderSelect.appendChild(opt);
-          }
-        })
-        .catch(err => {
-          console.error('Failed to fetch folders', err);
-          folderSelect.innerHTML = '<option value="">Error loading folders</option>';
-        });
-    };
-
-    // File validation parameters
+    // -----------------------------
+    // File validation
+    // -----------------------------
     const allowedExt = new Set([
       'txt','rtf','pdf','doc','docx','ppt','pptx','ppsx','xls','xlsx','csv',
       'png','jpg','jpeg','gif','webp','mp3','wav','mp4','m4v','mov','avi'
@@ -109,56 +85,101 @@ document.addEventListener('DOMContentLoaded', () => {
     const maxSizeDefault = 100 * 1024 * 1024; // 100MB
     const maxSizeVideo = 500 * 1024 * 1024;   // 500MB
 
-    function validateFile(file) {
-      if (!file) return 'No file';
+    const validateFile = (file) => {
+      if (!file) return 'No file selected';
       const ext = (file.name.split('.').pop() || '').toLowerCase();
-      if (!allowedExt.has(ext)) return 'File type not allowed.';
+      if (!allowedExt.has(ext)) return 'File type not allowed';
       const isVideo = ['mp4','m4v','mov','avi'].includes(ext);
       const limit = isVideo ? maxSizeVideo : maxSizeDefault;
-      if (file.size > limit) return isVideo ? 'File too large — max 500MB for video.' : 'File too large — max 100MB.';
+      if (file.size > limit) return isVideo ? 'File too large — max 500MB for video' : 'File too large — max 100MB';
       return null;
-    }
+    };
 
-    // Persisted unlocked state (session)
+    // -----------------------------
+    // Folder population helper
+    // -----------------------------
+    const populateFolders = async (rootFolder) => {
+      folderSelect.innerHTML = '<option>Loading…</option>';
+
+      if (!rootFolder) {
+        folderSelect.innerHTML = '<option value="">No root folder specified</option>';
+        return;
+      }
+
+      try {
+        const url = `${kgsweb.ajax_url}?action=kgsweb_get_cached_folders&root=${encodeURIComponent(rootFolder)}`;
+        const res = await fetch(url, { credentials: 'same-origin' });
+        const json = await res.json();
+
+        folderSelect.innerHTML = '';
+        if (json.success && Array.isArray(json.data) && json.data.length) {
+          json.data.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id || '';
+            opt.textContent = f.label || f.name || f.id || 'Unnamed folder';
+            folderSelect.appendChild(opt);
+          });
+        } else {
+          folderSelect.innerHTML = '<option value="">No folders available</option>';
+        }
+      } catch (err) {
+        console.error('Failed to fetch folders', err);
+        folderSelect.innerHTML = '<option value="">Error loading folders</option>';
+      }
+    };
+
+    // -----------------------------
+    // Initialize folders
+    // -----------------------------
+    const rootFolder = form.dataset.uploadFolder?.trim() || '';
+    populateFolders(rootFolder);
+
+    // -----------------------------
+    // Session / password verification
+    // -----------------------------
     const SESSION_KEY = 'kgsweb_upload_verified';
+    const setUploadEnabled = (enabled) => { if (uploadBtn) uploadBtn.disabled = !enabled; };
 
-    // If previously verified in this session, show upload UI immediately
     if (sessionStorage.getItem(SESSION_KEY) === 'true') {
-      if (passwordForm) passwordForm.style.display = 'none';
       if (uploadUI) uploadUI.style.display = 'block';
+      if (passwordForm) passwordForm.style.display = 'none';
       if (passwordInput) passwordInput.dataset.verified = 'true';
-      if (uploadBtn) uploadBtn.disabled = false;
+      setUploadEnabled(true);
     } else {
-      if (uploadBtn) uploadBtn.disabled = true;
+      setUploadEnabled(false);
     }
 
-    // attach password submit (AJAX)
+    if (passwordInput && uploadBtn) {
+      passwordInput.addEventListener('input', () => {
+        setUploadEnabled(passwordInput.dataset.verified === 'true' || sessionStorage.getItem(SESSION_KEY) === 'true');
+      });
+    }
+
+    // -----------------------------
+    // Password submit (AJAX)
+    // -----------------------------
     if (passwordForm && passwordInput) {
-      passwordForm.addEventListener('submit', (ev) => {
+      passwordForm.addEventListener('submit', async (ev) => {
         ev.preventDefault();
         passwordError.style.display = 'none';
         const pw = (passwordInput.value || '').trim();
         if (!pw) return;
 
-        // POST to check password
-        fetch(kgsweb.ajax_url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            action: 'kgsweb_check_password',
-            password: pw
-          }),
-          credentials: 'same-origin'
-        })
-        .then(r => r.json())
-        .then(json => {
+        try {
+          const res = await fetch(kgsweb.ajax_url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ action: 'kgsweb_check_password', password: pw }),
+            credentials: 'same-origin'
+          });
+          const json = await res.json();
+
           if (json.success) {
-            // show upload UI, mark verified
-            if (uploadUI) uploadUI.style.display = 'block';
-            if (passwordForm) passwordForm.style.display = 'none';
+            uploadUI.style.display = 'block';
+            passwordForm.style.display = 'none';
             passwordInput.dataset.verified = 'true';
             sessionStorage.setItem(SESSION_KEY, 'true');
-            if (uploadBtn) uploadBtn.disabled = false;
+            setUploadEnabled(true);
           } else {
             const msg = json.data?.message || 'Password invalid';
             passwordError.style.color = msg.includes('Locked') ? 'darkred' : 'red';
@@ -166,47 +187,32 @@ document.addEventListener('DOMContentLoaded', () => {
             passwordError.textContent = msg;
             passwordError.style.display = 'block';
           }
-        })
-        .catch(err => {
+        } catch (err) {
           console.error('password check error', err);
           passwordError.textContent = 'An error occurred while checking password.';
           passwordError.style.display = 'block';
-        });
+        }
       });
     }
 
-    // populate folders from data-upload-folder attribute on the form
-    const rootFolder = form.dataset.uploadFolder || '';
-    if (rootFolder) populateFolders(rootFolder);
-
-    // wire upload button (client validation + AJAX upload)
+    // -----------------------------
+    // Upload button click (AJAX)
+    // -----------------------------
     if (uploadBtn) {
-      uploadBtn.addEventListener('click', (ev) => {
+      uploadBtn.addEventListener('click', async (ev) => {
         ev.preventDefault();
         errorDiv.style.display = 'none';
         successDiv.style.display = 'none';
 
         const file = fileInput?.files?.[0];
         const fileErr = validateFile(file);
-        if (fileErr) {
-          errorDiv.textContent = fileErr;
-          errorDiv.style.display = 'block';
-          return;
-        }
+        if (fileErr) { errorDiv.textContent = fileErr; errorDiv.style.display = 'block'; return; }
 
         const folderId = folderSelect?.value || '';
-        if (!folderId) {
-          errorDiv.textContent = 'Please select a folder.';
-          errorDiv.style.display = 'block';
-          return;
-        }
+        if (!folderId) { errorDiv.textContent = 'Please select a folder.'; errorDiv.style.display = 'block'; return; }
 
         const password = (passwordInput?.value || '').trim();
-        if (!password) {
-          errorDiv.textContent = 'Missing password.';
-          errorDiv.style.display = 'block';
-          return;
-        }
+        if (!password) { errorDiv.textContent = 'Missing password.'; errorDiv.style.display = 'block'; return; }
 
         const formData = new FormData();
         formData.append('action', 'kgsweb_handle_upload');
@@ -217,15 +223,13 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadBtn.disabled = true;
         uploadBtn.textContent = 'Uploading…';
 
-        fetch(kgsweb.ajax_url, {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin'
-        })
-        .then(r => r.json())
-        .then(json => {
+        try {
+          const res = await fetch(kgsweb.ajax_url, { method: 'POST', body: formData, credentials: 'same-origin' });
+          const json = await res.json();
+
           uploadBtn.disabled = false;
           uploadBtn.textContent = 'Upload';
+
           if (json.success) {
             const link = json.url ? ` <a href="${json.url}" target="_blank" rel="noopener">View file</a>` : '';
             successDiv.innerHTML = '✅ Upload successful!' + link;
@@ -235,23 +239,16 @@ document.addEventListener('DOMContentLoaded', () => {
             errorDiv.textContent = json.message || (json.data && json.data.message) || 'Upload failed.';
             errorDiv.style.display = 'block';
           }
-        })
-        .catch(err => {
+        } catch (err) {
           console.error('upload error', err);
           errorDiv.textContent = 'An error occurred during upload.';
           errorDiv.style.display = 'block';
           uploadBtn.disabled = false;
           uploadBtn.textContent = 'Upload';
-        });
+        }
       });
     }
 
-    // enable/disable upload btn when password input changes and verified flag toggles
-    if (passwordInput && uploadBtn) {
-      passwordInput.addEventListener('input', () => {
-        uploadBtn.disabled = !(passwordInput.dataset.verified === 'true' || sessionStorage.getItem(SESSION_KEY) === 'true');
-      });
-    }
   });
 
 });
