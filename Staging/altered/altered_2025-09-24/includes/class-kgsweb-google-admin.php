@@ -93,13 +93,13 @@ class KGSweb_Google_Admin {
             update_option('kgsweb_ticker_file_id', $_POST['ticker_file_id'] ?? '');
             update_option('kgsweb_calendar_ids', $_POST['calendar_ids']);
 			update_option('kgsweb_calendar_url', esc_url_raw($_POST['calendar_url'] ?? ''));
-			// update_option('kgsweb_upload_root_folder_id', $_POST['upload_root_folder_id']);
+			update_option('kgsweb_upload_root_folder_id', $_POST['upload_root_folder_id']);
 			update_option('kgsweb_upload_google_groups', array_map('trim', explode(',', $_POST['google_groups'] ?? '')));
 			update_option('kgsweb_upload_destination', sanitize_text_field($_POST['upload_destination'] ?? 'drive'));
 			update_option('kgsweb_wp_upload_root', sanitize_text_field($_POST['wp_upload_root'] ?? ''));
 
-			// Refresh ticker cache immediately
-            KGSweb_Google_Ticker::refresh_cache_cron();
+			// Refresh cache
+            $integration->cron_refresh_all_caches();
 
             echo "<div class='updated'><p>Settings saved!</p></div>";
 
@@ -121,7 +121,7 @@ class KGSweb_Google_Admin {
 		*/
         
         // -------------------------------
-        // Update Cache
+        // Update Cache Button
         // -------------------------------					  
         if (isset($_POST['kgsweb_update_cache'])) {
             if (!isset($_POST['kgsweb_update_cache_nonce']) || !wp_verify_nonce($_POST['kgsweb_update_cache_nonce'], 'kgsweb_update_cache_action')) {
@@ -130,9 +130,7 @@ class KGSweb_Google_Admin {
             $integration->cron_refresh_all_caches();
             echo "<div class='updated'><p>Cache updated successfully!</p></div>";
         }
-		
-        // -------------------------------
-																				
+													
 									   
     // -------------------------------
     // Clear Cache
@@ -159,8 +157,8 @@ class KGSweb_Google_Admin {
         $calendars          = get_option('kgsweb_calendar_ids', '');
         $calendar_url       = get_option('kgsweb_calendar_url', '');
 
-		//      $upload_root_folder = get_option('kgsweb_upload_root_folder_id', '');
-        //		$upload_opts        = get_option('kgsweb_secure_upload_options', []);
+		$upload_root_folder = get_option('kgsweb_upload_root_folder_id', '');
+        $upload_opts        = get_option('kgsweb_secure_upload_options', []);
 		
 		$upload_auth_mode = get_option('kgsweb_upload_auth_mode', 'password');
 		$upload_pass      = get_option('kgsweb_upload_password_plaintext', '');
@@ -206,8 +204,8 @@ class KGSweb_Google_Admin {
 					<!-- Google Drive Folder IDs -->
                     <h2>Google Drive Folder IDs (Global Defaults)</h2>
                     <table class="form-table">
-                        <tr><th>Public Documents Root Folder</th><td><input type="text" name="root_folder_id" value="<?php echo esc_attr($root_folder); ?>" size="50"></td></tr>
-						<!-- <tr><th>Documents Upload Root Folder</th><td><input type="text" name="upload_root_folder_id" value="<?php echo esc_attr($upload_root_folder); ?>" size="50"></td></tr> !!! -->
+                        <tr><th>Public Documents Root Folder (Google Drive)</th><td><input type="text" name="root_folder_id" value="<?php echo esc_attr($root_folder); ?>" size="50"></td></tr>
+						<tr><th>Documents Upload Root Folder (Google Drive)</th><td><input type="text" name="upload_root_folder_id" value="<?php echo esc_attr($upload_root_folder); ?>" size="50"></td></tr>						
 						<tr><th>Breakfast Folder</th><td><input type="text" name="breakfast_folder_id" value="<?php echo esc_attr($breakfast); ?>" size="50"></td></tr>
                         <tr><th>Lunch Folder</th><td><input type="text" name="lunch_folder_id" value="<?php echo esc_attr($lunch); ?>" size="50"></td></tr>
                         <tr><th>Ticker Folder</th><td><input type="text" name="ticker_file_id" value="<?php echo esc_attr($ticker); ?>" size="50"></td></tr>

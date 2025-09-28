@@ -143,7 +143,7 @@ class KGSweb_Google_Integration
 		return new Drive($client);
 	}
 	
-	    /**
+	/**
      * Google Drive wrapper
      */
     public static function get_drive(): ?KGSweb_Google_Drive_Docs
@@ -155,8 +155,9 @@ class KGSweb_Google_Integration
         if ($instance->client && !$instance->drive) {
             $instance->drive = new KGSweb_Google_Drive_Docs($instance->client);
         }
-        return $instance->drive;
+		 return $instance->drive;
     }
+		
 	
 	public static function get_docs_service() {
 		$instance = self::init();
@@ -275,63 +276,67 @@ class KGSweb_Google_Integration
             error_log("KGSWEB: Calendar fetch error - " . $e->getMessage());
             return null;
         }
-    }
-    /*******************************
-     * Cron: Refresh All Caches
-     *******************************/
-    public function cron_refresh_all_caches(): void
-    {
-        // --- Refresh Ticker ---
-        if (KGSweb_Google_Ticker::refresh_cache_cron()) {
-            update_option(
-                "kgsweb_cache_last_refresh_ticker",
-                current_time("timestamp")
-            );
-        }
+	}
+	
+	 /*******************************
+	 * Cron: Refresh All Caches
+	 *******************************/
+	public function cron_refresh_all_caches(): void
+	{
+		
+		// HAS A refresh_cache_cron() METHOD IN ITS FEATURE CLASS AND IT IS USED HERE
+		
+		// --- Refresh Ticker ---
+		if (KGSweb_Google_Ticker::refresh_cache_cron()) {
+			update_option("kgsweb_cache_last_refresh_ticker", current_time("timestamp"));
+		}
+		
+		// --- Refresh Drive Docs (Downloads) ---
+		if (KGSweb_Google_Drive_Docs::refresh_cache_cron()) {
+			update_option("kgsweb_cache_last_refresh_drive_docs", current_time("timestamp"));
+		}
 
-        // --- Refresh Upcoming Events ---
-        $calendar_id = self::get_settings()["calendar_id"] ?? "";
-        if ($calendar_id) {
-            delete_transient("kgsweb_calendar_events_" . md5($calendar_id));
-            self::get_cached_events($calendar_id);
-            update_option(
-                "kgsweb_cache_last_refresh_events",
-                current_time("timestamp")
-            );
-        }
+	// HAS A refresh_cache_cron() METHOD IN ITS FEATURE CLASS BUT IT ISN'T USED HERE
 
-        // --- Refresh Drive Docs ---
-        if (KGSweb_Google_Drive_Docs::refresh_cache_cron()) {
-            update_option(
-                "kgsweb_cache_last_refresh_drive_docs",
-                current_time("timestamp")
-            );
-        }
+		// --- Refresh Upcoming Events ---
+		$calendar_id = self::get_settings()["calendar_id"] ?? "";
+		if ($calendar_id) {
+			delete_transient("kgsweb_calendar_events_" . md5($calendar_id));
+			self::get_cached_events($calendar_id);
+			update_option("kgsweb_cache_last_refresh_events", current_time("timestamp"));
+		}
 
-        // --- Refresh Menus ---
-        foreach (["breakfast", "lunch"] as $type) {
-            KGSweb_Google_Menus::refresh_menu_cache($type);
-        }
+		// --- Refresh Menus ---
+		foreach (["breakfast", "lunch"] as $type) {
+			KGSweb_Google_Menus::refresh_menu_cache($type);
+		}
+		
+		// HAS NO METHOD CALLED refresh_cache_cron() IN ITS FEATURE CLASS 	
+		
+		// --- Refresh Upload Folder Tree ---
+		$upload_root = get_option('kgsweb_upload_root_folder_id', '');
+		if ($upload_root) {
+			KGSweb_Google_Drive_Docs::cache_upload_folders($upload_root);
+		}
 
-        //---  Refresh Slides ---
-        $slides_file = self::get_settings()["slides_file_id"] ?? "";
-        if ($slides_file) {
-            KGSweb_Google_Slides::refresh_cache($slides_file);
-        }
+		// --- Refresh Slides ---
+		$slides_file = self::get_settings()["slides_file_id"] ?? "";
+		if ($slides_file) {
+			KGSweb_Google_Slides::refresh_cache($slides_file);
+		}
 
-        // --- Refresh Sheets ---
-        $sheets_file = self::get_settings()["sheets_file_id"] ?? "";
-        if ($sheets_file) {
-            KGSweb_Google_Sheets::refresh_cache($sheets_file, "A1:Z100");
-        }
+		// --- Refresh Sheets ---
+		$sheets_file = self::get_settings()["sheets_file_id"] ?? "";
+		if ($sheets_file) {
+			KGSweb_Google_Sheets::refresh_cache($sheets_file, "A1:Z100");
+		}
+		
+		// GLOBAL CACHE REFRESH
 
-        // --- Global refresh timestamp ---
-        update_option(
-            "kgsweb_cache_last_refresh_global",
-            current_time("timestamp")
-        );
-        update_option("kgsweb_last_refresh", current_time("timestamp"));
-    }
+		// --- Global refresh timestamp ---
+		update_option("kgsweb_cache_last_refresh_global", current_time("timestamp"));
+		update_option("kgsweb_last_refresh", current_time("timestamp"));
+	}
 
     /*******************************
      * Helpers: Transients
@@ -589,3 +594,49 @@ class KGSweb_Google_Integration
         return $tree;
     }
 }
+
+
+
+// TEST
+		add_action('admin_init', function() {
+    if (!current_user_can('manage_options')) return;
+
+    $upload_root_id = get_option('kgsweb_upload_root_folder_id', '');
+    if (!$upload_root_id) {
+        error_log("KGSWEB DEBUG: No upload root folder ID set.");
+        return;
+    }
+
+    $drive_service = KGSweb_Google_Integration::get_drive_service();
+    if (!$drive_service) {
+        error_log("KGSWEB DEBUG: Drive service not initialized.");
+        return;
+    }
+
+    function log_folder_tree($drive_service, $folder_id, $prefix = '') {
+        try {
+            $response = $drive_service->files->listFiles([
+                'q' => "'$folder_id' in parents and trashed = false",
+                'fields' => 'files(id, name, mimeType)',
+            ]);
+
+            if (empty($response->files)) {
+                error_log("KGSWEB DEBUG: {$prefix}[empty folder]");
+            } else {
+                foreach ($response->files as $file) {
+                    $type = ($file->mimeType === 'application/vnd.google-apps.folder') ? 'Folder' : 'File';
+                    error_log("KGSWEB DEBUG: {$prefix}{$type} - Name: {$file->name}, ID: {$file->id}");
+
+                    if ($file->mimeType === 'application/vnd.google-apps.folder') {
+                        log_folder_tree($drive_service, $file->id, $prefix . '  ');
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            error_log("KGSWEB DEBUG: Drive API Error - " . $e->getMessage());
+        }
+    }
+
+    error_log("KGSWEB DEBUG: Upload Root Folder ID = $upload_root_id");
+    log_folder_tree($drive_service, $upload_root_id);
+});

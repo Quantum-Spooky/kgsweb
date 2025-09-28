@@ -125,6 +125,7 @@ class KGSweb_Google_Drive_Docs {
 
         return $filtered_tree;
     }
+	
 
     /*******************************
      * Google API Helpers
@@ -204,8 +205,6 @@ class KGSweb_Google_Drive_Docs {
         return false;
     }
 
-
-
     private static function filter_empty_branches($node) {
         if (empty($node)) return null;
         if ($node['type'] === 'file') return $node;
@@ -225,8 +224,6 @@ class KGSweb_Google_Drive_Docs {
     }
 
  
-
-
     /*******************************
      * List files in folder
      *******************************/
@@ -386,6 +383,65 @@ class KGSweb_Google_Drive_Docs {
 			return '';
 		}
 	} 
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////
+	
+	/*******************************
+     * UPLOAD FEATURE: Get cached folders (flattened)
+     *******************************/
+	/**
+	 * Return a flattened list of folders (id, name, label) for the given root.
+	 * Caches result to transient 'kgsweb_cache_upload_tree_<root>'.
+	 */
+	public static function get_cached_folders(string $root_id): array {
+		if (empty($root_id)) return [];
+
+		$cache_key = 'kgsweb_cache_upload_tree_' . $root_id;
+		$cached = KGSweb_Google_Integration::get_transient($cache_key);
+		if ($cached !== false && is_array($cached)) {
+			return $cached;
+		}
+
+		$folders = [];
+		$queue = [['id' => $root_id, 'path' => []]];
+
+		while (!empty($queue)) {
+			$current = array_shift($queue);
+			$items = self::list_drive_children($current['id']);
+			foreach ($items as $item) {
+				if (($item['mimeType'] ?? '') === 'application/vnd.google-apps.folder') {
+					$path = array_merge($current['path'], [$item['name']]);
+					$folders[] = [
+						'id' => $item['id'],
+						'name' => $item['name'],
+						'label' => implode(' > ', $path),
+					];
+					$queue[] = ['id' => $item['id'], 'path' => $path];
+				}
+			}
+		}
+
+		// Cache for 1 hour
+		KGSweb_Google_Integration::set_transient($cache_key, $folders, HOUR_IN_SECONDS);
+		return $folders;
+	}
+	
+	public static function cache_upload_folders(string $root_id): void {
+		if (empty($root_id)) return;
+
+		// Just call get_cached_folders to populate transient if missing
+		self::get_cached_folders($root_id);
+
+		// Update last-refresh option
+		update_option('kgsweb_cache_last_refresh_upload_folders_' . $root_id, current_time('timestamp'));
+	}
+
+
+
+
+
+	
 	
 
 

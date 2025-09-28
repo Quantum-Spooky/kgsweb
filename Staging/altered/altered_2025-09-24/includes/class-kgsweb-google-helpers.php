@@ -551,8 +551,34 @@ class KGSweb_Google_Helpers {
         }
     }
 	
+	// -----------------------------
+	// Media Library Helper
+	// -----------------------------
+	public static function register_wp_attachment($file_path, $mime_type, $parent_id = 0) {
+		if (!file_exists($file_path)) {
+			error_log("[KGSweb] register_wp_attachment: file not found - $file_path");
+			return 0;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$attachment = [
+			'post_mime_type' => $mime_type,
+			'post_title'     => pathinfo(basename($file_path), PATHINFO_FILENAME),
+			'post_content'   => '',
+			'post_status'    => 'inherit',
+			'post_parent'    => $parent_id,
+		];
+
+		$attach_id   = wp_insert_attachment($attachment, $file_path);
+		$attach_data = wp_generate_attachment_metadata($attach_id, $file_path);
+		wp_update_attachment_metadata($attach_id, $attach_data);
+
+		return $attach_id;
+	}
 	
 
-	
 	
 }
