@@ -599,7 +599,7 @@ class KGSweb_Google_Integration
 
 
 // TEST
-		add_action('admin_init', function() {
+/* 		add_action('admin_init', function() {
     if (!current_user_can('manage_options')) return;
 
     $upload_root_id = get_option('kgsweb_upload_root_folder_id', '');
@@ -640,4 +640,4 @@ class KGSweb_Google_Integration
 
     error_log("KGSWEB DEBUG: Upload Root Folder ID = $upload_root_id");
     log_folder_tree($drive_service, $upload_root_id);
-});
+}); */

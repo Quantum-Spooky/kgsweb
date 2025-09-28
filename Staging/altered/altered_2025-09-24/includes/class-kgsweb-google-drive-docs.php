@@ -394,6 +394,7 @@ class KGSweb_Google_Drive_Docs {
 	 * Return a flattened list of folders (id, name, label) for the given root.
 	 * Caches result to transient 'kgsweb_cache_upload_tree_<root>'.
 	 */
+
 	public static function get_cached_folders(string $root_id): array {
 		if (empty($root_id)) return [];
 
@@ -403,29 +404,38 @@ class KGSweb_Google_Drive_Docs {
 			return $cached;
 		}
 
-		$folders = [];
-		$queue = [['id' => $root_id, 'path' => []]];
+		// Recursive closure to build folder tree
+		$build_tree = function(string $folder_id, array $path = []) use (&$build_tree) {
+			$items = self::list_drive_children($folder_id);
+			$folders = [];
 
-		while (!empty($queue)) {
-			$current = array_shift($queue);
-			$items = self::list_drive_children($current['id']);
 			foreach ($items as $item) {
 				if (($item['mimeType'] ?? '') === 'application/vnd.google-apps.folder') {
-					$path = array_merge($current['path'], [$item['name']]);
+					$current_path = array_merge($path, [$item['name'] ?? '']);
 					$folders[] = [
-						'id' => $item['id'],
-						'name' => $item['name'],
-						'label' => implode(' > ', $path),
+						'id'       => $item['id'] ?? '',
+						'name'     => $item['name'] ?? '',
+						'label'    => implode(' > ', $current_path), // breadcrumb
+						'mimeType' => $item['mimeType'],
+						'children' => $build_tree($item['id'], $current_path),
 					];
-					$queue[] = ['id' => $item['id'], 'path' => $path];
 				}
 			}
-		}
+
+			return $folders;
+		};
+
+		$tree = $build_tree($root_id);
 
 		// Cache for 1 hour
-		KGSweb_Google_Integration::set_transient($cache_key, $folders, HOUR_IN_SECONDS);
-		return $folders;
+		KGSweb_Google_Integration::set_transient($cache_key, $tree, HOUR_IN_SECONDS);
+
+		return $tree;
 	}
+
+
+
+
 	
 	public static function cache_upload_folders(string $root_id): void {
 		if (empty($root_id)) return;
@@ -436,13 +446,5 @@ class KGSweb_Google_Drive_Docs {
 		// Update last-refresh option
 		update_option('kgsweb_cache_last_refresh_upload_folders_' . $root_id, current_time('timestamp'));
 	}
-
-
-
-
-
-	
-	
-
 
 }

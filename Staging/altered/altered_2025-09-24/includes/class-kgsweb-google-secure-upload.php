@@ -28,15 +28,15 @@ class KGSweb_Google_Secure_Upload {
 		
 		
 		
-									// TESTING
-									add_action('init', function() {
+									// TEST
+								/* 	add_action('init', function() {
 									if (current_user_can('manage_options')) {
 										$root = get_option('kgsweb_upload_root_folder_id', '');
 										$tree = KGSweb_Google_Drive_Docs::get_cached_folders($root);
 										error_log("UPLOAD ROOT = $root");
 										error_log("FOLDER TREE = " . print_r($tree, true));
 										}
-									});
+									}); */
 
 
 
@@ -366,31 +366,34 @@ class KGSweb_Google_Secure_Upload {
 			wp_send_json_error(['message' => 'Drive helper not available']);
 		}
 
-		// Get full recursive tree
-		$allItems = KGSweb_Google_Drive_Docs::get_cached_folders($root);
+		// Get the full folder tree
+		$folders_tree = KGSweb_Google_Drive_Docs::get_cached_folders($root);
 
-		// Filter function: keep only folders, recursively
-		$filterFolders = function($items) use (&$filterFolders) {
-			$folders = [];
+		// Flatten tree for dropdown
+		$flatten = function(array $items, $prefix = '') use (&$flatten) {
+			$flat = [];
 			foreach ($items as $item) {
-				if ($item['mimeType'] === 'application/vnd.google-apps.folder') {
-					$folder = [
-						'id' => $item['id'],
-						'name' => $item['name'],
-					];
-					if (!empty($item['children']) && is_array($item['children'])) {
-						$folder['children'] = $filterFolders($item['children']);
-					}
-					$folders[] = $folder;
+				$label = $prefix . $item['name'];
+				$flat[] = [
+					'id'    => $item['id'],
+					'label' => $label
+				];
+
+				if (!empty($item['children']) && is_array($item['children'])) {
+					$flat = array_merge($flat, $flatten($item['children'], $label . ' > '));
 				}
 			}
-			return $folders;
+			return $flat;
 		};
 
-		$foldersOnly = $filterFolders($allItems);
+		$flat_list = $flatten($folders_tree);
 
-		wp_send_json_success($foldersOnly);
+		wp_send_json_success($flat_list);
 	}
+
+
+
+
 
 	/*******************************
 	 * Refresh cached folder list
