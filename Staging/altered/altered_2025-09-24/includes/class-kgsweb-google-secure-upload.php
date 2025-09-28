@@ -31,7 +31,7 @@ class KGSweb_Google_Secure_Upload {
 									// TESTING
 									add_action('init', function() {
 									if (current_user_can('manage_options')) {
-										$root = get_option('kgsweb_upload_root_folder', '');
+										$root = get_option('kgsweb_upload_root_folder_id', '');
 										$tree = KGSweb_Google_Drive_Docs::get_cached_folders($root);
 										error_log("UPLOAD ROOT = $root");
 										error_log("FOLDER TREE = " . print_r($tree, true));
@@ -198,7 +198,7 @@ class KGSweb_Google_Secure_Upload {
 		if (!file_exists($root_path)) wp_mkdir_p($root_path);
 
 		// Get cached Drive folders tree
-		$folders_tree = KGSweb_Google_Drive_Docs::get_cached_folders(get_option('kgsweb_upload_root_folder', ''));
+		$folders_tree = KGSweb_Google_Drive_Docs::get_cached_folders(get_option('kgsweb_upload_root_folder_id', ''));
 
 		// Build relative path from Drive folder names
 		$relative_folder = self::get_drive_folder_path($folder_id, $folders_tree);
@@ -237,7 +237,7 @@ class KGSweb_Google_Secure_Upload {
 	// other code to use this function it's available.  // ADDED
 	protected static function get_relative_path_from_drive_folder_id($folder_id) {
 		// ADDED: use the same cached tree approach your code uses
-		$folders_tree = KGSweb_Google_Drive_Docs::get_cached_folders(get_option('kgsweb_upload_root_folder', ''));
+		$folders_tree = KGSweb_Google_Drive_Docs::get_cached_folders(get_option('kgsweb_upload_root_folder_id', ''));
 		$relative = self::get_drive_folder_path($folder_id, $folders_tree);
 		if (!$relative) {
 			// ADDED: fallback to sanitized id if no readable name found
@@ -399,7 +399,7 @@ class KGSweb_Google_Secure_Upload {
 	 *******************************/
 	 
 	public static function refresh_folder_cache() {
-		$root = get_option('kgsweb_upload_root_folder', '');
+		$root = get_option('kgsweb_upload_root_folder_id', '');
 		if (!$root) return false;
 
 		KGSweb_Google_Drive_Docs::cache_upload_folders($root);
