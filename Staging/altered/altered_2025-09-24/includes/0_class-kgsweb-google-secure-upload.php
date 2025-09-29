@@ -29,14 +29,14 @@ class KGSweb_Google_Secure_Upload {
 		
 		
 									// TEST
-/* 									add_action('init', function() {
+									add_action('init', function() {
 									if (current_user_can('manage_options')) {
 										$root = get_option('kgsweb_upload_root_folder_id', '');
 										$tree = KGSweb_Google_Drive_Docs::get_cached_folders($root);
 										error_log("UPLOAD ROOT = $root");
 										error_log("FOLDER TREE = " . print_r($tree, true));
 										}
-									}); */
+									});
 
 
 
@@ -47,10 +47,6 @@ class KGSweb_Google_Secure_Upload {
      *******************************/
 	 
 	public static function ajax_check_password() {
-		
-		// Nonce check for CSRF protection
-		check_ajax_referer('kgsweb_upload_nonce', 'nonce');
-		
 		$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 		$lock_key = 'kgsweb_lockout_' . md5($ip);
 		$fail_key = 'kgsweb_failures_' . md5($ip);
@@ -154,25 +150,17 @@ class KGSweb_Google_Secure_Upload {
         }
     }
 
-	/*******************************
-	 * Handle upload based on admin settings
-	 *******************************/
+	 /*******************************
+     * Handle upload based on admin settings
+     *******************************/
+	 
 	public static function handle_upload($file, $folder_id) {
-		
-				// TEST
-				error_log("KGSWEB DEBUG: handle_upload POST=" . print_r($_POST, true));
-				error_log("KGSWEB DEBUG: handle_upload FILES=" . print_r($_FILES, true));
-		
-		// -----------------------------
-		// ACCEPT EITHER PASSWORD PARAM
-		// -----------------------------
 		if (!isset($_POST['kgsweb_upload_pass']) && !isset($_POST['password'])) {
 			// ADDED: accept 'password' param (Suggested) in addition to your existing 'kgsweb_upload_pass'
 			return ['success' => false, 'message' => 'No password provided'];
 		}
 
-		// CHANGED: sanitize and allow fallback from 'password'
-		$pass = sanitize_text_field($_POST['kgsweb_upload_pass'] ?? $_POST['password'] ?? '');
+		$pass = sanitize_text_field($_POST['kgsweb_upload_pass'] ?? $_POST['password'] ?? ''); // CHANGED
 		if (!self::check_password($pass)) {
 			if (defined('DOING_AJAX') && DOING_AJAX) {
 				wp_send_json_error(['message' => 'Upload authorization failed']);
@@ -180,24 +168,19 @@ class KGSweb_Google_Secure_Upload {
 				wp_die('Upload authorization failed.');
 			}
 		}
-
-		// -----------------------------
-		// DETERMINE DESTINATION
-		// -----------------------------
+		
+		// DEFAULT TO GOOGLE DRIVE
 		$destination = get_option('kgsweb_upload_destination', 'drive');
 
 		if ($destination === 'wordpress') {
 			return self::upload_to_wordpress($file, $folder_id);
 		}
 
-		// DEFAULT: GOOGLE DRIVE
+		// DEFAULT PATH: GOOGLE DRIVE
 		return self::upload_to_drive($file, $folder_id);
 	}
-
-		
-	/*******************************
-	 * Google Drive Upload
-	 *******************************/
+	
+	// GOOGLE DRIVE UPLOAD
 	protected static function upload_to_drive($file, $folder_id) {
 		if (!$file || empty($file['name'])) {
 			return ['success' => false, 'message' => 'No file uploaded'];
@@ -235,8 +218,10 @@ class KGSweb_Google_Secure_Upload {
 			// Copy to WP uploads so Media Library can track it
 			// ----------------------------------------
 			$wp_upload_dir = wp_upload_dir();
-			$target_dir    = trailingslashit($wp_upload_dir['path']);
-			if (!file_exists($target_dir)) wp_mkdir_p($target_dir);
+			$target_dir    = trailingslashit($wp_upload_dir['path']); // e.g. .../uploads/2025/09/
+			if (!file_exists($target_dir)) {
+				wp_mkdir_p($target_dir);
+			}
 
 			$filename   = sanitize_file_name($file['name']);
 			$targetFile = $target_dir . $filename;
@@ -256,7 +241,7 @@ class KGSweb_Google_Secure_Upload {
 			$attach_id = KGSweb_Google_Helpers::register_wp_attachment($destination, $file['type']);
 
 			// ----------------------------------------
-			// Return both Drive + WP info
+			// NEW: Return both Drive + WP info
 			// ----------------------------------------
 			return [
 				'success'   => true,
@@ -273,15 +258,14 @@ class KGSweb_Google_Secure_Upload {
 			];
 		}
 	}
-		
-	/*******************************
-	 * Upload to WordPress
-	 *******************************/
+	
+	// UPLOAD TO WORDPRESS
 	protected static function upload_to_wordpress($file, $folder_id) {
 		if (!$file || empty($file['name'])) {
 			return ['success' => false, 'message' => 'No file uploaded'];
 		}
 
+		// Base folder
 		$base_folder = get_option('kgsweb_wp_upload_root_folder_id', '');
 		if (empty($base_folder)) $base_folder = 'documents';
 
@@ -291,18 +275,17 @@ class KGSweb_Google_Secure_Upload {
 
 		if (!file_exists($root_path)) wp_mkdir_p($root_path);
 
-		// -----------------------------
 		// Get cached Drive folders tree
-		// -----------------------------
 		$folders_tree = KGSweb_Google_Drive_Docs::get_cached_folders(get_option('kgsweb_upload_root_folder_id', ''));
 
 		// Build relative path from Drive folder names
 		$relative_folder = self::get_drive_folder_path($folder_id, $folders_tree);
-		if (!$relative_folder) $relative_folder = sanitize_file_name($folder_id);
+		if (!$relative_folder) $relative_folder = sanitize_file_name($folder_id); // fallback
 
 		$target_path = trailingslashit($root_path) . $relative_folder;
 		if (!file_exists($target_path)) wp_mkdir_p($target_path);
 
+		// Save file
 		$filename = sanitize_file_name($file['name']);
 		$destination = trailingslashit($target_path) . $filename;
 
@@ -310,7 +293,9 @@ class KGSweb_Google_Secure_Upload {
 			return ['success' => false, 'message' => 'Failed to move uploaded file'];
 		}
 
-		$attach_id = KGSweb_Google_Helpers::register_wp_attachment($destination, $file['type']);
+		$attach_id = self::register_attachment_in_media_library($destination, $file['type']);
+
+		// Return URL
 		$file_url = trailingslashit($root_url) . $relative_folder . '/' . $filename;
 
 		return [
@@ -320,6 +305,7 @@ class KGSweb_Google_Secure_Upload {
 			'name'    => $filename,
 		];
 	}
+
 
 	// ADDED: helper that the Suggested code included (kept as additional helper — does not remove your get_drive_folder_path)
 	// This uses the same underlying Drive tree but returns the relative path; if you want to switch
@@ -361,12 +347,14 @@ class KGSweb_Google_Secure_Upload {
 	}
 
 
+
+
+
+
 	/*******************************
 	 * Return cached folder list (folders only, recursive) for AJAX
 	 *******************************/
 	public static function ajax_get_cached_folders() {
-		// Nonce check for CSRF protection
-		check_ajax_referer('kgsweb_upload_nonce', 'nonce');
 		$root = sanitize_text_field($_REQUEST['root'] ?? '');
 		if (!$root) {
 			wp_send_json_error(['message' => 'No root folder specified']);
@@ -376,7 +364,7 @@ class KGSweb_Google_Secure_Upload {
 			wp_send_json_error(['message' => 'Drive helper not available']);
 		}
 
-		// Get full folder tree
+		// Get the full folder tree
 		$folders_tree = KGSweb_Google_Drive_Docs::get_cached_folders($root);
 
 		// Flatten tree for dropdown
@@ -401,10 +389,13 @@ class KGSweb_Google_Secure_Upload {
 		wp_send_json_success($flat_list);
 	}
 
+
+
+
 	/*******************************
 	 * Refresh cached folder list
 	 *******************************/
-	
+	 
 	public static function refresh_folder_cache() {
 		$root = get_option('kgsweb_upload_root_folder_id', '');
 		if (!$root) return false;
@@ -418,8 +409,7 @@ class KGSweb_Google_Secure_Upload {
      *******************************/
 	 
 	public static function ajax_handle_upload() {
-		// Nonce check for CSRF protection
-		check_ajax_referer('kgsweb_upload_nonce', 'nonce');
+		// Note: add nonce check here later if you want CSRF protection
 		$file = $_FILES['kgsweb_upload_file'] ?? $_FILES['file'] ?? null; // CHANGED: accept both names (Current + Suggested)
 		$folder_id = sanitize_text_field($_POST['upload_folder_id'] ?? $_POST['folder_id'] ?? ''); // CHANGED
 		
@@ -432,5 +422,7 @@ class KGSweb_Google_Secure_Upload {
 			wp_send_json_error(['message' => 'Unexpected upload result']);
 		}
 	}
+
+
 
 }

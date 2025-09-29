@@ -167,35 +167,38 @@ class KGSweb_Google_Shortcodes {
 		return ob_get_clean();
 	}
 
-/*******************************
- * Secure Upload Form Shortcode
- *******************************/
-public static function secure_upload_form($atts) {
-    $atts = shortcode_atts([
-        'upload-folder' => ''
-    ], $atts);
+	/*******************************
+	 * Secure Upload Form Shortcode
+	 *******************************/
+	public static function secure_upload_form($atts) {
+		// Get plugin-wide default root folder from options
+		$default_root = get_option('kgsweb_upload_root_folder_id', '');
 
-    ob_start();
-    ?>
-    <div class="kgsweb-secure-upload-form" data-upload-folder="<?php echo esc_attr($atts['upload-folder']); ?>">
-        <form class="kgsweb-password-form">
-            <label for="upload_password">Password:</label>
-            <div class="password-container">
-                <input type="password" id="upload_password" name="kgsweb_upload_pass">
-                <i class="fas fa-eye toggle_password"></i>
-            </div>
-            <button type="submit" class="kgsweb-password-submit">Unlock</button>
-            <div class="kgsweb-password-error" style="color:red; margin-top:0.5rem; display:none;"></div>
-        </form>
-        <div class="kgsweb-upload-ui" style="display:none;">
-            <select class="kgsweb-upload-folder"></select>
-            <input type="file" class="kgsweb-upload-file" />
-            <button class="kgsweb-upload-btn">Upload</button>
-        </div>
-    </div>
-    <?php
-    return ob_get_clean();
-}
+		$atts = shortcode_atts([
+			'upload-folder' => $default_root, // fallback to global root
+		], $atts);
+
+		ob_start();
+		?>
+		<div class="kgsweb-secure-upload-form" data-upload-folder="<?php echo esc_attr($atts['upload-folder']); ?>">
+			<form class="kgsweb-password-form">
+				<label for="upload_password">Password:</label>
+				<div class="password-container">
+					<input type="password" id="upload_password" name="kgsweb_upload_pass">
+					<i class="fas fa-eye toggle_password"></i>
+				</div>
+				<button type="submit" class="kgsweb-password-submit">Unlock</button>
+				<div class="kgsweb-password-error" style="color:red; margin-top:0.5rem; display:none;"></div>
+			</form>
+			<div class="kgsweb-upload-ui" style="display:none;">
+				<select class="kgsweb-upload-folder"></select>
+				<input type="file" class="kgsweb-upload-file" />
+				<button type="button" class="kgsweb-upload-btn">Upload</button>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
 
 	
     /*******************************

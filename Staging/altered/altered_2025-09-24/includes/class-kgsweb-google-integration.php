@@ -410,10 +410,12 @@ class KGSweb_Google_Integration
             "assets" => ["fontawesome" => true],
         ]);
 		
-		wp_localize_script('kgsweb-upload', 'kgsweb', [
-			'ajax_url' => admin_url('admin-ajax.php'),
-			'uploadRootId' => get_option('kgsweb_upload_root_folder_id', '')
+		wp_localize_script('kgsweb-upload', 'kgsweb_ajax', [
+		  'ajax_url' => admin_url('admin-ajax.php'),
+		  'uploadRootId' => get_option('kgsweb_upload_root_folder_id', ''),
+		  'nonce' => wp_create_nonce('kgsweb_upload_nonce')
 		]);
+		
 
     }
     /*******************************
@@ -598,46 +600,46 @@ class KGSweb_Google_Integration
 
 
 
-// TEST
-/* 		add_action('admin_init', function() {
-    if (!current_user_can('manage_options')) return;
+						// TEST
+						/* add_action('admin_init', function() {
+						if (!current_user_can('manage_options')) return;
 
-    $upload_root_id = get_option('kgsweb_upload_root_folder_id', '');
-    if (!$upload_root_id) {
-        error_log("KGSWEB DEBUG: No upload root folder ID set.");
-        return;
-    }
+						$upload_root_id = get_option('kgsweb_upload_root_folder_id', '');
+						if (!$upload_root_id) {
+							error_log("KGSWEB DEBUG: No upload root folder ID set.");
+							return;
+						}
 
-    $drive_service = KGSweb_Google_Integration::get_drive_service();
-    if (!$drive_service) {
-        error_log("KGSWEB DEBUG: Drive service not initialized.");
-        return;
-    }
+						$drive_service = KGSweb_Google_Integration::get_drive_service();
+						if (!$drive_service) {
+							error_log("KGSWEB DEBUG: Drive service not initialized.");
+							return;
+						}
 
-    function log_folder_tree($drive_service, $folder_id, $prefix = '') {
-        try {
-            $response = $drive_service->files->listFiles([
-                'q' => "'$folder_id' in parents and trashed = false",
-                'fields' => 'files(id, name, mimeType)',
-            ]);
+						function log_folder_tree($drive_service, $folder_id, $prefix = '') {
+							try {
+								$response = $drive_service->files->listFiles([
+									'q' => "'$folder_id' in parents and trashed = false",
+									'fields' => 'files(id, name, mimeType)',
+								]);
 
-            if (empty($response->files)) {
-                error_log("KGSWEB DEBUG: {$prefix}[empty folder]");
-            } else {
-                foreach ($response->files as $file) {
-                    $type = ($file->mimeType === 'application/vnd.google-apps.folder') ? 'Folder' : 'File';
-                    error_log("KGSWEB DEBUG: {$prefix}{$type} - Name: {$file->name}, ID: {$file->id}");
+								if (empty($response->files)) {
+									error_log("KGSWEB DEBUG: {$prefix}[empty folder]");
+								} else {
+									foreach ($response->files as $file) {
+										$type = ($file->mimeType === 'application/vnd.google-apps.folder') ? 'Folder' : 'File';
+										error_log("KGSWEB DEBUG: {$prefix}{$type} - Name: {$file->name}, ID: {$file->id}");
 
-                    if ($file->mimeType === 'application/vnd.google-apps.folder') {
-                        log_folder_tree($drive_service, $file->id, $prefix . '  ');
-                    }
-                }
-            }
-        } catch (Exception $e) {
-            error_log("KGSWEB DEBUG: Drive API Error - " . $e->getMessage());
-        }
-    }
+										if ($file->mimeType === 'application/vnd.google-apps.folder') {
+											log_folder_tree($drive_service, $file->id, $prefix . '  ');
+										}
+									}
+								}
+							} catch (Exception $e) {
+								error_log("KGSWEB DEBUG: Drive API Error - " . $e->getMessage());
+							}
+						}
 
-    error_log("KGSWEB DEBUG: Upload Root Folder ID = $upload_root_id");
-    log_folder_tree($drive_service, $upload_root_id);
-}); */
+						error_log("KGSWEB DEBUG: Upload Root Folder ID = $upload_root_id");
+						log_folder_tree($drive_service, $upload_root_id);
+					}); */
