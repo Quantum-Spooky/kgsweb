@@ -7,7 +7,10 @@ use Google\Service\Drive;
 
 class KGSweb_Google_Display {
 
-    // Map shortcode "type" to option keys in admin settings
+    /**
+     * Map shortcode "type" to option keys in admin settings.
+     * Used for predefined folder types (breakfast/lunch menus, calendars, feature images, etc.).
+     */
     public static $types = [
         'breakfast-menu'    => 'kgsweb_breakfast_menu_folder',
         'lunch-menu'        => 'kgsweb_lunch_menu_folder',
@@ -18,38 +21,42 @@ class KGSweb_Google_Display {
         'pto-feature-image' => 'kgsweb_pto_feature_image_folder',
     ];
 
+    /**
+     * Initialize shortcode
+     */
     public static function init() {
         add_shortcode('kgsweb_img_display', [__CLASS__, 'shortcode']);
     }
 
     /**
      * Shortcode handler
+     * Usage examples:
      * [kgsweb_img_display type="monthly-calendar" width="80%"]
-     * [kgsweb_img_display folder="FOLDER_ID"]
+     * [kgsweb_img_display folder="FOLDER_ID" width="600px"]
      */
     public static function shortcode($atts) {
         $atts = shortcode_atts([
             'type'   => '',
-            'folder' => '',
-            'width'  => '', // optional, can be px or %
+            'folder' => '', // allows specifying arbitrary folder
+            'width'  => '', // optional width, px or %
         ], $atts, 'kgsweb_img_display');
 
-        // Resolve folder ID
+        // Resolve folder ID: folder="" takes precedence over type
         $folder_id = '';
         if (!empty($atts['folder'])) {
             $folder_id = sanitize_text_field($atts['folder']);
         } elseif (!empty($atts['type']) && isset(self::$types[$atts['type']])) {
             $folder_id = get_option(self::$types[$atts['type']]);
         }
-        if (empty($folder_id)) return ''; // nothing to show
+        if (empty($folder_id)) return ''; // nothing to display
 
-        // Resolve payload (cached image_url, width, height)
+        // Fetch display payload (cached)
         $payload = self::get_display_payload($atts['type'], $folder_id);
-        if (is_wp_error($payload) || empty($payload['image_url'])) {
-            return '';
-        }
+        if (is_wp_error($payload) || empty($payload['image_url'])) return '';
+					  
+		 
 
-        // Prepare inline styles
+        // Optional inline width
         $inner_width_style = '';
         $raw_w = trim($atts['width']);
         if ($raw_w !== '') {
@@ -58,7 +65,7 @@ class KGSweb_Google_Display {
             $inner_width_style = "width:{$w};";
         }
 
-        // Build output
+        // Prepare HTML output
         $img_url = esc_url($payload['image_url']);
         $alt     = esc_attr($atts['type'] ?: 'display');
 
@@ -83,7 +90,8 @@ class KGSweb_Google_Display {
     }
 
     /**
-     * Get display payload (from cache or fresh)
+     * Get display payload from cache or fresh
+     * Supports both type-based and folder-based retrieval
      */
     public static function get_display_payload($type, $folder_id) {
         $cache_key = "kgsweb_cache_display_" . md5($type . $folder_id);
@@ -93,6 +101,7 @@ class KGSweb_Google_Display {
             $data = self::build_latest_display_image($type, $folder_id);
             set_transient($cache_key, $data, HOUR_IN_SECONDS);
         }
+
         if (empty($data['image_url'])) {
             return new WP_Error('no_display', 'Display not available');
         }
@@ -100,7 +109,7 @@ class KGSweb_Google_Display {
     }
 
     /**
-     * Refresh cache
+     * Refresh cache manually
      */
     public static function refresh_display_cache($type, $folder_id) {
         $data = self::build_latest_display_image($type, $folder_id);
@@ -109,7 +118,7 @@ class KGSweb_Google_Display {
     }
 
     /**
-     * Build latest display image from Drive
+     * Build latest display image from Drive folder
      */
     private static function build_latest_display_image($type, $folder_id) {
         $empty = [
@@ -121,10 +130,11 @@ class KGSweb_Google_Display {
         ];
         if (!$folder_id) return $empty;
 
+        // List files in folder
         $files = KGSweb_Google_Helpers::list_files_in_folder($folder_id);
         if (empty($files)) return $empty;
 
-        // keep only pdf/images
+        // Filter only PDFs and images
         $files = array_filter($files, function($f) {
             $ext  = strtolower(pathinfo($f['name'] ?? '', PATHINFO_EXTENSION));
             $mime = strtolower($f['mimeType'] ?? '');
@@ -133,12 +143,15 @@ class KGSweb_Google_Display {
         });
         if (empty($files)) return $empty;
 
+        // Sort descending by modified time
         usort($files, fn($a,$b) => strtotime($b['modifiedTime']) <=> strtotime($a['modifiedTime']));
         $latest = $files[0];
 
+        // Fetch local cached version
         $local_path = self::fetch_file_for_display($latest['id'], $latest['name'], $latest['mimeType'], $type);
         if (!$local_path || !file_exists($local_path)) return $empty;
 
+        // Get image dimensions (cached metadata)
         $meta_path = $local_path . '.meta.json';
         $width = $height = 0;
         if (file_exists($meta_path)) {
@@ -167,7 +180,8 @@ class KGSweb_Google_Display {
     }
 
     /**
-     * Fetch + convert file
+     * Fetch file from Drive, convert if PDF, optimize images
+     * Works for both type-based and folder-based caching
      */
     private static function fetch_file_for_display($file_id, $filename, $mime_type, $type) {
         $upload_dir = wp_upload_dir();
@@ -180,8 +194,10 @@ class KGSweb_Google_Display {
         $local    = $cache_dir . '/' . pathinfo($basename, PATHINFO_FILENAME) . '.' . $ext;
         $png_path = $cache_dir . '/' . pathinfo($basename, PATHINFO_FILENAME) . '.png';
 
+        // Return cached PNG if available
         if (file_exists($png_path)) return $png_path;
 
+        // PDF → PNG conversion
         if ($mime_type === 'application/pdf') {
             $pdf = KGSweb_Google_Helpers::fetch_file_contents_raw($file_id);
             if (!$pdf) return false;
@@ -189,6 +205,7 @@ class KGSweb_Google_Display {
             return KGSweb_Google_Helpers::convert_pdf_to_png_cached($local, $filename);
         }
 
+        // Images (jpeg/png) → optimized cached image
         if (in_array($mime_type, ['image/png','image/jpeg','image/jpg'])) {
             $img = KGSweb_Google_Helpers::get_file_contents($file_id);
             if (!$img) return false;
@@ -196,9 +213,9 @@ class KGSweb_Google_Display {
             return KGSweb_Google_Helpers::optimize_image_cached($file_id, $filename, 1000);
         }
 
-        return false;
+        return false; // unsupported type
     }
 }
 
-// bootstrap
+// Bootstrap
 KGSweb_Google_Display::init();
