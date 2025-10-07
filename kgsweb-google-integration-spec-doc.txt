@@ -127,10 +127,12 @@ The plugin shall:
   - Cache key: `kgsweb_cache_documents_<root_id>`
   - Endpoint: `/documents?folder_id=<root_id>`
   - Filtering: recursively remove any folder that does not contain a file under it (no dead-ends).
+  - Inclusion: show all other folders and their files, recursively
 - Upload folder list (dropdown):
   - Cache key: `kgsweb_cache_upload_tree_<root_id>`
   - Endpoint: expose as `/documents?folder_id=<root_id>&mode=upload` or a dedicated `/upload-folders?root_id=<root_id>`
   - Inclusion: show all folders, including empty ones, flattened to “Folder > Subfolder > Subsubfolder …” labels.
+  - Exclusion: do not show files
   
 ---
 

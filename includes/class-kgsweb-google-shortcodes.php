@@ -24,8 +24,8 @@ class KGSweb_Google_Shortcodes {
      *******************************/
     public function register_shortcodes() {
         add_shortcode('kgsweb_documents', [$this, 'documents']);
-        // add_shortcode('kgsweb_secure_upload_form', [$this, 'secure_upload_form']);
-        add_shortcode('kgsweb_menu', [KGSweb_Google_Menus::class, 'shortcode_render']);
+        add_shortcode('kgsweb_secure_upload', [__CLASS__, 'secure_upload_form']);
+        add_shortcode('kgsweb_image_display', [KGSweb_Google_Display::class, 'shortcode_render']);
         // add_shortcode('kgsweb_ticker', [$this, 'render_ticker']);
         // add_shortcode('kgsweb_sheets', [KGSweb_Google_Sheets::class, 'shortcode_render']);
         add_shortcode('kgsweb_slides', [KGSweb_Google_Slides::class, 'shortcode_render']);
@@ -81,18 +81,18 @@ class KGSweb_Google_Shortcodes {
 
     /*******************************
      * Documents shortcode
-     *******************************/
-													
-													  
+     *******************************/					  
  
     public static function documents($atts = []) {
         $atts = shortcode_atts([
-            'doc-folder' => '',
-            'folder'     => '',
-            'folders'    => '',
-            'class'      => '',
-            'id'         => 'kgsweb-documents-tree',
-        ], $atts, 'kgsweb_documents');
+			'doc-folder' => '',
+			'folder'     => '',
+			'folders'    => '',
+			'class'      => '',
+			'id'         => 'kgsweb-documents-tree',
+			'sort_by'    => 'alpha-asc',         // new: default alphabetical ascending
+			'collapsed'  => 'true',              // new: default collapsed
+		], $atts, 'kgsweb_documents');
 
         // Enqueue assets only when shortcode is used
         self::enqueue_documents_assets();
@@ -104,6 +104,12 @@ class KGSweb_Google_Shortcodes {
         $class = esc_attr($atts['class']);
 
         $data_attrs = sprintf(' data-root-id="%s"', esc_attr($root));
+		
+		$data_attrs .= sprintf(
+			' data-sort="%s" data-collapsed="%s"',
+			esc_attr($atts['sort_by']),
+			esc_attr($atts['collapsed'])
+		);
 
         ob_start();
         ?>
@@ -161,41 +167,40 @@ class KGSweb_Google_Shortcodes {
 		return ob_get_clean();
 	}
 
-    /*******************************
-     * Secure Upload Form
-     *******************************/
-    public static function secure_upload_form($atts) {
-        $a = shortcode_atts([
-            'upload-folder' => '',
-            'folders'       => '',
-            'folder'        => '',
-        ], $atts, 'kgsweb_secure_upload_form');
+	/*******************************
+	 * Secure Upload Form Shortcode
+	 *******************************/
+	public static function secure_upload_form($atts) {
+		// Get plugin-wide default root folder from options
+		$default_root = get_option('kgsweb_upload_root_folder_id', '');
 
-        $settings = KGSweb_Google_Integration::get_settings();
-        $root = $a['upload-folder'] ?? $a['folders'] ?? $a['folder'] ?? ($settings['upload_root_id'] ?? '');
-																	  
+		$atts = shortcode_atts([
+			'upload-folder' => $default_root, // fallback to global root
+		], $atts);
 
-        self::enqueue_if_needed(['kgsweb-helpers', 'kgsweb-upload']);
-		
-		// Minimal shell; JS controls password gate and group auth UI
-        ob_start(); ?>
-        <div class="kgsweb-upload" data-upload-folder="<?php echo esc_attr($root); ?>">
-            <div class="kgsweb-upload-gate"></div>
-            <form class="kgsweb-upload-form" method="post" enctype="multipart/form-data" hidden>
-                <label><?php esc_html_e('Destination Folder', 'kgsweb'); ?>
-                    <select name="folder_id" class="kgsweb-upload-dest"></select>
-                </label>
-                <label><?php esc_html_e('File', 'kgsweb'); ?>
-                    <input type="file" name="file" required />
-                </label>
-                <button type="submit"><?php esc_html_e('Upload', 'kgsweb'); ?></button>
-            </form>
-            <div class="kgsweb-upload-status" aria-live="polite"></div>
-        </div>
-        <?php
-        return ob_get_clean();
-    }
+		ob_start();
+		?>
+		<div class="kgsweb-secure-upload-form" data-upload-folder="<?php echo esc_attr($atts['upload-folder']); ?>">
+			<form class="kgsweb-password-form">
+				<label for="upload_password">Password:</label>
+				<div class="password-container">
+					<input type="password" id="upload_password" name="kgsweb_upload_pass">
+					<i class="fas fa-eye toggle_password"></i>
+				</div>
+				<button type="submit" class="kgsweb-password-submit">Unlock</button>
+				<div class="kgsweb-password-error" style="color:red; margin-top:0.5rem; display:none;"></div>
+			</form>
+			<div class="kgsweb-upload-ui" style="display:none;">
+				<select class="kgsweb-upload-folder"></select>
+				<input type="file" class="kgsweb-upload-file" />
+				<button type="button" class="kgsweb-upload-btn">Upload</button>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
 
+	
     /*******************************
      * Sheets shortcode
      *******************************/
@@ -217,8 +222,6 @@ class KGSweb_Google_Shortcodes {
     * Other shortcodes: documents, events, menu, upload, slides
     *******************************/
 	  
-    public static function events($atts) { /* ... */ }
-    public static function menu($atts) { /* ... */ }
     public static function slides($atts) { /* ... */ }
 	
 	

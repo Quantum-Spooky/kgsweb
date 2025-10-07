@@ -6,6 +6,7 @@ if (!defined("ABSPATH")) {
 
 use Google\Client;
 use Google\Service\Drive;
+use Google\Service\Docs;
 use Google\Service\Calendar;
 use Google\Service\Sheets;
 use Google\Service\Slides;
@@ -22,9 +23,11 @@ class KGSweb_Google_Integration
      *******************************/
     private ?Client $client = null;
     private ?KGSweb_Google_Drive_Docs $drive = null;
+	private ?Docs $docsService = null;
     private ?Calendar $calendar = null;
     private ?Sheets $sheets = null;
     private ?Slides $slides = null;
+	
 
     /*******************************
      * Plugin Paths
@@ -90,11 +93,11 @@ class KGSweb_Google_Integration
             "kgsweb_service_account_json",
             ""
         );
-        $settings["public_docs_root_id"] = get_option(
-            "kgsweb_root_folder_id",
+        $settings["public_docs_root_folder_id"] = get_option(
+            "kgsweb_public_documents_root_folder_id",
             ""
         ); // Keep raw
-        $settings["upload_root_id"] = get_option(
+        $settings["upload_root_folder_id"] = get_option(
             "kgsweb_upload_root_folder_id",
             ""
         ); // Keep raw
@@ -106,7 +109,7 @@ class KGSweb_Google_Integration
             "kgsweb_lunch_folder_id",
             ""
         ); // Keep raw
-        $settings["ticker_file_id"] = get_option("kgsweb_ticker_file_id", ""); // Keep raw
+        $settings["ticker_folder_id"] = get_option("kgsweb_ticker_folder_id", ""); // Keep raw
         $settings["calendar_id"] = get_option("kgsweb_calendar_ids", ""); // Keep raw
 
         // Secure Upload options
@@ -132,15 +135,19 @@ class KGSweb_Google_Integration
 	 */
 	public static function get_drive_service(): ?Drive
 	{
+		error_log("⚙️ get_drive_service() called");
 		$client = self::get_google_client();
 		if (!$client) {
 			error_log("[KGSweb] get_drive_service: Google Client not available.");
+			error_log("❌ get_drive_service: client is null");
 			return null;
 		}
-		return new Drive($client);
+		$service = new Drive($client);
+		error_log("✅ get_drive_service: returning Drive service object");
+		return $service;
 	}
-
-    /**
+	
+	/**
      * Google Drive wrapper
      */
     public static function get_drive(): ?KGSweb_Google_Drive_Docs
@@ -152,8 +159,35 @@ class KGSweb_Google_Integration
         if ($instance->client && !$instance->drive) {
             $instance->drive = new KGSweb_Google_Drive_Docs($instance->client);
         }
-        return $instance->drive;
+		 return $instance->drive;
     }
+		
+	
+	public static function get_docs_service() {
+		$instance = self::init();
+		if ($instance->docsService !== null) {
+			return $instance->docsService;
+		}
+
+		if (!class_exists('\Google\Service\Docs')) {
+			error_log('KGSWEB: Google Docs client class not available.');
+			return null;
+		}
+
+		try {
+			$client = self::get_google_client();
+			if (!$client instanceof Client) {
+				error_log('KGSWEB: get_docs_service - google client not available');
+				return null;
+			}
+			$instance->docsService = new Docs($client);
+			return $instance->docsService;
+		} catch (Exception $e) {
+			error_log('KGSWEB: Failed to initialize Docs service - ' . $e->getMessage());
+			return null;
+		}
+	}
+
 
     /**
      * Calendar service
@@ -246,63 +280,60 @@ class KGSweb_Google_Integration
             error_log("KGSWEB: Calendar fetch error - " . $e->getMessage());
             return null;
         }
+	}
+	
+	 /*******************************
+	 * Cron: Refresh All Caches
+	 *******************************/
+	public function cron_refresh_all_caches(): void
+{
+    // --- Refresh Ticker ---
+    if (KGSweb_Google_Ticker::refresh_cache_cron()) {
+        update_option("kgsweb_cache_last_refresh_ticker", current_time("timestamp"));
     }
-    /*******************************
-     * Cron: Refresh All Caches
-     *******************************/
-    public function cron_refresh_all_caches(): void
-    {
-        // --- Refresh Ticker ---
-        if (KGSweb_Google_Ticker::refresh_cache_cron()) {
-            update_option(
-                "kgsweb_cache_last_refresh_ticker",
-                current_time("timestamp")
-            );
-        }
 
-        // --- Refresh Upcoming Events ---
-        $calendar_id = self::get_settings()["calendar_id"] ?? "";
-        if ($calendar_id) {
-            delete_transient("kgsweb_calendar_events_" . md5($calendar_id));
-            self::get_cached_events($calendar_id);
-            update_option(
-                "kgsweb_cache_last_refresh_events",
-                current_time("timestamp")
-            );
-        }
-
-        // --- Refresh Drive Docs ---
-        if (KGSweb_Google_Drive_Docs::refresh_cache_cron()) {
-            update_option(
-                "kgsweb_cache_last_refresh_drive_docs",
-                current_time("timestamp")
-            );
-        }
-
-        // --- Refresh Menus ---
-        foreach (["breakfast", "lunch"] as $type) {
-            KGSweb_Google_Menus::refresh_menu_cache($type);
-        }
-
-        //---  Refresh Slides ---
-        $slides_file = self::get_settings()["slides_file_id"] ?? "";
-        if ($slides_file) {
-            KGSweb_Google_Slides::refresh_cache($slides_file);
-        }
-
-        // --- Refresh Sheets ---
-        $sheets_file = self::get_settings()["sheets_file_id"] ?? "";
-        if ($sheets_file) {
-            KGSweb_Google_Sheets::refresh_cache($sheets_file, "A1:Z100");
-        }
-
-        // --- Global refresh timestamp ---
-        update_option(
-            "kgsweb_cache_last_refresh_global",
-            current_time("timestamp")
-        );
-        update_option("kgsweb_last_refresh", current_time("timestamp"));
+    // --- Refresh Drive Docs (Downloads) ---
+    if (KGSweb_Google_Drive_Docs::refresh_cache_cron()) {
+        update_option("kgsweb_cache_last_refresh_drive_docs", current_time("timestamp"));
     }
+
+    // --- Refresh Upcoming Events ---
+    $calendar_id = self::get_settings()["calendar_id"] ?? "";
+    if ($calendar_id) {
+        delete_transient("kgsweb_calendar_events_" . md5($calendar_id));
+        self::get_cached_events($calendar_id);
+        update_option("kgsweb_cache_last_refresh_events", current_time("timestamp"));
+    }
+    // --- Refresh Image Display for ALL registered types ---
+    foreach (KGSweb_Google_Display::$types as $type => $option_name) {
+        $folder_id = get_option($option_name, '');
+        if ($folder_id) {
+            KGSweb_Google_Display::refresh_display_cache($type, $folder_id);
+        }
+    }
+
+    // --- Refresh Upload Folder Tree ---
+    $upload_root = get_option('kgsweb_upload_root_folder_id', '');
+    if ($upload_root) {
+        KGSweb_Google_Drive_Docs::cache_upload_folders($upload_root);
+    }
+
+    // --- Refresh Slides ---
+    $slides_file = self::get_settings()["slides_file_id"] ?? "";
+    if ($slides_file) {
+        KGSweb_Google_Slides::refresh_cache($slides_file);
+    }
+
+    // --- Refresh Sheets ---
+    $sheets_file = self::get_settings()["sheets_file_id"] ?? "";
+    if ($sheets_file) {
+        KGSweb_Google_Sheets::refresh_cache($sheets_file, "A1:Z100");
+    }
+
+    // --- Global refresh timestamp ---
+    update_option("kgsweb_cache_last_refresh_global", current_time("timestamp"));
+    update_option("kgsweb_last_refresh", current_time("timestamp"));
+}
 
     /*******************************
      * Helpers: Transients
@@ -342,11 +373,12 @@ class KGSweb_Google_Integration
         );
 
         $scripts = [
+			"admin" => "/js/kgsweb-admin.js",
             "helpers" => "/js/kgsweb-helpers.js",
             "cache" => "/js/kgsweb-cache.js",
             "ticker" => "/js/kgsweb-ticker.js",
             "calendar" => "/js/kgsweb-calendar.js",
-            "menus" => "/js/kgsweb-menus.js",
+            "display" => "/js/kgsweb-display.js",
             "upload" => "/js/kgsweb-upload.js",
             "sheets" => "/js/kgsweb-sheets.js",
             "slides" => "/js/kgsweb-slides.js",
@@ -361,7 +393,7 @@ class KGSweb_Google_Integration
                 true
             );
         }
-
+		
         // Localize scripts
         wp_localize_script("kgsweb-helpers", "KGSWEB_CFG", [
             "rest" => [
@@ -375,6 +407,15 @@ class KGSweb_Google_Integration
             ],
             "assets" => ["fontawesome" => true],
         ]);
+		
+		// For uploads
+		wp_localize_script('kgsweb-upload', 'kgsweb_upload_ajax', [
+		  'ajax_url' => admin_url('admin-ajax.php'),
+		  'uploadRootFolderId' => get_option('kgsweb_upload_root_folder_id', ''),
+		  'nonce' => wp_create_nonce('kgsweb_upload_nonce')
+		]);
+
+
     }
     /*******************************
      * Assets Enqueue (Frontend)
@@ -392,7 +433,7 @@ class KGSweb_Google_Integration
             "cache",
             "ticker",
             "calendar",
-            "menus",
+            "display",
             "upload",
             "sheets",
         ];
@@ -431,13 +472,21 @@ class KGSweb_Google_Integration
                 "6.5.1"
             );
         }
+        // --- User-Accessible Cache Refresh ---	
+		if (wp_script_is("kgsweb-cache", "enqueued")) { 
+			$secret = get_option('kgsweb_cache_refresh_secret', '');
+			wp_localize_script("kgsweb-cache", "KGSwebCache", [
+				"secret" => $secret,
+				"restUrl" => esc_url_raw(rest_url("kgsweb/v1/cache-refresh"))
+		]);
+}
 
         // Localize folders for documents script
         if (wp_script_is("kgsweb-documents", "enqueued")) {
             $settings = self::get_settings();
             wp_localize_script("kgsweb-documents", "KGSwebFolders", [
                 "restUrl" => esc_url_raw(rest_url("kgsweb/v1/documents")),
-                "rootId" => $settings["public_docs_root_id"] ?? "",
+                "rootId" => $settings["kgsweb_public_documents_root_folder_id"] ?? "",
             ]);
         }
 
@@ -480,177 +529,7 @@ class KGSweb_Google_Integration
         }
     }
 
-    /*******************************
-     * Standardized Google Drive Helpers
-     *******************************/
 
-    /**
-     * List files in a folder
-     * @param string $folder_id
-     * @param array $options Optional keys: 'mimeType', 'orderBy', 'pageSize'
-     * @return array List of files with keys: id, name, mimeType, modifiedTime
-     */
-    public static function list_files_in_folder(
-        string $folder_id,
-        array $options = []
-    ): array {
-        $drive = self::get_drive();
-        if (!$drive) {
-            return [];
-        }
-
-        // drive->list_files_in_folder currently accepts only folder_id; pass options if implemented later
-        return $drive->list_files_in_folder($folder_id);
-    }
-
-    /**
-     * Get contents of a Google file (Docs or plain text)
-     * @param string $file_id
-     * @param string|null $mimeType Optional, if known
-     * @return string|null File contents or null on error
-     */
-    public static function get_file_contents(
-        string $file_id,
-        ?string $mimeType = null
-    ): ?string {
-        $drive = self::get_drive();
-        if (!$drive) {
-            return null;
-        }
-
-        return $drive->get_file_contents($file_id, $mimeType);
-    }
-
-    /**
-     * Get the latest file in a folder.
-     *
-     * Strategy:
-     * 1) Try to use cached documents tree (transient 'kgsweb_docs_tree_' . md5($folder_id))
-     *    - If present, traverse it to find the newest file by modifiedTime.
-     * 2) If cache missing or empty, call Drive API directly with orderBy modifiedTime desc, pageSize=1.
-     *
-     * Returns array with keys: id, name, mimeType, modifiedTime OR null if none found.
-     */
-    public static function get_latest_file_from_folder(
-        string $folder_id
-    ): ?array {
-        if (empty($folder_id)) {
-            return null;
-        }
-
-        $drive = self::get_drive();
-        if (!$drive) {
-            return null;
-        }
-
-        // 1) Try cached tree
-        $cache_key = "kgsweb_docs_tree_" . md5($folder_id);
-        $tree = self::get_transient($cache_key);
-
-        $latest = null;
-
-        if ($tree !== false && !empty($tree) && is_array($tree)) {
-            // tree is an array of nodes; traverse recursively
-            $walker = function ($nodes) use (&$walker, &$latest) {
-                foreach ((array) $nodes as $n) {
-                    if (!is_array($n)) {
-                        continue;
-                    }
-                    if (($n["type"] ?? "") === "file") {
-                        $mt = $n["modifiedTime"] ?? "";
-                        // store minimal file info
-                        $file = [
-                            "id" => $n["id"] ?? "",
-                            "name" => $n["name"] ?? "",
-                            "mimeType" => $n["mime"] ?? ($n["mimeType"] ?? ""),
-                            "modifiedTime" => $mt,
-                        ];
-                        if (
-                            empty($latest) ||
-                            strcmp(
-                                $file["modifiedTime"],
-                                $latest["modifiedTime"]
-                            ) > 0
-                        ) {
-                            $latest = $file;
-                        }
-                    }
-                    if (!empty($n["children"]) && is_array($n["children"])) {
-                        $walker($n["children"]);
-                    }
-                }
-            };
-            $walker($tree);
-            if ($latest) {
-                return $latest;
-            }
-        }
-
-        // 2) Fallback: call Drive API directly to get newest file
-        $client = self::get_google_client();
-        if (!$client instanceof Client) {
-            error_log(
-                "KGSWEB: get_latest_file_from_folder - google client not available"
-            );
-            return null;
-        }
-
-        try {
-            $service = new Drive($client);
-
-            // Query for docs or plain text files; include other types if needed
-            $q = sprintf("'%s' in parents and trashed = false", $folder_id);
-
-            // Try to prioritize docs & text. The Drive API won't accept OR with complex grouping easily,
-            // so we will not restrict MIME types here to allow any file; but we will order by modifiedTime.
-            $params = [
-                "q" => $q,
-                "orderBy" => "modifiedTime desc",
-                "pageSize" => 50,
-                "fields" => "files(id,name,mimeType,modifiedTime)",
-            ];
-
-            $response = $service->files->listFiles($params);
-            $files = $response->getFiles() ?: [];
-
-            // Prefer google-docs or text/plain first, but still return first modified file if none match.
-            $preferred = null;
-            foreach ($files as $f) {
-                $meta = [
-                    "id" => $f->getId(),
-                    "name" => $f->getName(),
-                    "mimeType" => $f->getMimeType(),
-                    "modifiedTime" => $f->getModifiedTime() ?? "",
-                ];
-                if (
-                    in_array(
-                        $meta["mimeType"],
-                        ["application/vnd.google-apps.document", "text/plain", "application/pdf"],
-                        true
-                    )
-                ) {
-                    $preferred = $meta;
-                    break;
-                }
-                // keep first as fallback
-                if ($preferred === null) {
-                    $preferred = $meta;
-                }
-            }
-
-            if ($preferred) {
-                return $preferred;
-            }
-
-            return null;
-        } catch (Exception $e) {
-            error_log(
-                "KGSWEB: get_latest_file_from_folder - Drive API error: " .
-                    $e->getMessage()
-            );
-            return null;
-        }
-    }
 
     /*******************************
      * Google Client Lazy Loader

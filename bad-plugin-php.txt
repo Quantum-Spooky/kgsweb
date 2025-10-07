@@ -1,0 +1,1197 @@
+Part 1 of 2. Wait for both parts and then look for duplicates and other errors.
+
+
+
+<?php
+/*
+Plugin Name: KGS Google Integration
+Description: Manages Google Drive, Calendar, Sheets, and Slides integration, including secure file uploads for KGS.
+Version: 0.0
+Author: KGS
+*/
+
+if (!defined('ABSPATH')) exit;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+use Google\Client;
+use Google\Service\Drive;
+use Google\Service\Calendar;
+use Google\Service\Sheets;
+use Google\Service\Slides;
+
+class KGS_Google_Integration {
+    private $client;
+    private $driveService;
+    private $calendarService;
+    private $sheetsService;
+    private $slidesService;
+
+    public function __construct() {
+        add_action('admin_init', [$this, 'init_secure_upload_settings']);
+        add_action('admin_menu', [$this, 'register_admin_menus']);
+        add_action('rest_api_init', [$this, 'register_routes']);
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
+
+        $this->init_google_client();
+
+        add_action('gdc_refresh_cache', [$this, 'refresh_all_caches']);
+        if (!wp_next_scheduled('gdc_refresh_cache')) {
+            wp_schedule_event(time(), 'hourly', 'gdc_refresh_cache');
+        }
+
+        add_shortcode('gdc_documents', [$this, 'render_documents']);
+        add_shortcode('gdc_menu', [$this, 'render_menu']);
+        add_shortcode('gdc_ticker', [$this, 'render_ticker']);
+        add_shortcode('gdc_calendar', [$this, 'render_calendar']);
+        add_shortcode('gdc_datetime', [$this, 'render_datetime']);
+        add_shortcode('gdc_sheets', [$this, 'render_sheets']);
+        add_shortcode('gdc_slides', [$this, 'render_slides']);
+        add_shortcode('gdc_secure_upload_form', [$this, 'render_secure_upload_form']);
+    }
+
+    private function init_google_client() {
+        $json = get_option('gdc_service_account_json', '');
+        if (!$json) {
+            error_log('GDC: No service account JSON found. Google services will not work.');
+            return;
+        }
+
+        try {
+            $client = new Client();
+            $client->setAuthConfig(json_decode($json, true));
+            $client->addScope([
+                Drive::DRIVE_READONLY,
+                Drive::DRIVE_FILE,
+                Calendar::CALENDAR_READONLY,
+                Sheets::SPREADSHEETS_READONLY,
+                Slides::PRESENTATIONS_READONLY,
+                'profile',
+                'email'
+            ]);
+            $this->client = $client;
+            $this->driveService = new Drive($client);
+            $this->calendarService = new Calendar($client);
+            $this->sheetsService = new Sheets($client);
+            $this->slidesService = new Slides($client);
+        } catch (Exception $e) {
+            error_log("GDC: Google Client Initialization Error - " . $e->getMessage());
+        }
+    }
+
+    public function enqueue_assets() {
+        wp_enqueue_style('font-awesome','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');
+        wp_enqueue_style('gdc-style',plugins_url('gd-style.css',__FILE__));
+        wp_enqueue_script('gdc-js',plugins_url('gd-cache.js',__FILE__),['jquery'],null,true);
+    
+        wp_enqueue_script(
+            'gdc-secure-upload',
+            plugins_url('gdc-secure-upload.js', __FILE__),
+            ['jquery'],
+            time(),
+            true
+        );
+        
+        wp_localize_script('gdc-secure-upload', 'gdc_vars', [
+            'list_folders_url' => rest_url('gdc/v1/list-folders'),
+            'rest_url' => rest_url('gdc/v1/upload') // fixed path to match registered route
+        ]);
+    }
+
+	public function register_routes() {
+		// Public GET endpoints (no restrictions)
+		$public_get_routes = [
+			'/folder-tree' => 'rest_folder_tree',
+			'/calendar'    => 'rest_calendar_events',
+			'/sheets'      => 'rest_sheets',
+			'/slides'      => 'rest_slides',
+			'/menu'        => 'rest_menu',
+			'/ticker'      => 'rest_ticker',
+			'/list-folders' => 'rest_list_folders',
+		];
+
+		foreach ($public_get_routes as $route => $callback) {
+			register_rest_route('gdc/v1', $route, [
+				'methods' => 'GET',
+				'callback' => [$this, $callback],
+				'permission_callback' => '__return_true', // public
+			]);
+		}
+
+		// Upload endpoint - POST, restricted by domain/group/password
+		register_rest_route('gdc/v1', '/upload-file', [
+			'methods' => 'POST',
+			'callback' => [$this, 'rest_upload_file'],
+			'permission_callback' => [$this, 'rest_check_domain_permission'],
+		]);
+	}
+
+
+
+
+    public function rest_upload_file(WP_REST_Request $request) {
+        if (!isset($_FILES['uploaded-files']) || empty($_FILES['uploaded-files']['tmp_name'][0])) {
+            return new WP_Error('no_files', 'No files were uploaded.', ['status' => 400]);
+        }
+
+        $folderId = sanitize_text_field($request->get_param('folder_id'));
+        if (!$folderId) return new WP_Error('no_folder_id', 'Folder ID is missing.', ['status' => 400]);
+        if (!$this->driveService) return new WP_Error('service_error', 'Google Drive service not initialized.', ['status' => 500]);
+
+        $files = $_FILES['uploaded-files'];
+        $uploaded_files_info = [];
+
+        try {
+            foreach ($files['tmp_name'] as $i => $tmp_name) {
+                $fileMetadata = new Drive\DriveFile([
+                    'name' => sanitize_file_name($files['name'][$i]),
+                    'parents' => [$folderId]
+                ]);
+                $content = file_get_contents($tmp_name);
+                $file = $this->driveService->files->create($fileMetadata, [
+                    'data' => $content,
+                    'mimeType' => $files['type'][$i],
+                    'uploadType' => 'multipart',
+                    'fields' => 'id, name'
+                ]);
+                $uploaded_files_info[] = ['name'=>$file->getName(),'id'=>$file->getId()];
+            }
+
+            $rootId = get_option('gdc_upload_root_folder_id');
+            if ($rootId) delete_transient('gdc_upload_folders_' . md5($rootId));
+
+            return rest_ensure_response([
+                'success' => true,
+                'message' => 'File(s) uploaded successfully.',
+                'files' => $uploaded_files_info
+            ]);
+
+        } catch (Exception $e) {
+            error_log("GDC: Upload failed - " . $e->getMessage());
+            return new WP_Error('upload_error', 'Failed to upload file: ' . $e->getMessage(), ['status' => 500]);
+        }
+    }
+    
+	 // Main menu
+	public function register_admin_menus() {
+		// Main menu
+		add_menu_page(
+			'KGS Google Settings',
+			'KGS Google Settings',
+			'manage_options',
+			'kgs-google-integration',
+			[$this, 'render_settings'],
+			'dashicons-google',
+			20
+		);
+
+		// Submenu for Secure Upload
+		add_submenu_page(
+			'kgs-google-integration',
+			'Secure Upload Settings',
+			'Secure Upload',
+			'manage_options',
+			'kgs-secure-upload-settings',
+			[$this, 'render_secure_upload_settings']
+		);
+	}
+
+    public function render_settings() {
+        if (!current_user_can('manage_options')) return;
+
+        $defaults = [
+            'service_account_json' => '',
+            'root_folder_id' => 'ROOT_FOLDER_ID',
+            'breakfast_folder_id' => 'BREAKFAST_FOLDER_ID',
+            'lunch_folder_id' => 'LUNCH_FOLDER_ID',
+            'ticker_folder_id' => 'TICKER_FOLDER_ID',
+            'calendar_ids' => 'YOUR_CALENDAR_ID_1,YOUR_CALENDAR_ID_2',
+            'upload_root_folder_id' => 'UPLOAD_ROOT_FOLDER_ID'
+        ];
+
+        if (isset($_POST['gdc_save_settings'])) {
+            update_option('gdc_service_account_json', stripslashes($_POST['service_account_json']));
+            update_option('gdc_root_folder_id', sanitize_text_field($_POST['root_folder_id']));
+            update_option('gdc_breakfast_folder_id', sanitize_text_field($_POST['breakfast_folder_id']));
+            update_option('gdc_lunch_folder_id', sanitize_text_field($_POST['lunch_folder_id']));
+            update_option('gdc_ticker_folder_id', sanitize_text_field($_POST['ticker_folder_id']));
+            update_option('gdc_calendar_ids', sanitize_text_field($_POST['calendar_ids']));
+            update_option('gdc_upload_root_folder_id', sanitize_text_field($_POST['upload_root_folder_id']));
+            echo "<div class='updated'><p>Settings saved!</p></div>";
+            $this->init_google_client();
+        }
+
+        if (isset($_POST['gdc_update_cache'])) {
+            $this->refresh_all_caches();
+            echo "<div class='updated'><p>Cache updated successfully!</p></div>";
+        }
+
+        if (isset($_POST['gdc_clear_cache'])) {
+            global $wpdb;
+            $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '_transient_gdc_%'");
+            $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '_transient_timeout_gdc_%'");
+            echo "<div class='updated'><p>All KGS Google caches cleared!</p></div>";
+        }
+
+        $service_json = get_option('gdc_service_account_json', '');
+        $root_folder = get_option('gdc_root_folder_id', '');
+        $upload_root_folder = get_option('gdc_upload_root_folder_id', '');
+        $breakfast = get_option('gdc_breakfast_folder_id', '');
+        $lunch = get_option('gdc_lunch_folder_id', '');
+        $ticker = get_option('gdc_ticker_folder_id', '');
+        $calendars = get_option('gdc_calendar_ids', '');
+
+        $last = (int) get_option('gdc_last_refresh', 0);
+        if ($last > 0) {
+            $last_text = date_i18n('M j, Y g:i a', $last);
+            echo '<div style="margin:12px 0; padding:8px 12px; background:#f6f7f7; border:1px solid #dcdcde; border-radius:4px;"><em>Last cache refresh: ' . esc_html($last_text) . '</em></div>';
+        } else {
+            echo '<div style="margin:12px 0; padding:8px 12px; background:#f6f7f7; border:1px solid #dcdcde; border-radius:4px;"><em>Cache has not been refreshed yet.</em></div>';
+        }
+        ?>
+        <div class="wrap">
+            <h1>KGS Google Integration</h1>
+            <form method="POST">
+                <h2>Google Service Account JSON</h2>
+                <p>Paste the JSON content of your service account key file.</p>
+                <textarea name="service_account_json" rows="12" cols="80"><?php echo esc_textarea($service_json); ?></textarea>
+
+                <h2>Google Drive Folder IDs (Global Defaults)</h2>
+                <table class="form-table">
+                    <tr>
+                        <th>Public Documents Root Folder</th>
+                        <td><input type="text" name="root_folder_id" value="<?php echo esc_attr($root_folder); ?>" size="50"></td>
+                    </tr>
+                    <tr>
+                        <th>Documents Upload Root Folder</th>
+                        <td><input type="text" name="upload_root_folder_id" value="<?php echo esc_attr($upload_root_folder); ?>" size="50"></td>
+                    </tr>
+                    <tr>
+                        <th>Breakfast Folder</th>
+                        <td><input type="text" name="breakfast_folder_id" value="<?php echo esc_attr($breakfast); ?>" size="50"></td>
+                    </tr>
+                    <tr>
+                        <th>Lunch Folder</th>
+                        <td><input type="text" name="lunch_folder_id" value="<?php echo esc_attr($lunch); ?>" size="50"></td>
+                    </tr>
+                    <tr>
+                        <th>Ticker Folder</th>
+                        <td><input type="text" name="ticker_folder_id" value="<?php echo esc_attr($ticker); ?>" size="50"></td>
+                    </tr>
+                </table>
+
+                <h2>Calendar IDs</h2>
+                <p>Enter one or more Google Calendar IDs (comma-separated) to display upcoming events.</p>
+                <input type="text" name="calendar_ids" value="<?php echo esc_attr($calendars); ?>" size="50">
+
+                <p>
+                    <input type="submit" name="gdc_save_settings" class="button button-primary" value="Save Settings">
+                </p>
+
+                <p>
+                    <input type="submit" name="gdc_update_cache" class="button button-secondary" value="Update Cache Now">
+                    <?php if ( is_super_admin() || defined('GDC_SHOW_CLEAR_CACHE') && GDC_SHOW_CLEAR_CACHE ) : ?>
+                        <input type="submit" name="gdc_clear_cache" class="button button-secondary" value="Clear Cache (Emergency)">
+                    <?php endif; ?>
+                </p>
+            </form>
+
+            <h2>Available Shortcodes</h2>
+            <p>You can use these shortcodes anywhere in posts, pages, or widgets:</p>
+            <ul>
+                <li><strong>Public Documents Folder Tree:</strong> <code>[gdc_documents]</code></li>
+                <li><strong>Secure Documents Upload:</strong> <code>[gdc_secure_upload_form]</code></li>
+                <li><strong>Breakfast Menu:</strong> <code>[gdc_menu type="breakfast"]</code></li>
+                <li><strong>Lunch Menu:</strong> <code>[gdc_menu type="lunch"]</code></li>
+                <li><strong>Ticker:</strong> <code>[gdc_ticker folder="FOLDER_ID"]</code></li>
+                <li><strong>Calendar:</strong> <code>[gdc_calendar calendar_id="CALENDAR_ID"]</code></li>
+                <li><strong>Date/Time:</strong> <code>[gdc_datetime format="h:ii a, l, F d, yyyy"]</code></li>
+                <li><strong>Google Sheets:</strong> <code>[gdc_sheets sheet_id="SHEET_ID" range="A1:Z100"]</code></li>
+                <li><strong>Google Slides:</strong> <code>[gdc_slides folder="FOLDER_ID"]</code></li>
+            </ul>
+
+            <h2>Notes</h2>
+            <ul>
+                <li>You must have a valid Google service account with access to the specified Drive folders and Calendars.</li>
+                <li>Menus and ticker fetch the latest file from the folder.</li>
+                <li>Sheets and Slides require IDs passed in the shortcode.</li>
+                <li>Shortcodes can be used independently on different pages.</li>
+            </ul>
+        </div>
+        <?php
+    }
+
+    public function render_documents() {
+		return '<div class="gdc-documents-container">
+			<input type="text" class="gdc-search" placeholder="' . esc_attr__('Search files...', 'text-domain') . '" />
+			<button class="gdc-clear" style="display:none;">' . esc_html__('Clear', 'text-domain') . '</button>
+			<div class="gdc-documents"><p>' . esc_html__('Loading files...', 'text-domain') . '</p></div>
+		</div>';
+	}
+
+	public function render_menu($atts) {
+		$atts = shortcode_atts(['type' => ''], $atts, 'gdc_menu');
+		return '<div class="gdc-menu" data-type="' . esc_attr($atts['type']) . '"></div>';
+	}
+
+	public function render_ticker($atts) {
+		$atts = shortcode_atts(['folder' => '', 'speed' => 1], $atts, 'gdc_ticker');
+		return '<div class="gdc-ticker" data-folder="' . esc_attr($atts['folder']) . '" data-speed="' . esc_attr($atts['speed']) . '"></div>';
+	}
+
+	public function render_calendar($atts) {
+		return '<div class="gdc-calendar"></div>';
+	}
+
+	public function render_datetime($atts) {
+		$atts = shortcode_atts(['format' => 'h:i A, l, F d, Y'], $atts, 'gdc_datetime');
+		return '<span class="gdc-datetime" data-format="' . esc_attr($atts['format']) . '"></span>';
+	}
+
+	public function render_sheets($atts) {
+		$atts = shortcode_atts(['sheet_id' => '', 'range' => 'A1:Z100'], $atts, 'gdc_sheets');
+		return '<div class="gdc-sheets" data-sheet="' . esc_attr($atts['sheet_id']) . '" data-range="' . esc_attr($atts['range']) . '"></div>';
+	}
+
+	public function render_slides($atts) {
+		$atts = shortcode_atts(['folder' => ''], $atts, 'gdc_slides');
+		return '<div class="gdc-slides" data-folder="' . esc_attr($atts['folder']) . '"></div>';
+	}
+
+	public function render_secure_upload_form($atts) {
+    $atts = shortcode_atts(['folder_id' => ''], $atts, 'gdc_secure_upload_form');
+    $root_folder_id = sanitize_text_field($atts['folder_id']);
+    $options = get_option('gdc_secure_upload_options', []);
+    $password_enabled = !empty($options['password_access']);
+    $encrypted_password = isset($options['password']) ? $options['password'] : '';
+    $decrypted_password = $this->decrypt_password($encrypted_password);
+
+    ob_start();
+
+    echo '<div class="gdc-upload-form-container">';
+    echo '<h2>' . esc_html__('Secure File Upload', 'text-domain') . '</h2>';
+
+    if ($password_enabled) {
+        // Password gate form
+        echo '<form id="gdc-password-gate">';
+        echo '<label for="gdc-upload-password">' . esc_html__('Enter password to upload files:', 'text-domain') . '</label> ';
+        echo '<input type="password" id="gdc-upload-password" placeholder="' . esc_attr__('Password', 'text-domain') . '"> ';
+        echo '<button type="submit">' . esc_html__('Submit', 'text-domain') . '</button>';
+        echo '</form>';
+    }
+
+    // Hidden upload form (shown after password)
+    echo '<div id="gdc-upload-fields" style="display:' . ($password_enabled ? 'none' : 'block') . ';">';
+    echo '<form id="gdc-upload-form" data-root-folder-id="' . esc_attr($root_folder_id) . '" enctype="multipart/form-data">';
+    
+    echo '<div>';
+    echo '<label for="gdc-folder-select">' . esc_html__('Destination Folder', 'text-domain') . '</label>';
+    echo '<select id="gdc-folder-select" name="folder_id" disabled>';
+    echo '<option value="">' . esc_html__('Loading folders...', 'text-domain') . '</option>';
+    echo '</select>';
+    echo '</div>';
+
+    echo '<div>';
+    echo '<label for="gdc-uploaded-files">' . esc_html__('Select Files', 'text-domain') . '</label>';
+    echo '<input type="file" id="gdc-uploaded-files" name="uploaded-files[]" multiple>';
+    echo '</div>';
+
+    if ($password_enabled) {
+        echo '<input type="hidden" name="password" id="gdc-upload-password-hidden">';
+    }
+
+    echo '<button type="submit">' . esc_html__('Upload', 'text-domain') . '</button>';
+    echo '</form>';
+    echo '<div id="gdc-upload-status"></div>';
+    echo '</div>'; // #gdc-upload-fields
+
+    // Inline JS for password gating
+    if ($password_enabled) {
+        ?>
+        <script>
+        (function(){
+            const passwordForm = document.getElementById('gdc-password-gate');
+            const passwordInput = document.getElementById('gdc-upload-password');
+            const hiddenPassword = document.getElementById('gdc-upload-password-hidden');
+            const uploadFields = document.getElementById('gdc-upload-fields');
+            const correctPassword = "<?php echo esc_js($decrypted_password); ?>";
+
+            if(passwordForm) {
+                passwordForm.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    if(passwordInput.value === correctPassword){
+                        uploadFields.style.display = 'block';
+                        passwordForm.style.display = 'none';
+                        if(hiddenPassword) hiddenPassword.value = passwordInput.value;
+                    } else {
+                        alert('Incorrect password');
+                    }
+                });
+            }
+        })();
+        </script>
+        <?php
+    }
+
+    echo '</div>'; // .gdc-upload-form-container
+
+    return ob_get_clean();
+}
+
+
+    public function init_secure_upload_settings() {
+        register_setting(
+            'gdc-secure-upload-group',
+            'gdc_secure_upload_options',
+            [$this, 'sanitize_secure_upload_options']
+        );
+        add_settings_section(
+            'gdc_secure_upload_main_section',
+            'Upload Security Settings',
+            null,
+            'gdc-secure-upload-settings'
+        );
+        add_settings_field(
+            'gdc_secure_upload_password_access',
+            'Allow Upload with Password Access',
+            [$this, 'secure_upload_password_access_callback'],
+            'gdc-secure-upload-settings',
+            'gdc_secure_upload_main_section'
+        );
+        add_settings_field(
+            'gdc_secure_upload_password',
+            'Upload Password',
+            [$this, 'secure_upload_password_callback'],
+            'gdc-secure-upload-settings',
+            'gdc_secure_upload_main_section'
+        );
+        add_settings_field(
+            'gdc_secure_upload_google_groups',
+            'KGS Approved Web Uploaders (Google Group)',
+            [$this, 'secure_upload_google_groups_callback'],
+            'gdc-secure-upload-settings',
+            'gdc_secure_upload_main_section'
+        );
+    }
+
+	public function sanitize_secure_upload_options($input) {
+		$sanitized_input = [];
+		$sanitized_input['password_access'] = !empty($input['password_access']);
+
+		if (!empty($input['password'])) {
+			$sanitized_input['password'] = $this->encrypt_password($input['password']);
+		} else {
+			// Preserve existing encrypted password
+			$options = get_option('gdc_secure_upload_options', []);
+			$sanitized_input['password'] = isset($options['password']) ? $options['password'] : '';
+		}
+
+		$sanitized_input['google_groups'] = !empty($input['google_groups']);
+		return $sanitized_input;
+	}
+	
+	private function encrypt_password($plaintext) {
+		$key = GDC_PASSWORD_SECRET_KEY;
+		$iv = substr(hash('sha256', $key), 0, 16); // 16 bytes IV
+		return openssl_encrypt($plaintext, 'AES-256-CBC', $key, 0, $iv);
+	}
+
+	private function decrypt_password($encrypted) {
+		$key = GDC_PASSWORD_SECRET_KEY;
+		$iv = substr(hash('sha256', $key), 0, 16);
+		return openssl_decrypt($encrypted, 'AES-256-CBC', $key, 0, $iv);
+	}
+    
+    public function secure_upload_password_access_callback() {
+        $options = get_option('gdc_secure_upload_options');
+        $checked = isset($options['password_access']) && $options['password_access'] ? 'checked' : '';
+        echo "<input type='checkbox' id='password_access' name='gdc_secure_upload_options[password_access]' value='1' {$checked}>";
+        echo "<p class='description'>Allow trusted users to upload files using a password.</p>";
+    }
+    
+	public function secure_upload_password_callback() {
+		$options = get_option('gdc_secure_upload_options');
+		$password = isset($options['password']) ? $this->decrypt_password($options['password']) : '';
+		echo "<input type='text' id='password' name='gdc_secure_upload_options[password]' value='" . esc_attr($password) . "'>";
+		echo "<p class='description'>Users must enter this password to upload files if the option above is enabled.</p>";
+	}
+    
+    public function secure_upload_google_groups_callback() {
+        $options = get_option('gdc_secure_upload_options');
+        $checked = isset($options['google_groups']) && $options['google_groups'] ? 'checked' : '';
+        echo "<input type='checkbox' id='google_groups' name='gdc_secure_upload_options[google_groups]' value='1' {$checked}>";
+        echo "<p class='description'>Allow users from the approved Google Group to upload files. **(Requires API credentials)**</p>";
+    }
+
+    public function render_secure_upload_settings() {
+		echo '<div class="wrap">';
+		echo '<h2>KGS Google Secure Upload Settings</h2>';
+		echo '<form action="options.php" method="post">';
+		
+		settings_fields('gdc-secure-upload-group');
+		do_settings_sections('gdc-secure-upload-settings');
+		submit_button();
+		
+		echo '</form>';
+		echo '</div>';
+	}
+
+    private function passes_upload_auth($request) {
+        $options = get_option('gdc_secure_upload_options', []);
+        $allow_password = !empty($options['password_access']);
+        $require_group  = !empty($options['google_groups']);
+
+        $password_ok = false;
+        if ($allow_password) {
+			$provided = (string) $request->get_param('password');
+			$stored = isset($options['password']) ? $this->decrypt_password($options['password']) : '';
+			if ($stored && $provided === $stored) {
+				$password_ok = true;
+			}
+		}
+
+        $group_ok = false;
+        if ($require_group) {
+            // TODO: Implement Google Group verification. Placeholder: allow logged-in users with upload_files capability.
+            $group_ok = is_user_logged_in() && current_user_can('upload_files');
+        }
+
+        if ($allow_password && $require_group) {
+            // If both are enabled, allow if EITHER password matches OR group check passes.
+            return $password_ok || $group_ok;
+        } elseif ($allow_password) {
+            return $password_ok;
+        } elseif ($require_group) {
+            return $group_ok;
+        }
+        // If neither enabled, default to deny for safety.
+        return false;
+    }
+		
+	public function rest_check_domain_permission(WP_REST_Request $request) {
+		// Block non-HTTPS requests first
+		if (!is_ssl()) {
+			return new WP_Error('insecure', 'Uploads must use HTTPS.', ['status' => 403]);
+		}
+
+		// Load plugin options
+		$options = get_option('gdc_secure_upload_options', []);
+		$allow_password = !empty($options['password_access']);
+		$require_group = !empty($options['google_groups']);
+
+		// Check password if allowed
+		$password_ok = false;
+		if ($allow_password) {
+			$provided = (string) $request->get_param('password');
+			$stored = isset($options['password']) ? $this->decrypt_password($options['password']) : '';
+			if ($stored && $provided === $stored) {
+				$password_ok = true;
+			}
+		}
+
+		// Check user role/group if required
+		$group_ok = false;
+		if ($require_group) {
+			$group_ok = is_user_logged_in() && current_user_can('upload_files');
+		}
+
+		// Determine overall permission
+		$allowed = ($allow_password && $require_group) ? ($password_ok || $group_ok)
+				 : ($allow_password ? $password_ok : $group_ok);
+
+		if ($allowed) {
+			return true;
+		}
+
+		return new WP_Error('forbidden', 'You do not have permission to access this endpoint.', ['status' => 403]);
+	}
+
+
+
+	
+	public function rest_secure_upload(WP_REST_Request $request) {
+    return [
+        'success' => true,
+        'message' => 'Upload endpoint is alive'
+    ];
+}
+
+    public function rest_folder_tree(WP_REST_Request $request) {
+        $rootId = get_option('gdc_root_folder_id', '');
+        if (!$rootId) {
+            return new WP_REST_Response(['error' => 'Root folder ID not configured.'], 404);
+        }
+    
+        $force_refresh = $request->get_param('force_refresh') === 'true';
+        $data = $this->list_folder_recursive($rootId, $force_refresh);
+    
+        if (empty($data) && !$force_refresh) {
+            $data = $this->list_folder_recursive($rootId, true);
+        }
+
+        if (empty($data)) {
+            return new WP_REST_Response(['error' => 'No files or folders found or API error.'], 500);
+        }
+    
+        return new WP_REST_Response($data, 200);
+    }
+
+    public function refresh_all_caches() {
+		// Refresh the main folder tree cache
+		$rootId = get_option('gdc_root_folder_id', '');
+		if ($rootId) {
+			$this->list_folder_recursive($rootId, true);
+		}
+
+		// Refresh the ticker cache
+		$tickerId = get_option('gdc_ticker_folder_id', '');
+		if ($tickerId) {
+			$request = new WP_REST_Request('GET');
+			$request->set_param('folderId', $tickerId);
+			$this->rest_ticker($request);
+		}
+
+		// Refresh the breakfast and lunch menu caches
+		foreach (['breakfast', 'lunch'] as $type) {
+		$request = new WP_REST_Request('GET');
+		$request->set_param('type', $type);
+		$this->rest_menu($request);		
+		}
+
+		// Refresh the calendar events cache
+		$calIds = explode(',', get_option('gdc_calendar_ids', ''));
+		foreach ($calIds as $cal) {
+			$cal = trim($cal);
+			if ($cal) {
+			$request = new WP_REST_Request('GET');
+			$request->set_param('calendar_id', $cal);
+			$this->rest_calendar_events($request);			
+			}
+		}
+
+		// Record the time of the last successful cache refresh
+		update_option('gdc_last_refresh', current_time('timestamp'));
+	}
+
+    private function list_folder_recursive($folderId, $force = false) {
+        $cache_key = 'gdc_folder_' . $folderId;
+        $cache_duration = HOUR_IN_SECONDS;
+
+        $cached = get_transient($cache_key);
+        if ($cached !== false && !$force) {
+            return json_decode($cached, true);
+        }
+
+        if (!$this->driveService) {
+            return [];
+        }
+
+        $folders = [];
+        try {
+            $files = $this->driveService->files->listFiles([
+                'q' => "'$folderId' in parents and trashed=false",
+                'fields' => 'files(id, name, mimeType, webViewLink, iconLink)',
+                'orderBy' => 'name'
+            ]);
+            foreach ($files->getFiles() as $f) {
+                $item = [
+                    'id' => $f->getId(),
+                    'name' => $f->getName(),
+                    'type' => $f->getMimeType(),
+                    'link' => $f->getWebViewLink(),
+                    'icon' => $f->getIconLink()
+                ];
+                if ($f->getMimeType() === 'application/vnd.google-apps.folder') {
+                    $item['children'] = $this->list_folder_recursive($f->getId(), $force);
+                }
+                $folders[] = $item;
+            }
+        } catch (Exception $e) {
+            error_log("GDC: Google Drive API Error (list_folder_recursive) - " . $e->getMessage());
+            return [];
+        }
+
+        set_transient($cache_key, wp_json_encode($folders), $cache_duration);
+        return $folders;
+    }
+    
+    private function get_folders_recursive($folderId) {
+        if (!$this->driveService) {
+            return [];
+        }
+
+        $folders = [];
+        try {
+            $files = $this->driveService->files->listFiles([
+                'q' => "'$folderId' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",
+                'fields' => 'files(id, name)',
+                'orderBy' => 'name'
+            ]);
+
+            foreach ($files->getFiles() as $f) {
+                $subfolders = $this->get_folders_recursive($f->getId());
+                $folders[] = [
+                    'id' => $f->getId(),
+                    'name' => $f->getName(),
+                    'children' => $subfolders
+                ];
+            }
+        } catch (Exception $e) {
+            error_log('GDC: Google Drive API Error (get_folders_recursive) - ' . $e->getMessage());
+        }
+        return $folders;
+    }
+
+    public function rest_list_folders(WP_REST_Request $request) {
+        $rootId = get_option('gdc_upload_root_folder_id', '');
+        if (!$rootId) {
+            return new WP_Error('no_root_id', 'Documents Upload Root folder ID not set.', ['status' => 404]);
+        }
+
+        $cache_key = 'gdc_upload_folders_' . md5($rootId);
+        $cache_duration = HOUR_IN_SECONDS;
+
+        $cached_folders = get_transient($cache_key);
+        if ($cached_folders !== false) {
+            return rest_ensure_response(json_decode($cached_folders, true));
+        }
+
+        if (!$this->driveService) {
+            return new WP_Error('service_error', 'Failed to initialize Google Drive service.', ['status' => 500]);
+        }
+
+        $folders = $this->get_folders_recursive($rootId);
+        
+        set_transient($cache_key, wp_json_encode($folders), $cache_duration);
+
+        return rest_ensure_response($folders);
+    }
+	
+	public function rest_upload_file(WP_REST_Request $request) {
+		// Block non-HTTPS requests first
+			if (!is_ssl()) {
+				return new WP_Error('insecure', 'Uploads must use HTTPS.', ['status' => 403]);
+			}
+		
+		// Define allowed file types and size limits
+		$allowed_extensions = [
+			'txt','rtf','pdf','doc','docx','ppt','pptx','ppsx','xls','xlsx','csv',
+			'png','jpg','jpeg','gif','webp',
+			'mp3','wav',
+			'mp4','m4v','mov','avi'
+		];
+		$max_size_bytes = 100 * 1024 * 1024; // 100 MB default
+		$video_extensions = ['mp4','m4v','mov','avi'];
+		$video_max_bytes = 500 * 1024 * 1024; // 500 MB for videos
+
+		foreach ($_FILES['uploaded-files']['name'] as $i => $name) {
+			$ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+			$size = $_FILES['uploaded-files']['size'][$i];
+
+			// Check extension
+			if (!in_array($ext, $allowed_extensions)) {
+				return new WP_Error(
+					'invalid_file_type',
+					"File '$name' is not an allowed type.",
+					['status' => 400]
+				);
+			}
+
+			// Check file size
+			$limit = in_array($ext, $video_extensions) ? $video_max_bytes : $max_size_bytes;
+			if ($size > $limit) {
+				return new WP_Error(
+					'file_too_large',
+					"File '$name' exceeds the allowed size limit.",
+					['status' => 400]
+				);
+			}
+		}
+
+		$files = $_FILES['uploaded-files'] ?? null;
+
+		if (!$files) {
+			return new WP_Error('no_files', 'No files were uploaded.', ['status' => 400]);
+		}
+
+		// Normalize files array so single file works like multiple files
+		$normalized_files = [];
+		if (isset($files['name']) && is_array($files['name'])) {
+			foreach ($files['name'] as $i => $name) {
+				$normalized_files[] = [
+					'name'     => $name,
+					'type'     => $files['type'][$i] ?? 'application/octet-stream',
+					'tmp_name' => $files['tmp_name'][$i],
+					'error'    => $files['error'][$i] ?? 0,
+					'size'     => $files['size'][$i] ?? 0,
+				];
+			}
+		} else {
+			$normalized_files[] = [
+				'name'     => $files['name'],
+				'type'     => $files['type'] ?? 'application/octet-stream',
+				'tmp_name' => $files['tmp_name'],
+				'error'    => $files['error'] ?? 0,
+				'size'     => $files['size'] ?? 0,
+			];
+		}
+
+		$folderId = sanitize_text_field($request->get_param('folder_id'));
+		if (!$folderId) {
+			return new WP_Error('no_folder_id', 'Folder ID is missing.', ['status' => 400]);
+		}
+		
+		$allowed_root = get_option('gdc_upload_root_folder_id'); // e.g., 'kgsweb_root_folder_id'
+
+		if ($folderId !== $allowed_root) {
+			return new WP_Error('invalid_folder', 'You cannot upload to this folder.', ['status' => 403]);
+		}
+
+		if (!$this->driveService) {
+			return new WP_Error('service_error', 'Google Drive service not initialized.', ['status' => 500]);
+		}
+
+		$uploaded_files_info = [];
+
+		foreach ($normalized_files as $file) {
+			if ($file['error'] || empty($file['tmp_name']) || !file_exists($file['tmp_name'])) {
+				continue; // Skip invalid files
+			}
+
+			$file_name = basename(sanitize_file_name($file['name']));
+			$file_mime = $file['type'] ?? 'application/octet-stream';
+
+			try {
+				$fileMetadata = new Drive\DriveFile([
+					'name' => $file_name,
+					'parents' => [$folderId],
+				]);
+
+				$content = file_get_contents($file['tmp_name']);
+
+				$uploaded = $this->driveService->files->create($fileMetadata, [
+					'data' => $content,
+					'mimeType' => $file_mime,
+					'uploadType' => 'multipart',
+					'fields' => 'id, name',
+				]);
+
+				$uploaded_files_info[] = [
+					'name' => $uploaded->getName(),
+					'id'   => $uploaded->getId(),
+				];
+			} catch (Exception $e) {
+				error_log("GDC: Upload failed for {$file_name} - " . $e->getMessage());
+			}
+		}
+
+		if (empty($uploaded_files_info)) {
+			return new WP_Error('upload_error', 'No files could be uploaded.', ['status' => 500]);
+		}
+
+		// Clear cached folder list if root exists
+		$rootId = get_option('gdc_upload_root_folder_id');
+		if ($rootId) {
+			delete_transient('gdc_upload_folders_' . md5($rootId));
+		}
+
+		return rest_ensure_response([
+			'success' => true,
+			'message' => 'File(s) uploaded successfully.',
+			'files'   => $uploaded_files_info,
+		]);
+	}
+
+            
+    public function rest_calendar_events($req) {
+        if (!$this->calendarService) {
+            return new WP_REST_Response(['events' => []], 200);
+        }
+        
+        $calendarIds = explode(',', get_option('gdc_calendar_ids', ''));
+        if (empty(array_filter($calendarIds))) {
+            return new WP_REST_Response(['events' => []], 200);
+        }
+        
+        $allEvents = [];
+        foreach ($calendarIds as $calId) {
+            $calId = trim($calId);
+            if (empty($calId)) continue;
+            
+            $cacheKey = 'gdc_calendar_' . sanitize_key($calId);
+            $cachedEvents = get_transient($cacheKey);
+            
+            if ($cachedEvents !== false) {
+                $allEvents = array_merge($allEvents, json_decode($cachedEvents, true));
+                continue;
+            }
+            
+            try {
+                $events = $this->calendarService->events->listEvents($calId, [
+					'timeMin' => date('c'),
+					'orderBy' => 'startTime',
+					'singleEvents' => true
+				]);
+                $eventList = [];
+                foreach ($events->getItems() as $event) {
+                    $start = $event->getStart()->getDateTime();
+                    if (empty($start)) {
+                        $start = $event->getStart()->getDate();
+                    }
+                    $eventList[] = [
+                        'summary' => $event->getSummary(),
+                        'start' => $start
+                    ];
+                }
+                set_transient($cacheKey, json_encode($eventList), HOUR_IN_SECONDS);
+                $allEvents = array_merge($allEvents, $eventList);
+            } catch (Exception $e) {
+                error_log('GDC: Calendar API Error: ' . $e->getMessage());
+            }
+        }
+        
+        usort($allEvents, function($a, $b) {
+            return strtotime($a['start']) - strtotime($b['start']);
+        });
+
+        return new WP_REST_Response(['events' => $allEvents], 200);
+    }
+
+    public function rest_sheets($req){
+        if (!$this->sheetsService) {
+            return new WP_REST_Response(['data'=>[]], 500);
+        }
+        
+        $sheetId = $req->get_param('sheet_id');
+        $range = $req->get_param('range') ?: 'A1:Z100';
+        
+        if (empty($sheetId)) {
+            return new WP_REST_Response(['data'=>[]], 400);
+        }
+        
+        $cacheKey = 'gdc_sheets_' . sanitize_key($sheetId . $range);
+        $cachedData = get_transient($cacheKey);
+        if ($cachedData !== false) {
+            return new WP_REST_Response(json_decode($cachedData, true), 200);
+        }
+        
+        try {
+            $response = $this->sheetsService->spreadsheets_values->get($sheetId, $range);
+            $values = $response->getValues();
+            
+            if (empty($values)) {
+                return new WP_REST_Response(['data'=>[]], 200);
+            }
+            
+            $data = ['data' => $values];
+            set_transient($cacheKey, json_encode($data), HOUR_IN_SECONDS);
+            
+            return new WP_REST_Response($data, 200);
+        } catch (Exception $e) {
+            error_log('GDC: Sheets API Error: ' . $e->getMessage());
+            return new WP_REST_Response(['data'=>[]], 500);
+        }
+    }
+
+    public function rest_slides($req){
+        if (!$this->slidesService) {
+            return new WP_REST_Response(['slides'=>[]], 500);
+        }
+        
+        $folderId = $req->get_param('folder');
+        if (empty($folderId)) {
+            return new WP_REST_Response(['slides'=>[]], 400);
+        }
+        
+        $cacheKey = 'gdc_slides_' . sanitize_key($folderId);
+        $cachedSlides = get_transient($cacheKey);
+        
+        if ($cachedSlides !== false) {
+            return new WP_REST_Response(json_decode($cachedSlides, true), 200);
+        }
+        
+        try {
+            $files = $this->driveService->files->listFiles([
+                'q' => "'$folderId' in parents and mimeType='application/vnd.google-apps.presentation' and trashed=false",
+                'fields' => 'files(id, name, webViewLink)',
+                'orderBy' => 'name'
+            ]);
+            
+            $slides = [];
+            foreach ($files->getFiles() as $file) {
+                $slides[] = [
+                    'id' => $file->getId(),
+                    'name' => $file->getName(),
+                    'link' => $file->getWebViewLink()
+                ];
+            }
+            
+            $data = ['slides' => $slides];
+            set_transient($cacheKey, json_encode($data), HOUR_IN_SECONDS);
+            
+            return new WP_REST_Response($data, 200);
+        } catch (Exception $e) {
+            error_log('GDC: Slides API Error: ' . $e->getMessage());
+            return new WP_REST_Response(['slides'=>[]], 500);
+        }
+    }
+
+    public function rest_menu($req){
+        if (!$this->driveService) {
+            return new WP_REST_Response(['url' => ''], 500);
+        }
+
+        $type = sanitize_text_field($req->get_param('type'));
+        $folderId = ($type == 'breakfast') ? get_option('gdc_breakfast_folder_id', '') : (($type == 'lunch') ? get_option('gdc_lunch_folder_id', '') : '');
+
+        if (!$folderId) {
+            return new WP_REST_Response(['url' => ''], 404);
+        }
+
+        $cache_key = 'gdc_menu_' . $type;
+        $cache = get_transient($cache_key);
+
+        if ($cache !== false) {
+            return new WP_REST_Response(['url' => $cache], 200);
+        }
+        
+        try {
+            $files = $this->driveService->files->listFiles([
+                'q' => "'$folderId' in parents and trashed=false",
+                'orderBy' => 'modifiedTime desc',
+                'pageSize' => 1,
+                'fields' => 'files(id, name, mimeType, webViewLink)'
+            ]);
+
+            if (!empty($files->files)) {
+                $file = $files->files[0];
+                $mimeType = $file->getMimeType();
+                $url = $file->getWebViewLink();
+                
+                if ($mimeType === 'application/pdf' && class_exists('Imagick')) {
+                    $temp_pdf = tempnam(sys_get_temp_dir(), 'gdc');
+                    try {
+                        $download_url = $this->driveService->files->get($file->getId(), ['alt' => 'media']);
+                        file_put_contents($temp_pdf, $download_url->getBody()->getContents());
+                        
+                        $upload_dir = wp_upload_dir();
+                        $gdc_dir = $upload_dir['basedir'] . '/gdc-cache';
+                        
+                        $image_path = $this->convert_pdf_to_image($temp_pdf, $gdc_dir);
+                        
+                        if ($image_path) {
+                            $url = $upload_dir['baseurl'] . '/gdc-cache/' . basename($image_path);
+                        }
+                    } finally {
+                        @unlink($temp_pdf);
+                    }
+                }
+                
+                set_transient($cache_key, $url, HOUR_IN_SECONDS);
+                return new WP_REST_Response(['url' => $url], 200);
+                
+            } else {
+                return new WP_REST_Response(['url' => ''], 200);
+            }
+
+        } catch (Exception $e) {
+            error_log('GDC: Google Drive API Error: ' . $e->getMessage());
+            return new WP_REST_Response(['url' => ''], 500);
+        }
+    }
+
+    private function convert_pdf_to_image($pdf_path, $output_dir) {
+        if (!class_exists('Imagick')) {
+            return false;
+        }
+
+        try {
+            $imagick = new Imagick();
+            $imagick->setResolution(150, 150);
+            $imagick->readImage($pdf_path);
+            
+            $imagick->setImageFormat('png');
+            $imagick->setImageCompressionQuality(85);
+            
+            $filename = basename($pdf_path, '.pdf') . '.png';
+            $output_path = $output_dir . '/' . $filename;
+            
+           if (!file_exists($output_dir)) {
+				if (!wp_mkdir_p($output_dir)) {
+					error_log("GDC: Failed to create cache directory at $output_dir");
+					return false;
+				}
+			}
+            
+            $imagick->writeImage($output_path);
+            $imagick->clear();
+            $imagick->destroy();
+            
+            return $output_path;
+            
+        } catch (Exception $e) {
+            error_log("Imagick conversion failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+	public function rest_ticker(WP_REST_Request $request) {
+		if (!$this->driveService) {
+			return new WP_REST_Response(['content' => ''], 500);
+		}
+
+		$folderId = $request->get_param('folderId') ?: get_option('gdc_ticker_folder_id', '');
+		if (empty($folderId)) {
+			return new WP_REST_Response(['content' => ''], 404);
+		}
+
+		// Use the WP transient cache to store the ticker content for an hour
+		$cache_key = 'gdc_ticker_' . $folderId;
+		$cached_content = get_transient($cache_key);
+		if ($cached_content !== false) {
+			return new WP_REST_Response(['content' => $cached_content], 200);
+		}
+
+		try {
+			// Search for most recent text file OR Google Doc
+			$files = $this->driveService->files->listFiles([
+				'q' => "'$folderId' in parents and (mimeType='text/plain' or mimeType='application/vnd.google-apps.document') and trashed=false",
+				'orderBy' => 'modifiedTime desc',
+				'pageSize' => 1,
+				'fields' => 'files(id, mimeType)'
+			]);
+
+			if (empty($files->getFiles())) {
+				return new WP_REST_Response(['content' => ''], 200);
+			}
+
+			$file = $files->getFiles()[0];
+			$fileId = $file->getId();
+			$mimeType = $file->getMimeType();
+			$content = '';
+
+			if ($mimeType === 'application/vnd.google-apps.document') {
+				// Export Google Doc to plain text
+				$response = $this->driveService->files->export($fileId, 'text/plain', ['alt' => 'media']);
+				$content = $response->getBody()->getContents();
+			} else {
+				// Standard text files
+				$response = $this->driveService->files->get($fileId, ['alt' => 'media']);
+				$content = $response->getBody()->getContents();
+			}
+
+			// Cache for 1 hour
+			set_transient($cache_key, $content, HOUR_IN_SECONDS);
+
+			return new WP_REST_Response(['content' => $content], 200);
+
+		} catch (Exception $e) {
+			error_log('GDC: Ticker API Error: ' . $e->getMessage());
+			return new WP_REST_Response(['content' => ''], 500);
+		}
+	}
+
+}
+
+new KGS_Google_Integration();
+

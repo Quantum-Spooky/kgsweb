@@ -53,16 +53,26 @@ class KGSweb_Google_REST_API {
 
 
         // ------------------------
-        // Menu
+        // Image Display Feature (Menus, etc)
         // ------------------------
-        register_rest_route($ns, '/menu', [
-            'methods'  => 'GET',
-            'callback' => [__CLASS__, 'get_menu'],
-            'args'     => [
-                'type' => ['type'=>'string', 'required'=>true, 'enum'=>['breakfast','lunch']],
-            ],
-            'permission_callback' => '__return_true',
-        ]);
+		register_rest_route($ns, '/display', [
+			'methods'  => 'GET',
+			'callback' => [__CLASS__, 'get_display'],
+			'args'     => [
+				'type' => [
+					'type'        => 'string',
+					'required'    => false,
+					'enum'        => array_keys(KGSweb_Google_Display::$types),
+					'sanitize_callback' => 'sanitize_text_field',
+				],
+				'folder' => [
+					'type'        => 'string',
+					'required'    => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				],
+			],
+			'permission_callback' => '__return_true',
+		]);
 
         // ------------------------
         // Documents (Google Drive)
@@ -79,24 +89,15 @@ class KGSweb_Google_REST_API {
             'permission_callback' => '__return_true',
         ]);
 
+		
+		// ------------------------
+        // User-Accessible Cache Refresh 
         // ------------------------
-        // Force-refresh Documents Tree (admin only)
-        // ------------------------
-        register_rest_route($ns, '/documents/refresh', [
-            'methods' => 'POST',
-            'callback' => function(WP_REST_Request $req) {
-                $folder_id = $req->get_param('root') ?: KGSweb_Google_Drive_Docs::get_public_root_id();
-                if (!current_user_can('manage_options')) {
-                    return new WP_Error('forbidden', 'You do not have permission to refresh the documents tree.', ['status'=>403]);
-                }
-                KGSweb_Google_Drive_Docs::rebuild_documents_tree_cache($folder_id);
-                return rest_ensure_response(['success'=>true, 'folder'=>$folder_id]);
-            },
-            'args' => [
-                'root'=>['type'=>'string','required'=>false],
-            ],
-            'permission_callback' => '__return_true',
-        ]);
+		register_rest_route('kgsweb/v1', '/cache-refresh', [
+			'methods' => 'POST',
+			'callback' => [__CLASS__, 'kgsweb_refresh_cache_endpoint'],
+			'permission_callback' => '__return_true',
+		]);
 
         // ------------------------
         // Slides
@@ -126,36 +127,21 @@ class KGSweb_Google_REST_API {
         // ------------------------
         // Upload
         // ------------------------
-        register_rest_route($ns, '/upload', [
-            'methods'  => 'POST',
-            'callback' => [__CLASS__, 'post_upload'],
-            'args'     => [
-                'upload-folder' => ['type'=>'string', 'required'=>true, 'sanitize_callback'=>'sanitize_text_field'],
-            ],
-            'permission_callback' => function($request) {
-                return wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest');
-            },
-        ]);
+		register_rest_route('kgsweb/v1', '/upload', [
+			'methods'  => 'POST',
+			'callback' => [__CLASS__, 'upload'],
+			'permission_callback' => '__return_true'
+		]);
+
+		register_rest_route('kgsweb/v1', '/upload-folders', [
+			'methods'  => 'GET',
+			'callback' => [__CLASS__, 'get_upload_folders'],
+			'permission_callback' => '__return_true'
+		]);
+		
     }
 
-    // ------------------------
-    // Ticker callback
-    // ------------------------
-/*     public static function handle_ticker_request(WP_REST_Request $request) {
-        $folder = $request->get_param('folder') ?: '';
-        $file   = $request->get_param('file') ?: '';
 
-        $text = KGSweb_Google_Ticker::get_cached_ticker($folder, $file);
-
-        if (!$text) {
-            return new WP_Error('no_data', 'No ticker data found.', ['status'=>404]);
-        }
-
-        return rest_ensure_response([
-            'success' => true,
-            'ticker'  => $text,
-        ]);
-    } */
 	
 	
 	public static function handle_ticker_request(WP_REST_Request $request) {
@@ -203,32 +189,34 @@ class KGSweb_Google_REST_API {
         return rest_ensure_response($data);
     }
 
-    public static function get_menu(WP_REST_Request $req) {
-        $type = $req->get_param('type');
-        $data = KGSweb_Google_Drive_Docs::get_menu_payload($type);
+	public static function get_display(WP_REST_Request $req) {
+		$type   = $req->get_param('type');
+		$folder = $req->get_param('folder');
 
-        if (is_wp_error($data)) {
-            return $data;
-        }
-        return rest_ensure_response($data);
-    }
+		// Fallback: resolve folder from type if not explicitly provided
+		if (empty($folder)) {
+			$type_map = KGSweb_Google_Display::$types;
+			if (!empty($type) && isset($type_map[$type])) {
+				$folder = get_option($type_map[$type]);
+			}
+		}
 
-/*     public static function get_documents(WP_REST_Request $req) {
-        $folder_id = $req->get_param('root') ?? KGSweb_Google_Drive_Docs::get_public_root_id();                                
-        $drive = KGSweb_Google_Integration::init()->get_drive();
+		if (empty($folder)) {
+			return new WP_Error('no_folder', 'No folder specified for display type.', ['status' => 400]);
+		}
 
-        if (!$drive) {
-            return new WP_Error('no_drive', 'Google Drive client not initialized.', ['status'=>500]);
-        }
+		// Call the display class with both arguments
+		$data = KGSweb_Google_Display::get_display_payload($type, $folder);
 
-        $payload = $drive->get_documents_tree_payload($folder_id);
-        if (is_wp_error($payload)) return $payload;
+		if (is_wp_error($data)) {
+			return $data;
+		}
 
-        // Ensure empty folders have children=null
-        $payload['tree'] = self::normalize_empty_children($payload['tree']);
+		return rest_ensure_response($data);
+	}
 
-        return rest_ensure_response($payload);
-    } */
+
+
 	
 	public static function get_documents(WP_REST_Request $req) {
 		$folder_id = $req->get_param('root') ?? KGSweb_Google_Drive_Docs::get_public_root_id();                                
@@ -272,6 +260,24 @@ class KGSweb_Google_REST_API {
 
 		return $result;
 	}
+	
+	
+	
+	
+	public static function upload($request) {
+        // Stub
+        return new WP_REST_Response([
+            'success' => false,
+            'message' => 'Upload not implemented'
+        ], 200);
+    }
+
+    public static function get_upload_folders($request) {
+        // Stub
+        return new WP_REST_Response([
+            'folders' => []
+        ], 200);
+    }
 
 
 
@@ -333,8 +339,43 @@ class KGSweb_Google_REST_API {
 
         return rest_ensure_response($data);
     }
+	
+	// ------------------------------------------------
+	// User-Accessible Cache Refresh 
+	// ------------------------------------------------
+		
+		public static function kgsweb_refresh_cache_endpoint(WP_REST_Request $request) {
+			$secret = $request->get_param('secret');
+			$expected_secret = get_option('kgsweb_cache_refresh_secret');
 
-    public static function post_upload(WP_REST_Request $req) {
-        return KGSweb_Google_Secure_Upload::handle_upload_rest($req);
-    }
+			if (!$secret || $secret !== $expected_secret) {
+				return new WP_REST_Response([
+					'success' => false,
+					'message' => 'Invalid secret.'
+				], 403);
+			}
+
+			// Rate limiting: 1 call per minute per IP
+			$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+			$last_call = get_transient('kgsweb_cache_refresh_' . md5($ip));
+			if ($last_call) {
+				return new WP_REST_Response([
+					'success' => false,
+					'message' => 'Rate limit exceeded. Try again later.'
+				], 429);
+			}
+			set_transient('kgsweb_cache_refresh_' . md5($ip), time(), MINUTE_IN_SECONDS);
+
+			// Call the integration class
+			if (class_exists('KGSweb_Google_Integration')) {
+				$integration = KGSweb_Google_Integration::init();
+				$integration->cron_refresh_all_caches();
+				error_log('KGSWEB: Global cache refreshed via REST endpoint.');
+			}
+
+			return new WP_REST_Response([
+				'success' => true,
+				'message' => 'Cache refreshed successfully.'
+			]);
+		}
 }

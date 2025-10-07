@@ -3,7 +3,7 @@
  * Plugin Name: KGSWeb Google Integration
  * Plugin URI: https://kellgradeschool.com
  * Description: Google Drive/Calendar/Slides/Sheets integration + secure uploads for Kell Grade School.
- * Version: 1.0.0
+ * Version: 2.0.0
  * Author: Travis Donoho
  * License: GPLv2 or later
  * Text Domain: kgsweb
@@ -17,8 +17,9 @@ define( 'KGSWEB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'KGSWEB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'KGSWEB_SETTINGS_OPTION', 'kgsweb_settings' );
 
-// Optional: configure in wp-config.php
-// define( 'KGSWEB_UPLOAD_PASS_HASH', 'sha256:...' );
+// wp-config.php or plugin bootstrap
+define( 'KGSWEB_UPLOAD_PASS_HASH', 'sha256:03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4' );
+
 
 require_once plugin_dir_path(__FILE__) . 'includes/class-kgsweb-google-drive-docs.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-kgsweb-google-rest-api.php';
@@ -29,7 +30,7 @@ require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-secure-upload.php
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-ticker.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-upcoming-events.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-helpers.php';
-require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-menus.php';
+require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-display.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-slides.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-sheets.php';
 require_once __DIR__ . '/vendor/autoload.php';
