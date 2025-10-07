@@ -30,12 +30,12 @@ Central bootstrap for all KGSWeb Google Integration plugin features. Defines con
 **Key Constants**
 
 ```text
-KGSWEB_PLUGIN_VERSION      // version string  
-KGSWEB_PLUGIN_FILE         // main plugin file path  
-KGSWEB_PLUGIN_DIR          // plugin directory  
-KGSWEB_PLUGIN_URL          // plugin URL  
-KGSWEB_SETTINGS_OPTION     // admin settings key  
-KGSWEB_UPLOAD_PASS_HASH    // pre-hashed upload gate password
+KGSWEB_PLUGIN_VERSION
+KGSWEB_PLUGIN_FILE
+KGSWEB_PLUGIN_DIR
+KGSWEB_PLUGIN_URL
+KGSWEB_SETTINGS_OPTION
+KGSWEB_UPLOAD_PASS_HASH
 ````
 
 **Initialization Flow**
@@ -71,7 +71,7 @@ KGSweb_Google_Upcoming_Events::init();
 
 ---
 
-## Spec: Google Integration Core (`includes/class-kgsweb-google-integration.php`)
+## Google Integration Core (`includes/class-kgsweb-google-integration.php`)
 
 **Purpose**
 Creates and manages authenticated Google API client instances shared by all plugin modules. Handles enqueueing of shared front-end assets.
@@ -118,19 +118,9 @@ add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend']);
 * `get_sheets()`
 * `get_slides()`
 
-Scopes include:
-
-```text
-Drive::DRIVE_READONLY
-Calendar::CALENDAR_READONLY
-Sheets::SPREADSHEETS_READONLY
-Slides::PRESENTATIONS_READONLY
-Docs::DOCUMENTS_READONLY
-```
-
 ---
 
-## Handoff Spec: class-kgsweb-google-drive-docs.php
+## Drive Docs (class-kgsweb-google-drive-docs.php)
 
 **Purpose:** Interface between WordPress and Google Drive for:
 
@@ -154,7 +144,7 @@ Docs::DOCUMENTS_READONLY
 
 ---
 
-## Spec: Ticker (`includes/class-kgsweb-google-ticker.php`)
+## Ticker (includes/class-kgsweb-google-ticker.php)
 
 **Shortcode Syntax**
 
@@ -164,7 +154,7 @@ Docs::DOCUMENTS_READONLY
 
 ---
 
-## Spec: Display (`includes/class-kgsweb-google-display.php`)
+## Display (includes/class-kgsweb-google-display.php)
 
 **Shortcode Syntax**
 
@@ -174,7 +164,7 @@ Docs::DOCUMENTS_READONLY
 
 ---
 
-## Spec: Upcoming Events (`includes/class-kgsweb-google-upcoming-events.php`)
+## Upcoming Events (includes/class-kgsweb-google-upcoming-events.php)
 
 **Shortcode Syntax**
 
@@ -184,7 +174,7 @@ Docs::DOCUMENTS_READONLY
 
 ---
 
-## Spec: Slides (`includes/class-kgsweb-google-slides.php`)
+## Slides (includes/class-kgsweb-google-slides.php)
 
 **Shortcode Syntax**
 
@@ -194,7 +184,7 @@ Docs::DOCUMENTS_READONLY
 
 ---
 
-## Spec: Sheets (`includes/class-kgsweb-google-sheets.php`)
+## Sheets (includes/class-kgsweb-google-sheets.php)
 
 **Shortcode Syntax**
 
@@ -204,7 +194,7 @@ Docs::DOCUMENTS_READONLY
 
 ---
 
-## Spec: Secure Upload (`includes/class-kgsweb-google-secure-upload.php`)
+## Secure Upload (includes/class-kgsweb-google-secure-upload.php)
 
 * Validates file type, size, MIME
 * Enforces lockout (`lockout_time`, `max_attempts`)
@@ -212,14 +202,14 @@ Docs::DOCUMENTS_READONLY
 
 ---
 
-## Spec: REST API (`includes/class-kgsweb-google-rest-api.php`)
+## REST API (includes/class-kgsweb-google-rest-api.php)
 
 * Provides JSON endpoints for menus, events, Drive folder data
 * Registers routes via WordPress REST API
 
 ---
 
-## Spec: Helpers (`includes/class-kgsweb-google-helpers.php`)
+## Helpers (includes/class-kgsweb-google-helpers.php)
 
 * MIME type mapping
 * PDF → PNG conversion
@@ -251,19 +241,16 @@ Docs::DOCUMENTS_READONLY
 
 ## Admin Summary
 
-| Setting Name
-
-
-| Purpose                         | Used By             |
-| -------------------------------| --------------------------------| ------------------ |
-| `kgsweb_drive_breakfast_folder` | Breakfast menus folder          | Display             |
-| `kgsweb_drive_lunch_folder`     | Lunch menus folder              | Display             |
-| `kgsweb_drive_calendar_folder`  | Calendar folder                 | Display             |
-| `kgsweb_drive_feature_folder`   | Feature images                  | Display             |
-| `kgsweb_drive_ticker_folder`    | Ticker items                    | Ticker              |
-| `kgsweb_drive_events_folder`    | Upcoming events                 | Upcoming Events     |
-| `kgsweb_allowed_sites`          | Allowed Sites URLs              | Google Sites Embed  |
-| `kgsweb_cache_duration`         | Cache lifetime (seconds)        | Drive Docs, Display |
+| Setting Name                    | Purpose                  | Used By             |
+| ------------------------------- | ------------------------ | ------------------- |
+| `kgsweb_drive_breakfast_folder` | Breakfast menus folder   | Display             |
+| `kgsweb_drive_lunch_folder`     | Lunch menus folder       | Display             |
+| `kgsweb_drive_calendar_folder`  | Calendar folder          | Display             |
+| `kgsweb_drive_feature_folder`   | Feature images           | Display             |
+| `kgsweb_drive_ticker_folder`    | Ticker items             | Ticker              |
+| `kgsweb_drive_events_folder`    | Upcoming events          | Upcoming Events     |
+| `kgsweb_allowed_sites`          | Allowed Sites URLs       | Google Sites Embed  |
+| `kgsweb_cache_duration`         | Cache lifetime (seconds) | Drive Docs, Display |
 
 ---
 
@@ -305,4 +292,3 @@ Displayed on front-end
 ---
 
 ### End of README.md
-
