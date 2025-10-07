@@ -41,31 +41,12 @@ The plugin shall:
 | Scrolling Ticker | `[kgsweb_ticker folder="FOLDER_ID"]` | Displays horizontally scrolling text from a Google Doc or .txt file. |
 | Google Slides | `[kgsweb_slides file="FILE_ID"]` | Embeds Google Slides presentation. |
 | Google Sheets | `[kgsweb_sheets sheet_id="SHEET_ID" range="A1:Z100"]` | Displays Google Sheets data in specified range. |
-| Current DateTime | `[kgsweb_current_datetime format="FORMAT"]` | Displays current time/date in specified format or alias. |
 
 ### Dashboard Settings Page
 
 - Accessible only by WordPress administrators.
 - Configure: Google API credentials (json), default document root folder ID (Google Drive), default Google Calendar ID, default upload root folder  ID (Google Drive), default ticker file ID (Google Drive), default breakfast menu folder ID (Google Drive), default lunch menu folder ID (Google Drive), save settings button, refresh cache button, clear cache (emergency) button.
 - Configure: Secure Uploads Settings. Password access checkbox, password field, password upload locked notification, unlock password upload button, Google Group Gate checkbox (auto-authenticated via Google login), Google Drive (default) / Wordpress (workaround) upload destination toggle, default document root folder (Wordpress uploads).
-
-### Current DateTime formats: literal spec and PHP tokens both supported
-
-- Shortcode: `[kgsweb_current_datetime format="PHP_FORMAT"]`
-- Default format: `"h:ii a, l, F d, yyyy"`
-- Supported formats: `short`, `med`, `long`, `time`, `shortdate`, `meddate`, `longdate`, or user-defined PHP formats.
-- Recognize and render the literal strings exactly as specified in your doc:
-  - short = "h:ii xm n/j/yy"
-  - med = "h:ii D M j, yyyy"
-  - long = "h:ii a, l, F d, yyyy"
-  - time = "h:ii xm"
-  - shortdate = "n/j/yy"
-  - meddate = "D M j, yyyy"
-  - longdate = "l, F d, yyyy"
-- Also support any custom PHP format (with `i` and `Y`) supplied by the user.
-- Rendering rules:
-  - If a format string contains `ii` or `yyyy`, internally map `ii→i` and `yyyy→Y` at render time so the output matches the user’s intended layout while using correct PHP tokens.
-  - If the user passes a strict PHP format, do not alter it.
 
 ### Scrolling Ticker
 
@@ -346,8 +327,7 @@ All GET endpoints are public. POST `/upload` requires nonce and authentication.
 │  ├─ kgsweb-admin.js
 │  ├─ kgsweb-cache.js
 │  ├─ kgsweb-calendar.js
-│  ├─ kgsweb-datetime.js
-│  ├─ kgsweb-folders.js
+│  ├─ kgsweb-documents.js
 │  ├─ kgsweb-helpers.js
 │  ├─ kgsweb-menus.js
 │  ├─ kgsweb-ticker.js
