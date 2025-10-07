@@ -1,6 +1,3 @@
-Here’s your entire README content formatted as a **Markdown file**. You can save it directly as `README.md` in your repo:
-
-````markdown
 # KGSweb Google Integration Plugin – Handoff Specification
 
 ---
@@ -529,5 +526,3 @@ Utility class with shared functions.
 ---
 
 ### End of README.md
-
-```
