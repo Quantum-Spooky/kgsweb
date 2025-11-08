@@ -69,63 +69,51 @@ class KGSweb_Google_Integration
     {
         add_action("init", [$this, "register_assets"]);
         add_action("wp_enqueue_scripts", [$this, "enqueue_frontend"]);
-
-        // Shortcodes registration handled in KGSweb_Google_Shortcodes
         add_action("kgsweb_hourly_cache_refresh", [
             $this,
             "cron_refresh_all_caches",
         ]);
-        if (!wp_next_scheduled("kgsweb_hourly_cache_refresh")) {
-            wp_schedule_event(time(), "hourly", "kgsweb_hourly_cache_refresh");
-        }
+		if (!wp_next_scheduled("kgsweb_hourly_cache_refresh")) {
+			wp_schedule_event(time(), "hourly", "kgsweb_hourly_cache_refresh");
+		}
     }
 
     /*******************************
      * Settings
      *******************************/
 
-    public static function get_settings(): array
-    {
-        $settings = get_option(KGSWEB_SETTINGS_OPTION, []);
+	public static function get_settings(): array
+	{
+		// Load main settings, ensure it's always an array
+		$settings = get_option(KGSWEB_SETTINGS_OPTION, []);
+		if (!is_array($settings)) {
+			$settings = [];
+		}
 
-        // Individual Google/Plugin options
-        $settings["service_account_json"] = get_option(
-            "kgsweb_service_account_json",
-            ""
-        );
-        $settings["public_docs_root_folder_id"] = get_option(
-            "kgsweb_public_documents_root_folder_id",
-            ""
-        ); // Keep raw
-        $settings["upload_root_folder_id"] = get_option(
-            "kgsweb_upload_root_folder_id",
-            ""
-        ); // Keep raw
-        $settings["menu_breakfast_folder_id"] = get_option(
-            "kgsweb_breakfast_folder_id",
-            ""
-        ); // Keep raw
-        $settings["menu_lunch_folder_id"] = get_option(
-            "kgsweb_lunch_folder_id",
-            ""
-        ); // Keep raw
-        $settings["ticker_folder_id"] = get_option("kgsweb_ticker_folder_id", ""); // Keep raw
-        $settings["calendar_id"] = get_option("kgsweb_calendar_ids", ""); // Keep raw
+		// Individual Google/Plugin options
+		$settings["service_account_json"] = get_option("kgsweb_service_account_json", "");
+		$settings["public_docs_root_folder_id"] = get_option("kgsweb_public_documents_root_folder_id", "");
+		$settings["upload_root_folder_id"] = get_option("kgsweb_upload_root_folder_id", "");
+		$settings["menu_breakfast_folder_id"] = get_option("kgsweb_breakfast_folder_id", "");
+		$settings["menu_lunch_folder_id"] = get_option("kgsweb_lunch_folder_id", "");
+		$settings["ticker_folder_id"] = get_option("kgsweb_ticker_folder_id", "");
+		$settings["calendar_id"] = get_option("kgsweb_calendar_ids", "");
 
-        // Secure Upload options
-        $secure_upload = get_option("kgsweb_secure_upload_options", []);
-        $settings["upload_auth_mode"] =
-            $secure_upload["upload_auth_mode"] ?? "password";
-        $settings["upload_password"] = $secure_upload["upload_password"] ?? "";
-        $settings["google_groups"] = $secure_upload["google_groups"] ?? [];
-        $settings["upload_destination"] =
-            $secure_upload["upload_destination"] ?? "drive";
-        $settings["wp_upload_root_path"] =
-            $secure_upload["wp_upload_root"] ?? "";
+		// Secure Upload options
+		$secure_upload = get_option("kgsweb_secure_upload_options", []);
+		if (!is_array($secure_upload)) {
+			$secure_upload = [];
+		}
 
-        return $settings;
-    }
+		$settings["upload_auth_mode"] = $secure_upload["upload_auth_mode"] ?? "password";
+		$settings["upload_password"] = $secure_upload["upload_password"] ?? "";
+		$settings["google_groups"] = $secure_upload["google_groups"] ?? [];
+		$settings["upload_destination"] = $secure_upload["upload_destination"] ?? "drive";
+		$settings["wp_upload_root_path"] = $secure_upload["wp_upload_root"] ?? "";
 
+		return $settings;
+	}
+	
     /*******************************
      * Google Service Accessors
      *******************************/
@@ -187,8 +175,7 @@ class KGSweb_Google_Integration
 			return null;
 		}
 	}
-
-
+		
     /**
      * Calendar service
      */
@@ -286,24 +273,23 @@ class KGSweb_Google_Integration
 	 * Cron: Refresh All Caches
 	 *******************************/
 	public function cron_refresh_all_caches(): void
-{
+	{
+	
     // --- Refresh Ticker ---
-    if (KGSweb_Google_Ticker::refresh_cache_cron()) {
+    if (KGSweb_Google_Ticker::refresh_ticker_cache()) {
         update_option("kgsweb_cache_last_refresh_ticker", current_time("timestamp"));
     }
 
     // --- Refresh Drive Docs (Downloads) ---
-    if (KGSweb_Google_Drive_Docs::refresh_cache_cron()) {
+    if (KGSweb_Google_Drive_Docs::refresh_documents_cache()) {
         update_option("kgsweb_cache_last_refresh_drive_docs", current_time("timestamp"));
     }
 
-    // --- Refresh Upcoming Events ---
-    $calendar_id = self::get_settings()["calendar_id"] ?? "";
-    if ($calendar_id) {
-        delete_transient("kgsweb_calendar_events_" . md5($calendar_id));
-        self::get_cached_events($calendar_id);
-        update_option("kgsweb_cache_last_refresh_events", current_time("timestamp"));
-    }
+	// --- Refresh Upcoming Events ---
+	if (KGSweb_Google_Upcoming_Events::refresh_events_cache()) {
+		update_option("kgsweb_cache_last_refresh_events", current_time("timestamp"));
+	}
+	
     // --- Refresh Image Display for ALL registered types ---
     foreach (KGSweb_Google_Display::$types as $type => $option_name) {
         $folder_id = get_option($option_name, '');
@@ -321,13 +307,13 @@ class KGSweb_Google_Integration
     // --- Refresh Slides ---
     $slides_file = self::get_settings()["slides_file_id"] ?? "";
     if ($slides_file) {
-        KGSweb_Google_Slides::refresh_cache($slides_file);
+        KGSweb_Google_Slides::refresh_slides_cache($slides_file);
     }
 
     // --- Refresh Sheets ---
     $sheets_file = self::get_settings()["sheets_file_id"] ?? "";
     if ($sheets_file) {
-        KGSweb_Google_Sheets::refresh_cache($sheets_file, "A1:Z100");
+        KGSweb_Google_Sheets::refresh_sheets_cache($sheets_file, "A1:Z100");
     }
 
     // --- Global refresh timestamp ---
@@ -351,186 +337,173 @@ class KGSweb_Google_Integration
         return delete_transient($key);
     }
 
-    /*******************************
-     * Assets Registration
-     *******************************/
-    public static function register_assets()
-    {
-        $base = plugin_dir_path(KGSWEB_PLUGIN_FILE);
-        $baseurl = plugins_url("", KGSWEB_PLUGIN_FILE);
-
-        // Helper function to get file modification time
-        $ver = function ($relpath) use ($base) {
-            $path = $base . ltrim($relpath, "/");
-            return file_exists($path) ? filemtime($path) : time();
-        };
-
-        wp_register_style(
-            "kgsweb-style",
-            $baseurl . "/css/kgsweb-style.css",
-            [],
-            $ver("/css/kgsweb-style.css")
-        );
-
-        $scripts = [
-			"admin" => "/js/kgsweb-admin.js",
-            "helpers" => "/js/kgsweb-helpers.js",
-            "cache" => "/js/kgsweb-cache.js",
-            "ticker" => "/js/kgsweb-ticker.js",
-            "calendar" => "/js/kgsweb-calendar.js",
-            "display" => "/js/kgsweb-display.js",
-            "upload" => "/js/kgsweb-upload.js",
-            "sheets" => "/js/kgsweb-sheets.js",
-            "slides" => "/js/kgsweb-slides.js",
-        ];
-
-        foreach ($scripts as $handle => $relpath) {
-            wp_register_script(
-                "kgsweb-$handle",
-                $baseurl . $relpath,
-                ["jquery"],
-                $ver($relpath),
-                true
-            );
-        }
+	 /*******************************
+	 * Assets Registration
+	 *******************************/
+	public static function register_assets() {
+		$base = plugin_dir_path(KGSWEB_PLUGIN_FILE);
+		$baseurl = plugins_url("", KGSWEB_PLUGIN_FILE);
 		
-        // Localize scripts
-        wp_localize_script("kgsweb-helpers", "KGSWEB_CFG", [
-            "rest" => [
-                "root" => esc_url_raw(rest_url("kgsweb/v1")),
-                "nonce" => wp_create_nonce("wp_rest"),
-            ],
-            "ajax" => [
-                "list_folders" => esc_url(
-                    admin_url("admin-ajax.php?action=kgsweb_list_folders")
-                ),
-            ],
-            "assets" => ["fontawesome" => true],
-        ]);
-		
-		// For uploads
-		wp_localize_script('kgsweb-upload', 'kgsweb_upload_ajax', [
-		  'ajax_url' => admin_url('admin-ajax.php'),
-		  'uploadRootFolderId' => get_option('kgsweb_upload_root_folder_id', ''),
-		  'nonce' => wp_create_nonce('kgsweb_upload_nonce')
-		]);
+		// Helper function to get file modification time	
+		$ver = function ($relpath) use ($base) {
+			$path = $base . ltrim($relpath, "/");
+			return file_exists($path) ? filemtime($path) : time();
+		};
 
+		wp_register_style(
+			"kgsweb-style",
+			$baseurl . "/css/kgsweb-style.css",
+			[],
+			$ver("/css/kgsweb-style.css")
+		);
 
-    }
-    /*******************************
-     * Assets Enqueue (Frontend)
-     *******************************/
-    public function enqueue_frontend(): void
-    {
-        $baseurl = $this->plugin_url;
-        $base = $this->plugin_path;
+		$scripts = [
+			"admin"    => "/js/kgsweb-admin.js",
+			"helpers"  => "/js/kgsweb-helpers.js",
+			"cache"    => "/js/kgsweb-cache.js",
+			"ticker"   => "/js/kgsweb-ticker.js",
+			"calendar" => "/js/kgsweb-calendar.js",
+			"display"  => "/js/kgsweb-display.js",
+			"upload"   => "/js/kgsweb-upload.js",
+			"sheets"   => "/js/kgsweb-sheets.js",
+			"slides"   => "/js/kgsweb-slides.js",
+		];
 
-        // Explicit load order for scripts
-        $frontend_js = [
-            "helpers",
-            "format",
-            "documents",
-            "cache",
-            "ticker",
-            "calendar",
-            "display",
-            "upload",
-            "sheets",
-        ];
-        foreach ($frontend_js as $mod) {
-            $path = $base . "js/kgsweb-$mod.js";
-            if (file_exists($path)) {
-                wp_enqueue_script(
-                    "kgsweb-$mod",
-                    $baseurl . "js/kgsweb-$mod.js",
-                    ["jquery"],
-                    filemtime($path),
-                    true
-                );
-            }
-        }
+		foreach ($scripts as $handle => $relpath) {
+			wp_register_script(
+				"kgsweb-$handle",
+				$baseurl . $relpath,
+				["jquery"],
+				$ver($relpath),
+				true
+			);
+		}
+	}
 
-        // --- Localize KGSWEB_CFG for helpers ---
-        if (wp_script_is("kgsweb-helpers", "enqueued")) {
-            wp_localize_script("kgsweb-helpers", "KGSWEB_CFG", [
-                "rest" => [
-                    "root" => esc_url_raw(rest_url("kgsweb/v1")),
-                    "nonce" => wp_create_nonce("wp_rest"),
-                ],
-                "ajax" => [
-                    "list_folders" => esc_url(
-                        admin_url("admin-ajax.php?action=kgsweb_list_folders")
-                    ),
-                ],
-                "assets" => ["fontawesome" => true],
-            ]);
-            // Conditionally enqueue FontAwesome
-            wp_enqueue_style(
-                "font-awesome",
-                "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css",
-                [],
-                "6.5.1"
-            );
-        }
-        // --- User-Accessible Cache Refresh ---	
-		if (wp_script_is("kgsweb-cache", "enqueued")) { 
-			$secret = get_option('kgsweb_cache_refresh_secret', '');
+	/*******************************
+	 * Assets Enqueue (Frontend)
+	 *******************************/
+	public function enqueue_frontend(): void {
+	 
+		$baseurl = $this->plugin_url;
+		$base = $this->plugin_path;
+
+		// Explicit load order for scripts	
+		$frontend_js = [
+			"helpers",
+			"format",
+			"documents",
+			"cache",
+			"ticker",
+			"calendar",
+			"display",
+			"upload",
+			"sheets",
+		];
+
+		// enqueue registered scripts only if files exist
+		foreach ($frontend_js as $mod) {
+			$path = $base . "js/kgsweb-$mod.js";
+			if (file_exists($path)) {
+				wp_enqueue_script(
+					"kgsweb-$mod",
+					$baseurl . "js/kgsweb-$mod.js",
+					["jquery"],
+					filemtime($path),
+					true
+				);
+			}
+		}
+
+	// Localize scripts
+		// helpers localization + fontawesome (only if helpers enqueued)
+		if (wp_script_is("kgsweb-helpers", "enqueued")) {
+						   
+		wp_localize_script("kgsweb-helpers", "KGSWEB_CFG", [
+				"rest" => [
+					"root" => esc_url_raw(rest_url("kgsweb/v1")),
+					"nonce" => wp_create_nonce("wp_rest"),
+				],
+				"ajax" => [
+					"list_folders" => esc_url(admin_url("admin-ajax.php?action=kgsweb_list_folders")),
+				],
+				"assets" => ["fontawesome" => true],
+			]);
+
+			wp_enqueue_style(
+				"font-awesome",
+				"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css",
+				[],
+				"6.5.1"
+			);
+		}
+
+		// upload localization only after upload script is enqueued
+		if (wp_script_is('kgsweb-upload', 'enqueued')) {
+			wp_localize_script('kgsweb-upload', 'kgsweb_upload_ajax', [
+				'ajax_url'            => admin_url('admin-ajax.php'),
+				'uploadRootFolderId'  => get_option('kgsweb_upload_root_folder_id', ''),
+				'nonce'               => wp_create_nonce('kgsweb_upload_nonce'),
+				'settingsVersion'     => get_option('kgsweb_upload_settings_version', 0),
+				'user_logged_in'      => is_user_logged_in() ? '1' : '0',
+			]);
+		}
+
+		// cache localization
+		if (wp_script_is("kgsweb-cache", "enqueued")) {
+			$secret = get_option("kgsweb_cache_refresh_secret", "");
 			wp_localize_script("kgsweb-cache", "KGSwebCache", [
 				"secret" => $secret,
-				"restUrl" => esc_url_raw(rest_url("kgsweb/v1/cache-refresh"))
-		]);
-}
+				"restUrl" => esc_url_raw(rest_url("kgsweb/v1/cache-refresh")),
+			]);
+		}
 
-        // Localize folders for documents script
-        if (wp_script_is("kgsweb-documents", "enqueued")) {
-            $settings = self::get_settings();
-            wp_localize_script("kgsweb-documents", "KGSwebFolders", [
-                "restUrl" => esc_url_raw(rest_url("kgsweb/v1/documents")),
-                "rootId" => $settings["kgsweb_public_documents_root_folder_id"] ?? "",
-            ]);
-        }
+		// documents localization
+		if (wp_script_is("kgsweb-documents", "enqueued")) {
+			$settings = self::get_settings();
+			wp_localize_script("kgsweb-documents", "KGSwebFolders", [
+				"restUrl" => esc_url_raw(rest_url("kgsweb/v1/documents")),
+				"rootId" => $settings["public_docs_root_folder_id"] ?? "",
+			]);
+		}
 
-        // Styles
-        $style_path = $base . "css/kgsweb-style.css";
-        if (file_exists($style_path)) {
-            wp_enqueue_style(
-                "kgsweb-frontend",
-                $baseurl . "css/kgsweb-style.css",
-                [],
-                filemtime($style_path)
-            );
-        }
-        // Conditionally load slides assets if shortcode exists
-        if (
-            is_singular() &&
-            has_shortcode(get_post()->post_content ?? "", "kgsweb_slides")
-        ) {
-            $slides_js = $base . "js/kgsweb-slides.js";
-            $slides_css = $base . "css/kgsweb-slides.css";
+		// frontend styles
+		$style_path = $base . "css/kgsweb-style.css";
+		if (file_exists($style_path)) {
+			wp_enqueue_style(
+				"kgsweb-frontend",
+				$baseurl . "css/kgsweb-style.css",
+				[],
+				filemtime($style_path)
+			);
+		}
 
-            if (file_exists($slides_js)) {
-                wp_enqueue_script(
-                    "kgsweb-slides",
-                    $baseurl . "js/kgsweb-slides.js",
-                    ["jquery"],
-                    filemtime($slides_js),
-                    true
-                );
-            }
+		// slides conditional
+		if (is_singular() && has_shortcode(get_post()->post_content ?? "", "kgsweb_slides")) {
+			$slides_js = $base . "js/kgsweb-slides.js";
+			$slides_css = $base . "css/kgsweb-slides.css";
 
-            if (file_exists($slides_css)) {
-                wp_enqueue_style(
-                    "kgsweb-slides",
-                    $baseurl . "css/kgsweb-slides.css",
-                    [],
-                    filemtime($slides_css)
-                );
-            }
-        }
-    }
+			if (file_exists($slides_js)) {
+				wp_enqueue_script(
+					"kgsweb-slides",
+					$baseurl . "js/kgsweb-slides.js",
+					["jquery"],
+					filemtime($slides_js),
+					true
+				);
+			}
+			if (file_exists($slides_css)) {
+				wp_enqueue_style(
+					"kgsweb-slides",
+					$baseurl . "css/kgsweb-slides.css",
+					[],
+					filemtime($slides_css)
+				);
+			}
+		}
+	}
 
-
-
+					  
     /*******************************
      * Google Client Lazy Loader
      *******************************/

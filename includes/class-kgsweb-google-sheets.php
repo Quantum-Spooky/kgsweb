@@ -38,7 +38,7 @@ class KGSweb_Google_Sheets {
         return $data;
     }
 
-    public static function refresh_cache($sheet_id, $range) {
+    public static function refresh_sheets_cache($sheet_id, $range) {
         $data = self::fetch_sheet_from_google($sheet_id, $range);
         set_transient('kgsweb_cache_sheets_' . $sheet_id . '_' . md5($range), $data, HOUR_IN_SECONDS);
         update_option('kgsweb_cache_last_refresh_sheets_' . $sheet_id, current_time('timestamp'));

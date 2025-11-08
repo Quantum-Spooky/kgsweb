@@ -125,7 +125,7 @@ class KGSweb_Google_Slides {
         return $data;
     }
 
-    public static function refresh_cache($file_id) {
+    public static function refresh_slides_cache($file_id) {
         $data = self::fetch_slides_metadata_from_drive($file_id);
         set_transient('kgsweb_cache_slides_meta_' . $file_id, $data, HOUR_IN_SECONDS);
         update_option('kgsweb_cache_last_refresh_slides_' . $file_id, current_time('timestamp'));

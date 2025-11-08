@@ -587,6 +587,16 @@ class KGSweb_Google_Helpers {
 		return $attach_id;
 	}
 	
+	
+					///// A helper function for when a session needs started
+					/* 	   public static function start() {
+							if (session_status() === PHP_SESSION_NONE) {
+								session_start();
+							}
+						} */
+						
+	
+	
 	///////////////////////////////////////////////////////////////
 	/**
 	 * Get breadcrumb path for a Google Drive folder

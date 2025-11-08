@@ -32,7 +32,7 @@ class KGSweb_Google_Drive_Docs
     /*******************************
      * Cron Refresh
      *******************************/
-    public static function refresh_cache_cron()
+    public static function refresh_documents_cache()
     {
         $integration = KGSweb_Google_Integration::init();
 
@@ -59,7 +59,7 @@ class KGSweb_Google_Drive_Docs
             return;
         }
 
-        delete_transient("kgsweb_docs_tree_" . md5($root));
+        delete_transient("kgsweb_cache_documents_" . $root);
 
         $tree = self::build_documents_tree($root);
 
@@ -196,15 +196,13 @@ class KGSweb_Google_Drive_Docs
             $pageToken = null;
 
             do {
-                $params = [
-                    "q" => sprintf(
-                        "'%s' in parents and trashed = false",
-                        $folder_id
-                    ),
-                    "fields" =>
-                        "nextPageToken, files(id,name,mimeType,size,modifiedTime)",
-                    "pageSize" => 1000,
-                ];
+				$params = [
+					"q" => sprintf("'%s' in parents and trashed = false", $folder_id),
+					"fields" => "nextPageToken, files(id,name,mimeType,size,modifiedTime)",
+					"pageSize" => 1000,
+					"supportsAllDrives" => true,
+					"includeItemsFromAllDrives" => true,
+				];
                 if ($pageToken) {
                     $params["pageToken"] = $pageToken;
                 }
@@ -322,15 +320,13 @@ class KGSweb_Google_Drive_Docs
             $pageToken = null;
 
             do {
-                $params = [
-                    "q" => sprintf(
-                        "'%s' in parents and trashed = false",
-                        $folder_id
-                    ),
-                    "fields" =>
-                        "nextPageToken, files(id, name, mimeType, modifiedTime)",
-                    "pageSize" => 1000,
-                ];
+				$params = [
+					"q" => sprintf("'%s' in parents and trashed = false", $folder_id),
+					"fields" => "nextPageToken, files(id,name,mimeType,size,modifiedTime)",
+					"pageSize" => 1000,
+					"supportsAllDrives" => true,
+					"includeItemsFromAllDrives" => true,
+				];
 
                 if ($pageToken) {
                     $params["pageToken"] = $pageToken;
@@ -443,9 +439,10 @@ class KGSweb_Google_Drive_Docs
 
             // 	Detect MIME if not passed
             if (!$mime_type) {
-                $file = $this->service->files->get($file_id, [
-                    "fields" => "mimeType,name",
-                ]);
+				$file = $this->service->files->get($file_id, [
+					"fields" => "mimeType,name",
+					"supportsAllDrives" => true,
+				]);
                 $mime_type = $file->getMimeType();
                 error_log(
                     "KGSWEB: get_file_contents - detected MIME {$mime_type} for {$file_id}"
@@ -512,9 +509,10 @@ class KGSweb_Google_Drive_Docs
                 error_log(
                     "KGSWEB: get_file_contents - downloading plain text file {$file_id}"
                 );
-                $response = $this->service->files->get($file_id, [
-                    "alt" => "media",
-                ]);
+               $response = $this->service->files->get($file_id, [
+					"alt" => "media",
+					"supportsAllDrives" => true,
+				]);
                 if (!$response) {
                     error_log(
                         "KGSWEB: get_file_contents - ERROR: null response for plain text file {$file_id}"
@@ -604,7 +602,7 @@ class KGSweb_Google_Drive_Docs
 
     public static function cache_upload_folders(string $root_id): void
     {
-        if (empty($root_i)) {
+        if (empty($root_id)) {
             return;
         }
 
@@ -617,4 +615,4 @@ class KGSweb_Google_Drive_Docs
             current_time("timestamp")
         );
     }
-}
+} 

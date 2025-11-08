@@ -11,7 +11,6 @@ class KGSweb_Google_Ticker {
      *******************************/
     public static function get_latest_file_from_folder($folderId) {
         try {
-			// Use Docs helper with explicit date-desc sort												  
             $files = KGSweb_Google_Drive_Docs::list_drive_children($folderId, 'date-desc');
 
             if (empty($files)) {
@@ -19,16 +18,13 @@ class KGSweb_Google_Ticker {
                 return null;
             }
 
-			// Take the first file (newest due to date-desc)												   
             $latestFile = $files[0];
-
             if (!isset($latestFile['id'])) {
                 error_log("KGSWEB: [Ticker] Latest file missing ID in folder {$folderId}");
                 return null;
             }
 
-			// Return as object to match old behavior											
-            return (object) $latestFile;
+            return (object) ($latestFile ?: []);
 
         } catch (Exception $e) {
             error_log("KGSWEB: [Ticker] Error fetching latest file from folder {$folderId} - " . $e->getMessage());
@@ -69,14 +65,18 @@ class KGSweb_Google_Ticker {
         return 'kgsweb_cache_ticker_' . md5("{$folder_id}:{$file_id}");
     }
 
-    private static function set_ticker_cache(string $folder_id, string $file_id, string $text): void {
+    private static function set_ticker_cache(string $folder_id, string $file_id, string $text, ?string $modifiedTime = null): void {
         $cache_key = self::make_cache_key($folder_id, $file_id);
         set_transient($cache_key, $text, 60 * 60); // 1 hour
 
         $index = get_option('kgsweb_ticker_cache_index', []);
         if (!is_array($index)) $index = [];
         if (!isset($index[$folder_id])) $index[$folder_id] = [];
-        $index[$folder_id][$file_id] = $cache_key;
+
+        $index[$folder_id][$file_id] = [
+            'cache_key' => $cache_key,
+            'modifiedTime' => $modifiedTime ?? current_time('mysql')
+        ];
         update_option('kgsweb_ticker_cache_index', $index);
 
         error_log("KGSWEB: [Ticker] Cache SET for file {$file_id} (length=" . strlen($text) . ")");
@@ -84,19 +84,24 @@ class KGSweb_Google_Ticker {
 
     private static function clear_folder_cache(string $folder_id): void {
         $index = get_option('kgsweb_ticker_cache_index', []);
-        if (!is_array($index) || empty($index[$folder_id])) return;
+        if (!is_array($index)) $index = [];
+        if (empty($index[$folder_id])) $index[$folder_id] = [];
 
-        foreach ($index[$folder_id] as $file_id => $key) {
-            delete_transient($key);
+        foreach ($index[$folder_id] as $entry) {
+            if (isset($entry['cache_key'])) {
+                delete_transient($entry['cache_key']);
+            }
         }
 
-        unset($index[$folder_id]);
+        $index[$folder_id] = [];
         update_option('kgsweb_ticker_cache_index', $index);
+
+        error_log("KGSWEB: [Ticker] Cleared cache for folder {$folder_id}");
     }
 
-    public static function get_cached_ticker(string $folder_id = '', string $file_id = ''): string {
+    public static function get_cached_ticker(string $folder_id = '', string $file_id = '', bool $force_refresh = false): string {
         $settings = KGSweb_Google_Integration::get_settings();
-        $folder_id = $folder_id ?: ($settings['ticker_file_id'] ?? '');
+        $folder_id = $folder_id ?: ($settings['ticker_folder_id'] ?? '');
         if (!$folder_id) {
             error_log("KGSWEB: [Ticker] No folder ID available.");
             return '';
@@ -105,24 +110,24 @@ class KGSweb_Google_Ticker {
         if (!$file_id) {
             $latest_file = self::get_latest_file_from_folder($folder_id);
             $file_id = $latest_file->id ?? '';
+            $modifiedTime = $latest_file->modifiedTime ?? null;
             if ($file_id) {
-                error_log("KGSWEB: [Ticker] candidate file {$latest_file->name} ({$file_id}) modified {$latest_file->modifiedTime} [mime={$latest_file->mimeType}]");
+                error_log("KGSWEB: [Ticker] Candidate file {$latest_file->name} ({$file_id}) modified {$modifiedTime}");
             }
-        }
-
-        if (!$file_id) {
-            error_log("KGSWEB: [Ticker] No file found in folder {$folder_id}");
-            return '';
+        } else {
+            $modifiedTime = null;
         }
 
         $cache_key = self::make_cache_key($folder_id, $file_id);
-        $text = get_transient($cache_key);
+        if ($force_refresh) {
+            delete_transient($cache_key);
+        }
 
+        $text = get_transient($cache_key);
         if ($text === false) {
-            error_log("KGSWEB: [Ticker] Cache miss for file {$file_id}, fetching fresh content");
-            $text = KGSweb_Google_Helpers::get_file_contents($file_id) ?? '';
+            $text = self::extract_ticker_text($file_id);
             if ($text) {
-                self::set_ticker_cache($folder_id, $file_id, $text);
+                self::set_ticker_cache($folder_id, $file_id, $text, $modifiedTime);
                 update_option('kgsweb_ticker_last_file_id', $file_id);
                 $preview = substr(str_replace("\n", " ⏎ ", $text), 0, 150);
                 error_log("KGSWEB: [Ticker] Cache populated successfully (preview={$preview})");
@@ -136,34 +141,39 @@ class KGSweb_Google_Ticker {
         return $text ?: '';
     }
 
-    /*******************************
-     * Refresh / Cron
-     *******************************/
-    public static function refresh_cache_cron(): void {
-        $folderId = get_option('kgsweb_ticker_folder_id'); // fixed: use correct option key
-        if (!$folderId) {
-            error_log("KGSWEB: [Ticker] No folder ID set, cannot refresh ticker cache.");
-            return;
-        }
+	/*******************************
+	 * Refresh / Cron
+	 *******************************/
+	public static function refresh_ticker_cache(): bool {
+		$folderId = get_option('kgsweb_ticker_folder_id');
+		if (!$folderId) {
+			error_log("KGSWEB: [Ticker] No folder ID set, cannot refresh ticker cache.");
+			return false;
+		}
 
-        $latestFile = self::get_latest_file_from_folder($folderId);
-        if (!$latestFile) {
-            error_log("KGSWEB: [Ticker] No file found in folder {$folderId}");
-            return;
-        }
+		$latestFile = self::get_latest_file_from_folder($folderId);
+		if (!$latestFile) {
+			error_log("KGSWEB: [Ticker] No file found in folder {$folderId}");
+			return false;
+		}
 
-        $file_id = $latestFile->id;
-        $text = self::extract_ticker_text($file_id);
-        if (!$text) {
-            error_log("KGSWEB: [Ticker] No ticker content found in {$file_id}, ticker hidden.");
-            return;
-        }
+		$file_id = $latestFile->id;
 
-        self::clear_folder_cache($folderId);
-        self::set_ticker_cache($folderId, $file_id, $text);
-        update_option('kgsweb_ticker_last_file_id', $file_id);
-        error_log("KGSWEB: [Ticker] Ticker updated from file {$file_id}");
-    }
+		// Force fetch the latest content instead of returning cached transient
+		$text = self::extract_ticker_text($file_id);
+		if (!$text) {
+			error_log("KGSWEB: [Ticker] No ticker content found in {$file_id}, ticker hidden.");
+			return false;
+		}
+
+		self::clear_folder_cache($folderId);
+		self::set_ticker_cache($folderId, $file_id, $text, $latestFile->modifiedTime ?? null);
+		update_option('kgsweb_ticker_last_file_id', $file_id);
+
+		error_log("KGSWEB: [Ticker] Ticker updated from file {$file_id}");
+		return true;
+	}
+
 
     /*******************************
      * REST API
@@ -184,27 +194,35 @@ class KGSweb_Google_Ticker {
      *******************************/
     public static function render_ticker($atts = []): string {
         $settings = KGSweb_Google_Integration::get_settings();
+        $default_folder_id = $settings['ticker_folder_id'] ?? '';
+
         $atts = shortcode_atts([
-            'folder' => $settings['ticker_file_id'] ?? get_option('kgsweb_ticker_last_file_id'),
-            'file'   => '',
-            'speed'  => '0.5',
+            'folder_id' => $default_folder_id,
+            'file_id'   => '',
+            'speed'     => '0.5',
         ], $atts, 'kgsweb_ticker');
 
-        $text = self::get_cached_ticker($atts['folder'], $atts['file']);
-        if (!$text || trim($text) === 'No alerts at this time.') {
-            return '';
+        $folder_id = $atts['folder_id'];
+        $file_id   = $atts['file_id'];
+
+        if (!$folder_id && !$file_id) return '';
+
+        if (!$file_id && $folder_id) {
+            $latest_file = self::get_latest_file_from_folder($folder_id);
+            if (!$latest_file) return '';
+            $file_id = $latest_file->id;
         }
+
+        $text = self::get_cached_ticker($folder_id, $file_id);
+        if (!$text || trim($text) === 'No alerts at this time.') return '';
 
         wp_enqueue_script('kgsweb-ticker');
 
-        // Scroll text: collapse multiple line breaks, replace with pipe separators																				   
         $scroll_text = preg_replace("/(\r\n|\n|\r){2,}/", "\n", $text);
         $scroll_text = str_replace(["\r\n", "\n", "\r"], ' | ', $scroll_text);
         $scroll_text = trim($scroll_text) . ' | KGS |';
 
-        // Full text: preserve line breaks, collapse multiple empty lines																		 
-        $normalized_text = str_replace(["\r\n", "\r"], "\n", $text);
-        $lines = array_map('rtrim', explode("\n", $normalized_text));
+        $lines = array_map('rtrim', explode("\n", str_replace(["\r\n", "\r"], "\n", $text)));
         $full_lines = [];
         $prev_empty = false;
         foreach ($lines as $line) {
@@ -226,9 +244,9 @@ class KGSweb_Google_Ticker {
                     </div>
                 </div>
             </div>',
-            esc_attr($atts['folder']),
-            esc_attr($atts['file']),
-            esc_attr($atts['speed']),
+            esc_attr($folder_id),
+            esc_attr($file_id),
+            esc_attr(floatval($atts['speed'])),
             esc_html($scroll_text),
             $full_text
         );
@@ -238,16 +256,13 @@ class KGSweb_Google_Ticker {
      * Register Hooks
      *******************************/
     public static function register(): void {
-        // Cron			   
-        add_action('kgsweb_refresh_ticker_cache', [__CLASS__, 'refresh_cache_cron']);
+        add_action('kgsweb_refresh_ticker_cache', [__CLASS__, 'refresh_ticker_cache']);
         if (!wp_next_scheduled('kgsweb_refresh_ticker_cache')) {
             wp_schedule_event(time(), 'hourly', 'kgsweb_refresh_ticker_cache');
         }
 
-        // Shortcode
         add_shortcode('kgsweb_ticker', [__CLASS__, 'render_ticker']);
 
-        // REST API				   
         add_action('rest_api_init', function () {
             register_rest_route('kgsweb/v1', '/ticker', [
                 'methods' => 'GET',

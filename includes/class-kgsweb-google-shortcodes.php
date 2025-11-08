@@ -14,7 +14,7 @@ class KGSweb_Google_Shortcodes {
         if (self::$instance === null) {
             self::$instance = new self();
             // Hook shortcodes registration into 'init'
-            add_action('init', [self::$instance, 'register_shortcodes']);
+			add_action('init', [ self::$instance, 'register_shortcodes' ], 20);
         }
         return self::$instance;
     }
@@ -53,14 +53,6 @@ class KGSweb_Google_Shortcodes {
         );
 
         wp_register_script(
-            'kgsweb-folders',
-            plugins_url('/js/kgsweb-folders.js', KGSWEB_PLUGIN_FILE),
-            [],
-            $ver,
-            true
-        );
-
-        wp_register_script(
             'kgsweb-ticker',
             plugins_url('/js/kgsweb-ticker.js', KGSWEB_PLUGIN_FILE),
             [],
@@ -90,8 +82,8 @@ class KGSweb_Google_Shortcodes {
 			'folders'    => '',
 			'class'      => '',
 			'id'         => 'kgsweb-documents-tree',
-			'sort_by'    => 'alpha-asc',         // new: default alphabetical ascending
-			'collapsed'  => 'true',              // new: default collapsed
+			'sort_by'    => 'alpha-asc',         // default alphabetical ascending
+			'collapsed'  => 'true',              // default collapsed
 		], $atts, 'kgsweb_documents');
 
         // Enqueue assets only when shortcode is used
@@ -171,30 +163,118 @@ class KGSweb_Google_Shortcodes {
 	 * Secure Upload Form Shortcode
 	 *******************************/
 	public static function secure_upload_form($atts) {
-		// Get plugin-wide default root folder from options
-		$default_root = get_option('kgsweb_upload_root_folder_id', '');
+		
+	// KGSweb_Google_Helpers::start(); // REMOVED
+    $_SESSION['kgsweb_origin_url'] = (isset($_SERVER['REQUEST_URI'])) ? esc_url_raw($_SERVER['REQUEST_URI']) : home_url();
+
+
+		$default_root   = get_option('kgsweb_upload_root_folder_id', '');
+		$allow_password = (bool) get_option('kgsweb_allow_password_auth', true);
+		$allow_group    = (bool) get_option('kgsweb_allow_group_auth', false);
 
 		$atts = shortcode_atts([
-			'upload-folder' => $default_root, // fallback to global root
+			'upload-folder' => $default_root,
 		], $atts);
+
+		$upload_folder = esc_attr($atts['upload-folder']);
+
+		error_log('Secure Upload form rendering...');
+
+		// Determine auth status
+		$current_user = wp_get_current_user();
+		$group_ok = false;
+		if (class_exists('KGSweb_Google_Secure_Upload')) {
+			$group_ok = KGSweb_Google_Secure_Upload::bypass_group_auth($current_user->ID);
+		}
+		error_log('bypass_group_auth() result: ' . var_export($group_ok, true));
 
 		ob_start();
 		?>
-		<div class="kgsweb-secure-upload-form" data-upload-folder="<?php echo esc_attr($atts['upload-folder']); ?>">
-			<form class="kgsweb-password-form">
-				<label for="upload_password">Password:</label>
-				<div class="password-container">
-					<input type="password" id="upload_password" name="kgsweb_upload_pass">
-					<i class="fas fa-eye toggle_password"></i>
+		<div class="kgsweb-secure-upload-form"
+			 data-upload-folder="<?php echo $upload_folder; ?>"
+			 data-allow-password="<?php echo $allow_password ? 'true' : 'false'; ?>"
+			 data-allow-group="<?php echo $allow_group ? 'true' : 'false'; ?>">
+
+			<?php
+			// CASE 1: No authentication enabled
+			if (!$allow_password && !$allow_group) : ?>
+				<script>console.log('PHP CASE 1: No auth enabled');</script>
+				<p>Upload not allowed.</p>
+
+			<?php
+			// CASE 2: Password auth only
+			elseif ($allow_password && !$allow_group) : ?>
+				<script>console.log('PHP CASE 2/3: Password auth required');</script>
+				<form class="kgsweb-password-form">
+					<label for="upload_password">Password:</label>
+					<div class="password-container">
+						<input type="password" id="upload_password" name="kgsweb_upload_pass">
+						<i class="fas fa-eye toggle_password"></i>
+					</div>
+					<button type="submit" class="kgsweb-password-submit">Unlock</button>
+					<div class="kgsweb-password-error" style="color:red; margin-top:0.5rem; display:none;"></div>
+				</form>
+				<div class="kgsweb-upload-ui" style="display:none;">
+					<select class="kgsweb-upload-folder"></select>
+					<input type="file" class="kgsweb-upload-file" />
+					<button type="button" class="kgsweb-upload-btn">Upload</button>
 				</div>
-				<button type="submit" class="kgsweb-password-submit">Unlock</button>
-				<div class="kgsweb-password-error" style="color:red; margin-top:0.5rem; display:none;"></div>
-			</form>
-			<div class="kgsweb-upload-ui" style="display:none;">
-				<select class="kgsweb-upload-folder"></select>
-				<input type="file" class="kgsweb-upload-file" />
-				<button type="button" class="kgsweb-upload-btn">Upload</button>
-			</div>
+
+			<?php
+			// CASE 3: Google group auth enabled
+			elseif ($allow_group) :
+				if ($group_ok) : ?>
+					<script>console.log('PHP CASE 5: Google group approved, upload form shown immediately');</script>
+					<div class="kgsweb-upload-ui">
+						<select class="kgsweb-upload-folder"></select>
+						<input type="file" class="kgsweb-upload-file" />
+						<button type="button" class="kgsweb-upload-btn">Upload</button>
+					</div>
+				<?php else : ?>
+					<script>console.log('PHP CASE 4: Google OAuth required (Nextend)');</script>
+					<?php if (is_user_logged_in()) : ?>
+						<p class="kgsweb-upload-not-authorized" style="color:red;">
+							You are not authorized to upload. Try signing in with a different Google account.
+						</p>
+					<?php endif; ?>
+
+					<?php if (shortcode_exists('nextend_social_login')) : ?>
+						<div class="kgsweb-nextend-login">
+							<?php 						
+								$current_url = esc_url( (is_ssl() ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}" );
+								echo do_shortcode('[nextend_social_login provider="google" style="default" redirect="' . esc_url($current_url) . '"]');
+							?>
+						</div>
+						<div class="kgsweb-upload-ui" style="display:none;">
+							<select class="kgsweb-upload-folder"></select>
+							<input type="file" class="kgsweb-upload-file" />
+							<button type="button" class="kgsweb-upload-btn">Upload</button>
+						</div>
+					<?php else :
+						error_log('KGSWEB: Nextend Social Login not loaded.');
+						echo '<p style="color:red;">Google login unavailable. Please enable Nextend Social Login plugin.</p>';
+					endif; ?>
+				<?php endif;
+
+			// CASE 4: Both auth enabled (password and Google group)
+			elseif ($allow_password && $allow_group) : ?>
+				<script>console.log('PHP CASE 6/7: Password + Google group auth enabled');</script>
+				<form class="kgsweb-password-form">
+					<label for="upload_password">Password:</label>
+					<div class="password-container">
+						<input type="password" id="upload_password" name="kgsweb_upload_pass">
+						<i class="fas fa-eye toggle_password"></i>
+					</div>
+					<button type="submit" class="kgsweb-password-submit">Unlock</button>
+					<div class="kgsweb-password-error" style="color:red; margin-top:0.5rem; display:none;"></div>
+				</form>
+				<div class="kgsweb-upload-ui" style="display:none;">
+					<select class="kgsweb-upload-folder"></select>
+					<input type="file" class="kgsweb-upload-file" />
+					<button type="button" class="kgsweb-upload-btn">Upload</button>
+				</div>
+			<?php endif; ?>
+
 		</div>
 		<?php
 		return ob_get_clean();

@@ -152,9 +152,9 @@ class KGSweb_Google_REST_API {
 		$text = KGSweb_Google_Ticker::get_cached_ticker($folder, $file);
 
 		// If there's no ticker content, try to rebuild the ticker cache (if supported)
-		if (!$text && method_exists('KGSweb_Google_Ticker', 'refresh_cache_cron')) {
+		if (!$text && method_exists('KGSweb_Google_Ticker', 'refresh_ticker_cache')) {
 			// Use refresh logic to get a fresh version
-			KGSweb_Google_Ticker::refresh_cache_cron();
+			KGSweb_Google_Ticker::refresh_ticker_cache();
 			$text = KGSweb_Google_Ticker::get_cached_ticker($folder, $file);
 		}
 

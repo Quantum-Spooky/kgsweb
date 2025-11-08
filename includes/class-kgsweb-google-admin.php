@@ -17,7 +17,6 @@ class KGSweb_Google_Admin {
 		$instance = new self();
 		add_action('admin_menu', [$instance, 'menu']);
 		add_action('admin_enqueue_scripts', [$instance, 'enqueue_admin']); 
-
 	}
 
     /*******************************
@@ -34,8 +33,7 @@ class KGSweb_Google_Admin {
         ];
         foreach ($admin_js as $mod) {
             wp_enqueue_script("kgsweb-$mod");
-        }       
-		
+        }       	
     }
 
     /*******************************
@@ -79,12 +77,18 @@ class KGSweb_Google_Admin {
                 if (!isset($_POST['kgsweb_save_settings_nonce']) || !wp_verify_nonce($_POST['kgsweb_save_settings_nonce'], 'kgsweb_save_settings_action')) {
                     wp_die('Security check failed.');
                 }
-        
+			
             // -------------------------------
             // Upload settings
             // -------------------------------
             $auth_mode = sanitize_text_field($_POST['upload_auth_mode'] ?? 'password');
-            update_option('kgsweb_upload_auth_mode', $auth_mode);
+			
+            // Upload authorization flags
+			update_option('kgsweb_allow_password_auth', isset($_POST['allow_password_auth']));
+			update_option('kgsweb_allow_group_auth', isset($_POST['allow_group_auth']));
+
+			// Backward compatibility migration cleanup
+			delete_option('kgsweb_upload_auth_mode');
 
             if (!empty($_POST['upload_password'])) {
                 $plain = sanitize_text_field($_POST['upload_password']);
@@ -101,7 +105,7 @@ class KGSweb_Google_Admin {
             update_option('kgsweb_calendar_ids', $_POST['calendar_ids']);
             update_option('kgsweb_calendar_url', esc_url_raw($_POST['calendar_url'] ?? ''));
             update_option('kgsweb_upload_root_folder_id', KGSweb_Google_Admin::extract_drive_folder_id($_POST['upload_root_folder_id'] ?? ''));
-            update_option('kgsweb_upload_google_groups', array_map('trim', explode(',', $_POST['google_groups'] ?? '')));
+			update_option('kgsweb_upload_google_groups', array_filter(array_map('trim', preg_split('/\r?\n/', $_POST['google_groups'] ?? ''))));
             update_option('kgsweb_upload_destination', sanitize_text_field($_POST['upload_destination'] ?? 'drive'));
             update_option('kgsweb_wp_upload_root_folder_id', sanitize_text_field($_POST['wp_upload_root_folder_id'] ?? ''));
 
@@ -115,6 +119,9 @@ class KGSweb_Google_Admin {
             update_option('kgsweb_athletic_calendar_folder_id', KGSweb_Google_Admin::extract_drive_folder_id($_POST['athletic_calendar_folder_id'] ?? ''));
             update_option('kgsweb_feature_image_folder_id', KGSweb_Google_Admin::extract_drive_folder_id($_POST['feature_image_folder_id'] ?? ''));
             update_option('kgsweb_pto_feature_image_folder_id', KGSweb_Google_Admin::extract_drive_folder_id($_POST['pto_feature_image_folder_id'] ?? ''));
+			
+			// Clear client-side cookie, I think
+			update_option('kgsweb_upload_settings_version', time());
 
             // Refresh caches																				    
                 $integration->cron_refresh_all_caches();
@@ -130,6 +137,8 @@ class KGSweb_Google_Admin {
                     wp_die('Security check failed.');
                 }
                 $integration->cron_refresh_all_caches();
+				// Force ticker cache refresh 
+				if (class_exists('KGSweb_Google_Ticker')) { KGSweb_Google_Ticker::refresh_ticker_cache(); }
                 if (!defined('DOING_AJAX') || !DOING_AJAX) echo "<div class='updated'><p>Cache updated successfully!</p></div>";
             }
         // -------------------------------
@@ -140,8 +149,12 @@ class KGSweb_Google_Admin {
                     wp_die('Security check failed.');
                 }
                 global $wpdb;
-                $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_kgsweb\_%'");
-                $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_timeout\_kgsweb\_%'");
+                   // Delete all KGSWEB transients
+					$wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_kgsweb\_%'");
+					$wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_timeout\_kgsweb\_%'");
+					// Clear ticker cache index
+					delete_option('kgsweb_ticker_cache_index');
+					delete_option('kgsweb_ticker_last_file_id');
                 if (!defined('DOING_AJAX') || !DOING_AJAX) echo "<div class='updated'><p>All KGSWEB caches cleared!</p></div>";
             }
         }
@@ -155,8 +168,9 @@ class KGSweb_Google_Admin {
         $calendars      		    = get_option('kgsweb_calendar_ids', '');
         $calendar_url       		= get_option('kgsweb_calendar_url', '');
         $upload_root 				= get_option('kgsweb_upload_root_folder_id', '');
-        $upload_auth_mode			= get_option('kgsweb_upload_auth_mode', 'password');
-        $upload_pass     			= get_option('kgsweb_upload_password_plaintext', '');
+		$allow_password_auth 		= (bool) get_option('kgsweb_allow_password_auth', true);
+		$allow_group_auth 			= (bool) get_option('kgsweb_allow_group_auth', false);        
+		$upload_pass     			= get_option('kgsweb_upload_password_plaintext', '');
         $google_groups				= get_option('kgsweb_upload_google_groups', []);
         $upload_dest				= get_option('kgsweb_upload_destination', 'drive');
         $wp_upload_root				= get_option('kgsweb_wp_upload_root_folder_id', '');
@@ -224,12 +238,16 @@ class KGSweb_Google_Admin {
 						<h2>Secure Upload Settings</h2>
 						<table class="form-table">
 							<tr>
-								<th>Authorization Mode</th>
+								<th>Authorization Methods</th>
 								<td>
-									<select name="upload_auth_mode">
-										<option value="password" <?php selected($upload_auth_mode, 'password'); ?>>Password</option>
-										<option value="google_group" <?php selected($upload_auth_mode, 'google_group'); ?>>Google Group</option>
-									</select>
+									<label>
+										<input type="checkbox" name="allow_password_auth" value="1" <?php checked($allow_password_auth); ?>>
+										Allow Password Authentication
+									</label><br>
+									<label>
+										<input type="checkbox" name="allow_group_auth" value="1" <?php checked($allow_group_auth); ?>>
+										Allow Google Group Authentication
+									</label>
 								</td>
 							</tr>
 							<tr>
@@ -244,8 +262,12 @@ class KGSweb_Google_Admin {
 							<tr>
 								<th>Google Groups Allowed</th>
 								<td>
-									<input type="text" name="google_groups" value="<?php echo esc_attr(implode(',', $google_groups)); ?>" size="50"><br>
-									<small>Comma-separated email addresses or groups</small>
+									<textarea name="google_groups" rows="10" cols="60" style="resize: vertical;"><?php
+										echo esc_textarea(implode("\n", $google_groups));
+									?></textarea><br>
+									<small>Enter email addresses or groups (e.g. staff@kellgradeschool.com, user1@gmail.com). One per line.</small><br>
+								
+
 								</td>
 							</tr>
 							<tr>
@@ -260,7 +282,7 @@ class KGSweb_Google_Admin {
 							<tr class="wp-upload-row">
 								<th>WordPress Upload Root</th>
 								<td>
-									<input type="text" name="wp_upload_root" id="wp_upload_root" value="<?php echo esc_attr($wp_upload_root); ?>" size="50"><br>
+									    <input type="text" name="wp_upload_root_folder_id" id="wp_upload_root_folder_id" value="<?php echo esc_attr($wp_upload_root); ?>" size="50"><br>
 									<small>Used only if destination is WordPress</small>
 								</td>
 							</tr>
