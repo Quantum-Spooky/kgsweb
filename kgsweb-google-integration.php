@@ -35,6 +35,27 @@ require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-slides.php';
 require_once KGSWEB_PLUGIN_DIR . 'includes/class-kgsweb-google-sheets.php';
 require_once __DIR__ . '/vendor/autoload.php';
 
+	// Start session early, capture origin URL
+	add_action('init', function() {
+
+		if (!isset($_SESSION['kgsweb_origin_url']) && !is_admin() && !defined('DOING_AJAX')) {
+			$_SESSION['kgsweb_origin_url'] = esc_url_raw($_SERVER['REQUEST_URI'] ?? '/');
+		}
+	}, 0);
+
+	// Single, safe Nextend redirect filter
+	add_filter('nsl_redirect_url', function($url, $provider) {
+		$redirect = $_SESSION['kgsweb_origin_url'] ?? $url;
+		unset($_SESSION['kgsweb_origin_url']); // avoid reuse
+		return $redirect;
+	}, 10, 2);
+
+	// Logout cleanup
+	add_action('wp_logout', function() {
+		unset($_SESSION[KGSweb_Google_Secure_Upload::SESSION_KEY]);
+		setcookie('kgsweb_group_auth_verified', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl());
+	});
+
 add_action( 'plugins_loaded', function() {
     KGSweb_Google_Integration::init();
     KGSweb_Google_Admin::init();
@@ -46,7 +67,6 @@ add_action( 'plugins_loaded', function() {
     KGSweb_Google_Helpers::init();
 	KGSweb_Google_Ticker::register();
 });
-
 
 use Google\Client;
 use Google\Service\Drive;
