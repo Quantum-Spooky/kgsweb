@@ -60,14 +60,14 @@ class KGSweb_Google_REST_API {
 			'callback' => [__CLASS__, 'get_display'],
 			'args'     => [
 				'type' => [
-					'type'        => 'string',
-					'required'    => false,
-					'enum'        => array_keys(KGSweb_Google_Display::$types),
+					'type'          => 'string',
+					'required'      => false,
+					'enum'          => array_keys(KGSweb_Google_Display::$types),
 					'sanitize_callback' => 'sanitize_text_field',
 				],
 				'folder' => [
-					'type'        => 'string',
-					'required'    => false,
+					'type'          => 'string',
+					'required'      => false,
 					'sanitize_callback' => 'sanitize_text_field',
 				],
 			],
@@ -90,12 +90,23 @@ class KGSweb_Google_REST_API {
         ]);
 
 		
-		// ------------------------
-        // User-Accessible Cache Refresh 
-        // ------------------------
+		// ------------------------------------------------
+        // Cache Refresh (Full API Call)
+		// Triggers KGSweb_Google_Integration::cron_refresh_all_caches()
+        // ------------------------------------------------
 		register_rest_route('kgsweb/v1', '/cache-refresh', [
 			'methods' => 'POST',
 			'callback' => [__CLASS__, 'kgsweb_refresh_cache_endpoint'],
+			'permission_callback' => '__return_true',
+		]);
+        
+        // ------------------------------------------------
+        // Cache Invalidate (Fast DB Clear) - NEW ENDPOINT
+		// Triggers KGSweb_Google_Integration::clear_all_google_caches()
+        // ------------------------------------------------
+		register_rest_route('kgsweb/v1', '/cache-clear', [
+			'methods' => 'POST',
+			'callback' => [__CLASS__, 'kgsweb_clear_cache_endpoint'],
 			'permission_callback' => '__return_true',
 		]);
 
@@ -219,7 +230,7 @@ class KGSweb_Google_REST_API {
 
 	
 	public static function get_documents(WP_REST_Request $req) {
-		$folder_id = $req->get_param('root') ?? KGSweb_Google_Drive_Docs::get_public_root_id();                                
+		$folder_id = $req->get_param('root') ?? KGSweb_Google_Drive_Docs::get_public_root_id();                          
 		$drive = KGSweb_Google_Integration::init()->get_drive();
 
 		if (!$drive) {
@@ -341,41 +352,80 @@ class KGSweb_Google_REST_API {
     }
 	
 	// ------------------------------------------------
-	// User-Accessible Cache Refresh 
+	// User-Accessible Cache Refresh (Full API Call)
 	// ------------------------------------------------
 		
-		public static function kgsweb_refresh_cache_endpoint(WP_REST_Request $request) {
-			$secret = $request->get_param('secret');
-			$expected_secret = get_option('kgsweb_cache_refresh_secret');
+	public static function kgsweb_refresh_cache_endpoint(WP_REST_Request $request) {
+		$secret = $request->get_param('secret');
+		$expected_secret = get_option('kgsweb_cache_refresh_secret');
 
-			if (!$secret || $secret !== $expected_secret) {
-				return new WP_REST_Response([
-					'success' => false,
-					'message' => 'Invalid secret.'
-				], 403);
-			}
-
-			// Rate limiting: 1 call per minute per IP
-			$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-			$last_call = get_transient('kgsweb_cache_refresh_' . md5($ip));
-			if ($last_call) {
-				return new WP_REST_Response([
-					'success' => false,
-					'message' => 'Rate limit exceeded. Try again later.'
-				], 429);
-			}
-			set_transient('kgsweb_cache_refresh_' . md5($ip), time(), MINUTE_IN_SECONDS);
-
-			// Call the integration class
-			if (class_exists('KGSweb_Google_Integration')) {
-				$integration = KGSweb_Google_Integration::init();
-				$integration->cron_refresh_all_caches();
-				error_log('KGSWEB: Global cache refreshed via REST endpoint.');
-			}
-
+		if (!$secret || $secret !== $expected_secret) {
 			return new WP_REST_Response([
-				'success' => true,
-				'message' => 'Cache refreshed successfully.'
-			]);
+				'success' => false,
+				'message' => 'Invalid secret.'
+			], 403);
 		}
+
+		// Rate limiting: 1 call per minute per IP
+		$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+		$last_call = get_transient('kgsweb_cache_refresh_' . md5($ip));
+		if ($last_call) {
+			return new WP_REST_Response([
+				'success' => false,
+				'message' => 'Rate limit exceeded. Try again later.'
+			], 429);
+		}
+		set_transient('kgsweb_cache_refresh_' . md5($ip), time(), MINUTE_IN_SECONDS);
+
+		// Call the integration class to perform a full API refresh
+		if (class_exists('KGSweb_Google_Integration')) {
+			$integration = KGSweb_Google_Integration::init();
+			$integration->cron_refresh_all_caches();
+			error_log('KGSWEB: Global cache refreshed (API) via REST endpoint.');
+		}
+
+		return new WP_REST_Response([
+			'success' => true,
+			'message' => 'Cache refreshed successfully (Full API Call).'
+		]);
+	}
+    
+	// ------------------------------------------------
+	// User-Accessible Cache Clear (Fast DB Invalidation) - NEW FUNCTION
+	// ------------------------------------------------
+		
+	public static function kgsweb_clear_cache_endpoint(WP_REST_Request $request) {
+		$secret = $request->get_param('secret');
+		$expected_secret = get_option('kgsweb_cache_refresh_secret');
+
+		if (!current_user_can('manage_options') && (!$secret || $secret !== $expected_secret)) {
+			return new WP_REST_Response([
+				'success' => false,
+				'message' => 'Invalid secret or insufficient permissions.'
+			], 403);
+		}
+
+		// Rate limiting: 1 call per minute per IP
+		$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+		$last_call = get_transient('kgsweb_cache_clear_' . md5($ip));
+		if ($last_call) {
+			return new WP_REST_Response([
+				'success' => false,
+				'message' => 'Rate limit exceeded. Try again later.'
+			], 429);
+		}
+		// Use a different transient key for the clear endpoint's rate limit
+		set_transient('kgsweb_cache_clear_' . md5($ip), time(), MINUTE_IN_SECONDS);
+
+		// Call the fast cache clear function
+		if (class_exists('KGSweb_Google_Integration')) {
+			KGSweb_Google_Integration::clear_all_google_caches();
+			error_log('KGSWEB: Global cache cleared (DB Invalidation) via REST endpoint.');
+		}
+
+		return new WP_REST_Response([
+			'success' => true,
+			'message' => 'Cache invalidated successfully (Fast DB Clear).'
+		]);
+	}
 }

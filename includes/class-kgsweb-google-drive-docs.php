@@ -373,7 +373,7 @@ class KGSweb_Google_Drive_Docs
             KGSweb_Google_Integration::set_transient(
                 $cache_key,
                 $content,
-                MINUTE_IN_SECONDS * 5
+                MINUTE_IN_SECONDS * 60
             );
             error_log(
                 "KGSWEB: Force-refreshed cache for file {$file_id}, length=" .
@@ -495,7 +495,8 @@ class KGSweb_Google_Drive_Docs
                 }
 
                 // 	Fallback to Drive export
-                $content = $this->export_google_doc_as_text($file_id);
+                // $content = $this->export_google_doc_as_text($file_id);
+				$content = KGSweb_Google_Helpers::export_google_doc_as_text($file_id);
                 error_log(
                     "KGSWEB: get_file_contents - fallback Drive export returned " .
                         strlen($content) .

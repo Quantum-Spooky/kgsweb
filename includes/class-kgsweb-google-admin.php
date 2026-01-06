@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /*******************************
  * Admin menu + Settings screen
- *******************************/							 
+ *******************************/							
 class KGSweb_Google_Admin {
 
     /**
@@ -16,7 +16,7 @@ class KGSweb_Google_Admin {
 	public static function init() {
 		$instance = new self();
 		add_action('admin_menu', [$instance, 'menu']);
-		add_action('admin_enqueue_scripts', [$instance, 'enqueue_admin']); 
+		add_action('admin_enqueue_scripts', [$instance, 'enqueue_admin']);	
 	}
 
     /*******************************
@@ -33,7 +33,7 @@ class KGSweb_Google_Admin {
         ];
         foreach ($admin_js as $mod) {
             wp_enqueue_script("kgsweb-$mod");
-        }       	
+        }    	
     }
 
     /*******************************
@@ -123,38 +123,46 @@ class KGSweb_Google_Admin {
 			// Clear client-side cookie, I think
 			update_option('kgsweb_upload_settings_version', time());
 
-            // Refresh caches																				    
-                $integration->cron_refresh_all_caches();
-                $integration->get_drive();
-                if (!defined('DOING_AJAX') || !DOING_AJAX) echo "<div class='updated'><p>Settings saved!</p></div>";
+            // Refresh caches																				 
+            // When settings are saved, perform a full refresh to ensure all new IDs are active.
+            $integration->cron_refresh_all_caches();
+            $integration->get_drive();
+            if (!defined('DOING_AJAX') || !DOING_AJAX) echo "<div class='updated'><p>Settings saved and cache refreshed!</p></div>";
             }
 
         // -------------------------------
-        // Update Cache Button
-        // -------------------------------							  
+        // Update Cache Button (Full Refresh)
+        // -------------------------------							
             if (isset($_POST['kgsweb_update_cache'])) {
                 if (!isset($_POST['kgsweb_update_cache_nonce']) || !wp_verify_nonce($_POST['kgsweb_update_cache_nonce'], 'kgsweb_update_cache_action')) {
                     wp_die('Security check failed.');
                 }
+                // Use the full cron refresh function
                 $integration->cron_refresh_all_caches();
-				// Force ticker cache refresh 
+				// Force ticker cache refresh
 				if (class_exists('KGSweb_Google_Ticker')) { KGSweb_Google_Ticker::refresh_ticker_cache(); }
                 if (!defined('DOING_AJAX') || !DOING_AJAX) echo "<div class='updated'><p>Cache updated successfully!</p></div>";
             }
         // -------------------------------
-        // Clear Cache
-        // -------------------------------				  
+        // Clear Cache Button (Fast Invalidation)
+        // -------------------------------				
             if (isset($_POST['kgsweb_clear_cache'])) {
                 if (!isset($_POST['kgsweb_clear_cache_nonce']) || !wp_verify_nonce($_POST['kgsweb_clear_cache_nonce'], 'kgsweb_clear_cache_action')) {
                     wp_die('Security check failed.');
                 }
+                
+                // *** CALL THE NEW FAST CACHE CLEAR FUNCTION ***
+                KGSweb_Google_Integration::clear_all_google_caches();
+                
+                // Note: The following lines are now redundant and can be removed, 
+                // but are kept for minimal change from your original provided code block
                 global $wpdb;
-                   // Delete all KGSWEB transients
-					$wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_kgsweb\_%'");
-					$wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_timeout\_kgsweb\_%'");
-					// Clear ticker cache index
-					delete_option('kgsweb_ticker_cache_index');
-					delete_option('kgsweb_ticker_last_file_id');
+                $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_kgsweb\_%'");
+                $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '\_transient\_timeout\_kgsweb\_%'");
+                delete_option('kgsweb_ticker_cache_index');
+                delete_option('kgsweb_ticker_last_file_id');
+                // End of redundant section
+                
                 if (!defined('DOING_AJAX') || !DOING_AJAX) echo "<div class='updated'><p>All KGSWEB caches cleared!</p></div>";
             }
         }
@@ -162,34 +170,36 @@ class KGSweb_Google_Admin {
         // -------------------------------
         // Load Saved Options for display
         // -------------------------------
-        $service_json       		= get_option('kgsweb_service_account_json', '');
-        $public_documents_root      = get_option('kgsweb_public_documents_root_folder_id', '');
-		$ticker        			    = get_option('kgsweb_ticker_folder_id', '');
-        $calendars      		    = get_option('kgsweb_calendar_ids', '');
-        $calendar_url       		= get_option('kgsweb_calendar_url', '');
+        $service_json   		= get_option('kgsweb_service_account_json', '');
+        $public_documents_root   = get_option('kgsweb_public_documents_root_folder_id', '');
+		$ticker    			  = get_option('kgsweb_ticker_folder_id', '');
+        $calendars   		  = get_option('kgsweb_calendar_ids', '');
+        $calendar_url   		= get_option('kgsweb_calendar_url', '');
         $upload_root 				= get_option('kgsweb_upload_root_folder_id', '');
 		$allow_password_auth 		= (bool) get_option('kgsweb_allow_password_auth', true);
-		$allow_group_auth 			= (bool) get_option('kgsweb_allow_group_auth', false);        
-		$upload_pass     			= get_option('kgsweb_upload_password_plaintext', '');
+		$allow_group_auth 			= (bool) get_option('kgsweb_allow_group_auth', false);   
+		$upload_pass  			= get_option('kgsweb_upload_password_plaintext', '');
         $google_groups				= get_option('kgsweb_upload_google_groups', []);
         $upload_dest				= get_option('kgsweb_upload_destination', 'drive');
         $wp_upload_root				= get_option('kgsweb_wp_upload_root_folder_id', '');
 
         // Display folders
-        $breakfast_menu     = get_option('kgsweb_breakfast_menu_folder_id', '');
-        $lunch_menu         = get_option('kgsweb_lunch_menu_folder_id', '');
-        $monthly_calendar   = get_option('kgsweb_monthly_calendar_folder_id', '');
-        $academic_calendar  = get_option('kgsweb_academic_calendar_folder_id', '');
-        $athletic_calendar  = get_option('kgsweb_athletic_calendar_folder_id', '');
-        $feature_image      = get_option('kgsweb_feature_image_folder_id', '');
-        $pto_feature_image  = get_option('kgsweb_pto_feature_image_folder_id', '');
+        $breakfast_menu  = get_option('kgsweb_breakfast_menu_folder_id', '');
+        $lunch_menu    = get_option('kgsweb_lunch_menu_folder_id', '');
+        $monthly_calendar = get_option('kgsweb_monthly_calendar_folder_id', '');
+        $academic_calendar = get_option('kgsweb_academic_calendar_folder_id', '');
+        $athletic_calendar = get_option('kgsweb_athletic_calendar_folder_id', '');
+        $feature_image   = get_option('kgsweb_feature_image_folder_id', '');
+        $pto_feature_image = get_option('kgsweb_pto_feature_image_folder_id', '');
 
         // Ensure calendar IDs are always an array
         $calendars_array = is_array($calendars) ? $calendars : explode(',', (string)$calendars);
         $calendars_array = array_map('trim', $calendars_array);
 
-        $last      = (int) get_option('kgsweb_last_refresh', 0);
+        $last   = (int) get_option('kgsweb_last_refresh', 0);
         $last_text = $last > 0 ? date_i18n('m/d/Y g:i A T', $last) : '';
+        $last_clear = (int) get_option('kgsweb_cache_last_refresh_global_manual', 0);
+        $last_clear_text = $last_clear > 0 ? date_i18n('m/d/Y g:i A T', $last_clear) : 'Never';
 
         // -------------------------------
         // Render Settings HTML Form
@@ -204,13 +214,11 @@ class KGSweb_Google_Admin {
 						<?php wp_nonce_field('kgsweb_update_cache_action', 'kgsweb_update_cache_nonce'); ?>
 						<?php wp_nonce_field('kgsweb_clear_cache_action', 'kgsweb_clear_cache_nonce'); ?>
 
-						<!-- Service Account JSON -->
 						<h2>Google Service Account JSON</h2>
 						<p>Paste the JSON content of your service account key file.</p>
 						<button type="button" id="toggle-service-json" class="button">Show JSON</button>
 						<textarea id="service-account-json" name="service_account_json" rows="12" cols="80" style="display:none;"><?php echo esc_textarea($service_json); ?></textarea>
 
-						<!-- Drive Folder IDs -->
 						<h2>Google Drive Folder IDs (Global Defaults)</h2>
 						<table class="form-table">
 							<tr><th>Public Documents Root Folder</th><td><input type="text" id="public_documents_root_folder_id" name="public_documents_root_folder_id" value="<?php echo esc_attr($public_documents_root); ?>" size="50"></td></tr>
@@ -225,7 +233,6 @@ class KGSweb_Google_Admin {
 							<tr><th>PTO Feature Image Folder</th><td><input type="text" id="pto_feature_image_folder_id" name="pto_feature_image_folder_id" value="<?php echo esc_attr($pto_feature_image); ?>" size="50"></td></tr>
 						</table>
 
-						<!-- Calendar Settings -->
 						<h2>Calendar IDs</h2>
 						<p>Enter one or more Google Calendar IDs (comma-separated) to display upcoming events.</p>
 						<input type="text" name="calendar_ids" id="calendar_ids" value="<?php echo esc_attr(implode(',', $calendars_array)); ?>" size="50">
@@ -234,7 +241,6 @@ class KGSweb_Google_Admin {
 						<p>Enter the URL for the Calendar page view (used for "View Calendar" link).</p>
 						<input type="url" name="calendar_url" id="calendar_url" value="<?php echo esc_attr($calendar_url); ?>" size="50">
 
-						<!-- Secure Upload Settings -->
 						<h2>Secure Upload Settings</h2>
 						<table class="form-table">
 							<tr>
@@ -282,7 +288,7 @@ class KGSweb_Google_Admin {
 							<tr class="wp-upload-row">
 								<th>WordPress Upload Root</th>
 								<td>
-									    <input type="text" name="wp_upload_root_folder_id" id="wp_upload_root_folder_id" value="<?php echo esc_attr($wp_upload_root); ?>" size="50"><br>
+									  <input type="text" name="wp_upload_root_folder_id" id="wp_upload_root_folder_id" value="<?php echo esc_attr($wp_upload_root); ?>" size="50"><br>
 									<small>Used only if destination is WordPress</small>
 								</td>
 							</tr>
@@ -292,12 +298,14 @@ class KGSweb_Google_Admin {
 							<input type="submit" name="kgsweb_save_settings" id="kgsweb_save_settings" class="button button-primary" value="Save Settings">
 						</p>
 
-						<!-- Cache Management -->
 						<hr />
 						<h2>Cache Management</h2>
-						<p>Last cache refresh: <?php echo esc_html($last_text); ?></p>
-						<button type="submit" name="kgsweb_update_cache"  id="kgsweb_update_cache"  class="button">Update Cache Now</button>
-						<button type="submit" name="kgsweb_clear_cache" id="kgsweb_clear_cache" class="button">Clear All Cache</button>
+						<p>
+                            **Last Scheduled Refresh (via API):** <?php echo esc_html($last_text); ?><br>
+                            **Last Manual Cache Clear (via DB):** <?php echo esc_html($last_clear_text); ?>
+                        </p>
+						<button type="submit" name="kgsweb_update_cache" id="kgsweb_update_cache" class="button">Update Cache Now (API Refresh)</button>
+						<button type="submit" name="kgsweb_clear_cache" id="kgsweb_clear_cache" class="button button-secondary">Clear All Cache (Fast Invalidation)</button>
 					</form>
 				</div>
 
@@ -319,4 +327,4 @@ class KGSweb_Google_Admin {
 			<?php
 		} // end !ajax wrapper
     } // end render_settings_page
-} // end class					 
+} // end class

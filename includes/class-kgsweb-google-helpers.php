@@ -69,19 +69,26 @@ class KGSweb_Google_Helpers {
     // -----------------------------
     // Icon Selection
     // -----------------------------
-    public static function icon_for_mime_or_ext($mime, $ext) {
-        $mime = strtolower($mime ?? '');
-        $ext = strtolower($ext ?? '');
-        if ($mime === 'application/vnd.google-apps.folder') return 'fa-folder';
-        if ($ext === 'pdf') return 'fa-file-pdf';
-        if (in_array($ext, ['doc','docx'])) return 'fa-file-word';
-        if (in_array($ext, ['xls','xlsx'])) return 'fa-file-excel';
-        if (in_array($ext, ['ppt','pptx'])) return 'fa-file-powerpoint';
-        if (in_array($ext, ['jpg','jpeg','png','gif','webp'])) return 'fa-file-image';
-        if (in_array($ext, ['wav','mp4','m4v','mov','avi'])) return 'fa-file-video';
-        if (in_array($ext, ['mp3','wav'])) return 'fa-file-audio';
-        return 'fa-file';
-    }
+	public static function icon_for_mime_or_ext($mime, $ext) {
+		// ... all logic returns only the class name suffix, e.g., 'file-pdf'
+		$icon_suffix = 'file'; // default
+
+		$mime = strtolower($mime ?? '');
+		$ext = strtolower($ext ?? '');
+		
+		// Determine the correct suffix (e.g., 'file-pdf', 'folder', etc.)
+		if ($mime === 'application/vnd.google-apps.folder') $icon_suffix = 'folder';
+		elseif ($ext === 'pdf') $icon_suffix = 'file-pdf';
+		elseif (in_array($ext, ['doc','docx'])) $icon_suffix = 'file-word';
+		elseif (in_array($ext, ['xls','xlsx'])) $icon_suffix = 'file-excel';
+		elseif (in_array($ext, ['ppt','pptx'])) $icon_suffix = 'file-powerpoint';
+		elseif (in_array($ext, ['jpg','jpeg','png','gif','webp'])) $icon_suffix = 'file-image';
+		elseif (in_array($ext, ['wav','mp4','m4v','mov','avi'])) $icon_suffix = 'file-video';
+		elseif (in_array($ext, ['mp3','wav'])) $icon_suffix = 'file-audio';
+		
+		// Return the full HTML string for Font Awesome
+		return '<i class="fa fa-' . $icon_suffix . '"></i>';
+	}
 
     // -----------------------------
     // Fetch raw file contents (generic)
@@ -217,7 +224,7 @@ class KGSweb_Google_Helpers {
 		}
 
 		// 2. Download fresh file
-		$content = KGSweb_Google_Helpers::download_file($file_id);
+		$content = self::fetch_file_contents_raw($file_id); // <-- Use the existing helper
 		if (!$content) return null;
 
 		file_put_contents($cached_file, $content);
@@ -301,11 +308,18 @@ class KGSweb_Google_Helpers {
 		 * Fallback export of Google Doc as plain text.
 		 *
 		 * @param string $file_id
-		 * @param Google\Service\Drive $service
+		 * @param Google\Service\Drive $service // can remove this I guess
 		 * @return string
 		 */
-		public static function export_google_doc_as_text(string $file_id, $service): string {
+		public static function export_google_doc_as_text(string $file_id): string {
 			try {
+				// Get the Drive service using the helper method.
+				$service = KGSweb_Google_Integration::get_drive_service(); 
+				if (!$service) {
+					error_log("KGSWEB ERROR: export_google_doc_as_text - Drive service not available for {$file_id}");
+					return '';
+				}
+
 				$response = $service->files->export($file_id, 'text/plain', ['alt' => 'media']);
 				if (!$response) {
 					error_log("KGSWEB ERROR: export_google_doc_as_text - NULL response for {$file_id}");

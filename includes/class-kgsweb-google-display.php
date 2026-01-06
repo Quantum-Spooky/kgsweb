@@ -122,14 +122,38 @@ public static function shortcode($atts) {
         return $data;
     }
 
-    /**
-     * Refresh cache manually
-     */
-    public static function refresh_display_cache($type, $folder_id) {
-        $data = self::build_latest_display_image($type, $folder_id);
-        set_transient("kgsweb_cache_display_" . md5($type . $folder_id), $data, HOUR_IN_SECONDS);
-        update_option("kgsweb_cache_last_refresh_display_" . $type, current_time("timestamp"));
-    }
+	/**
+	 * Refresh cache manually
+	 */
+	public static function refresh_display_cache($type, $folder_id) {
+		// --- STEP 1: DELETE THE OLD CACHE ENTRIES ---
+		
+		// Delete Layer 1: The transient holding the local file path (12 hour cache)
+		$local_path_key = 'kgsweb_display_' . sanitize_key($type);
+		delete_transient($local_path_key); 
+		error_log("KGSweb: Deleted local file path transient: " . $local_path_key);
+
+		// Delete Layer 2: The transient holding the final display payload (1 hour cache)
+		$payload_key = "kgsweb_cache_display_" . md5($type . $folder_id);
+		delete_transient($payload_key);
+		error_log("KGSweb: Deleted display payload transient: " . $payload_key);
+
+
+		// --- STEP 2: RE-BUILD FRESH DATA ---
+		
+		// Build latest display image, which will now bypass the deleted Layer 1 cache 
+		// and trigger a fresh fetch/conversion from Google Drive.
+		$data = self::build_latest_display_image($type, $folder_id);
+		
+		// Now SET the fresh data back into Layer 2 (The Display Payload Cache)
+		set_transient($payload_key, $data, HOUR_IN_SECONDS);
+		
+		// Update the final refresh timestamp.
+		update_option("kgsweb_cache_last_refresh_display_" . $type, current_time("timestamp"));
+		
+		// Note: The page cache flushing you added to cron_refresh_all_caches will handle
+		// the final step of clearing the browser/page cache.
+	}
 
     /**
      * Build latest display image from Drive folder

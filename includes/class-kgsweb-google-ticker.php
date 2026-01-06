@@ -159,16 +159,26 @@ class KGSweb_Google_Ticker {
 
 		$file_id = $latestFile->id;
 
-		// Force fetch the latest content instead of returning cached transient
+		// --- STEP 1: FORCE FETCH FRESH CONTENT ---
+		// We extract the text immediately, bypassing the transient check in get_cached_ticker().
 		$text = self::extract_ticker_text($file_id);
 		if (!$text) {
 			error_log("KGSWEB: [Ticker] No ticker content found in {$file_id}, ticker hidden.");
 			return false;
 		}
 
-		self::clear_folder_cache($folderId);
+		// --- STEP 2: SET THE NEW, FRESH CACHE ENTRY FIRST ---
+		// This prevents a race condition where a site visit happens after the old cache 
+		// is cleared but before the new cache is set (preventing a temporary cache miss).
 		self::set_ticker_cache($folderId, $file_id, $text, $latestFile->modifiedTime ?? null);
+		
+		// Update the last file ID option.
 		update_option('kgsweb_ticker_last_file_id', $file_id);
+		
+		// --- STEP 3: CLEAN UP OLD/STALE CACHE ENTRIES ---
+		// Now that the new file's content is successfully cached, we can safely clear 
+		// all previous file cache entries for this folder from the kgsweb_ticker_cache_index.
+		self::clear_folder_cache($folderId);
 
 		error_log("KGSWEB: [Ticker] Ticker updated from file {$file_id}");
 		return true;
@@ -220,7 +230,7 @@ class KGSweb_Google_Ticker {
 
         $scroll_text = preg_replace("/(\r\n|\n|\r){2,}/", "\n", $text);
         $scroll_text = str_replace(["\r\n", "\n", "\r"], ' | ', $scroll_text);
-        $scroll_text = trim($scroll_text) . ' | KGS |';
+        $scroll_text = trim($scroll_text) . ' | ';
 
         $lines = array_map('rtrim', explode("\n", str_replace(["\r\n", "\r"], "\n", $text)));
         $full_lines = [];

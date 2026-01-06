@@ -22,7 +22,7 @@
   function buildScrollText(text) {
     let t = normalizeText(text);
     t = t.replace(/(\r\n|\n|\r)/g, " | ");
-    return t.trim() + " | KGS |";
+    return t.trim() + " |";
   }
 
   /**

@@ -315,11 +315,106 @@ class KGSweb_Google_Integration
     if ($sheets_file) {
         KGSweb_Google_Sheets::refresh_sheets_cache($sheets_file, "A1:Z100");
     }
+	
+	// Attempt to flush WordPress Object Cache (useful if Redis/Memcached is used)
+    if ( function_exists( 'wp_cache_flush' ) ) {
+        wp_cache_flush();
+    }
+    
+    // Check for popular Page Caching plugins and flush them
+    if ( function_exists( 'rocket_clean_domain' ) ) { // WP Rocket
+        error_log("KGSWEB: Flushing WP Rocket cache.");
+        rocket_clean_domain();
+    } elseif ( function_exists( 'w3tc_flush_all' ) ) { // W3 Total Cache
+        error_log("KGSWEB: Flushing W3 Total Cache.");
+        w3tc_flush_all();
+    } elseif ( function_exists( 'litespeed_purge_all' ) ) { // LiteSpeed Cache
+        error_log("KGSWEB: Flushing LiteSpeed cache.");
+        litespeed_purge_all();
+    }
 
     // --- Global refresh timestamp ---
     update_option("kgsweb_cache_last_refresh_global", current_time("timestamp"));
     update_option("kgsweb_last_refresh", current_time("timestamp"));
+	
+
 }
+    
+    /*******************************
+     * Manual Global Cache Clearing
+     *******************************/
+    public static function clear_all_google_caches(): void
+    {
+        error_log("KGSWEB: Initiating manual global cache clearance.");
+        $settings = self::get_settings();
+
+        // 1. CLEAR STRUCTURE & METADATA CACHES (Explicit Deletion)
+        
+        // --- Document Tree Cache ---
+        $doc_root_id = $settings["public_docs_root_folder_id"] ?? '';
+        if ($doc_root_id) {
+            self::delete_transient("kgsweb_cache_documents_" . $doc_root_id);
+            error_log("KGSWEB: Cleared Document Tree cache for root: " . $doc_root_id);
+        }
+
+        // --- Event Cache ---
+        $cal_id = $settings["calendar_id"] ?? '';
+        if ($cal_id) {
+            // Key used in KGSweb_Google_Upcoming_Events
+            self::delete_transient('kgsweb_cache_events_' . md5($cal_id));
+            error_log("KGSWEB: Cleared Events cache.");
+        }
+        
+        // --- Slides Metadata Cache ---
+        $slides_id = $settings["slides_file_id"] ?? "";
+        if ($slides_id) {
+            // Key used in KGSweb_Google_Slides
+            self::delete_transient('kgsweb_cache_slides_meta_' . $slides_id);
+            error_log("KGSWEB: Cleared Slides Metadata cache.");
+        }
+
+        // --- Ticker Cache ---
+        // Assumes key 'kgsweb_cache_ticker_data' used in KGSweb_Google_Ticker
+        self::delete_transient('kgsweb_cache_ticker_data'); 
+        error_log("KGSWEB: Cleared Ticker cache (assumed key).");
+        
+        // 2. CLEAR ALL INDIVIDUAL FILE CONTENT CACHES (Wildcard Deletion)
+        // This targets file content, sheet ranges, and display folder lists.
+        self::clear_wildcard_transients("kgsweb_cache_file_");
+        self::clear_wildcard_transients("kgsweb_cache_sheets_");
+        self::clear_wildcard_transients("kgsweb_cache_display_");
+
+
+        // 3. Clear Upload Tree Cache 
+        $upload_root = $settings["upload_root_folder_id"] ?? '';
+        if ($upload_root) {
+            self::delete_transient('kgsweb_cache_upload_tree_' . $upload_root);
+            error_log("KGSWEB: Cleared Upload Tree cache.");
+        }
+
+        // 4. Global timestamp update
+        update_option("kgsweb_cache_last_refresh_global_manual", current_time("timestamp"));
+        error_log("KGSWEB: Manual global cache clearance complete.");
+    }
+    
+    /**
+     * Helper to delete transients based on a prefix (wildcard).
+     * This uses direct database access to purge many transients without knowing their full keys.
+     */
+    private static function clear_wildcard_transients(string $prefix): void
+    {
+        global $wpdb;
+        // Use $wpdb->options table to delete the transient option and its timeout option.
+        $table_name = $wpdb->options;
+        $sql = $wpdb->prepare(
+            "DELETE FROM {$table_name} WHERE option_name LIKE %s OR option_name LIKE %s",
+            $wpdb->esc_like('_transient_' . $prefix) . '%',
+            $wpdb->esc_like('_transient_timeout_' . $prefix) . '%'
+        );
+        $wpdb->query($sql);
+    }
+    
+    // --- End of new functions ---
 
     /*******************************
      * Helpers: Transients
@@ -384,11 +479,10 @@ class KGSweb_Google_Integration
 	 * Assets Enqueue (Frontend)
 	 *******************************/
 	public function enqueue_frontend(): void {
-	 
 		$baseurl = $this->plugin_url;
 		$base = $this->plugin_path;
-
-		// Explicit load order for scripts	
+	
+	// Explicit load order for scripts	
 		$frontend_js = [
 			"helpers",
 			"format",
@@ -418,7 +512,7 @@ class KGSweb_Google_Integration
 	// Localize scripts
 		// helpers localization + fontawesome (only if helpers enqueued)
 		if (wp_script_is("kgsweb-helpers", "enqueued")) {
-						   
+						 
 		wp_localize_script("kgsweb-helpers", "KGSWEB_CFG", [
 				"rest" => [
 					"root" => esc_url_raw(rest_url("kgsweb/v1")),
@@ -441,11 +535,11 @@ class KGSweb_Google_Integration
 		// upload localization only after upload script is enqueued
 		if (wp_script_is('kgsweb-upload', 'enqueued')) {
 			wp_localize_script('kgsweb-upload', 'kgsweb_upload_ajax', [
-				'ajax_url'            => admin_url('admin-ajax.php'),
-				'uploadRootFolderId'  => get_option('kgsweb_upload_root_folder_id', ''),
-				'nonce'               => wp_create_nonce('kgsweb_upload_nonce'),
-				'settingsVersion'     => get_option('kgsweb_upload_settings_version', 0),
-				'user_logged_in'      => is_user_logged_in() ? '1' : '0',
+				'ajax_url'      => admin_url('admin-ajax.php'),
+				'uploadRootFolderId' => get_option('kgsweb_upload_root_folder_id', ''),
+				'nonce'       => wp_create_nonce('kgsweb_upload_nonce'),
+				'settingsVersion'  => get_option('kgsweb_upload_settings_version', 0),
+				'user_logged_in'   => is_user_logged_in() ? '1' : '0',
 			]);
 		}
 
@@ -503,7 +597,7 @@ class KGSweb_Google_Integration
 		}
 	}
 
-					  
+					
     /*******************************
      * Google Client Lazy Loader
      *******************************/
