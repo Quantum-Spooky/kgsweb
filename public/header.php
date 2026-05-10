@@ -1,4 +1,10 @@
 <?php
+/**
+ * header.php
+ * 
+ * Site Header - Loads config, Bootstrap, and critical styles.
+ */
+
 require_once __DIR__ . '/../cfg/config.php';
 ?>
 <!DOCTYPE html>
@@ -18,11 +24,11 @@ require_once __DIR__ . '/../cfg/config.php';
             --accent: <?= COLOR_ACCENT ?>;
         }
 
-        /* Critical Styles - Navbar + Hero */
         .navbar {
             background-image: url('<?= NAV_BG ?>') !important;
-			background-position: left top;
-			background-repeat: repeat;
+            background-position: left top;
+            background-repeat: repeat;
+            position: relative;
         }
         
         .navbar::before {
@@ -60,23 +66,22 @@ require_once __DIR__ . '/../cfg/config.php';
 </head>
 <body>
 
-	<!-- Top Contact Bar -->
-		<div class="bg-dark text-white py-2 small">
-			<div class="container">
-				<div class="row align-items-center">
-					<div class="col">
-						<?= ADDRESS ?> &nbsp;•&nbsp; <?= PHONE ?> &nbsp;•&nbsp;
-						<a href="mailto:<?= EMAIL ?>" class="text-white"><?= EMAIL ?></a>
-					</div>
-					<div class="col-auto">
-						<a href="https://www.teacherease.com/common/login.aspx" 
-						   target="_blank" 
-						   class="btn btn-sm top-login-btn">
-							<strong>TeacherEase</strong>
-						</a>
-					</div>
-				</div>
-			</div>
-		</div>
+    <!-- Top Contact Bar -->
+    <div class="bg-dark text-white py-2 small">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col">
+                    <?= ADDRESS ?> &nbsp;•&nbsp; <?= PHONE ?> &nbsp;•&nbsp; 
+                    <a href="mailto:<?= EMAIL ?>" class="text-white"><?= EMAIL ?></a>
+                </div>
+                <div class="col-auto">
+                    <a href="https://www.teacherease.com/common/login.aspx" target="_blank" 
+                       class="btn btn-sm top-login-btn">
+                        <strong>TeacherEase Login</strong>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <?php include 'navigation.php'; ?>

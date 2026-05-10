@@ -23,7 +23,7 @@ if (empty($live_posts)) {
 
 <!-- Optional: "View All Announcements" link -->
 <div class="mt-3">
-    <a href="<?= BASE_URL ?>announcements/" class="text-success fw-bold text-decoration-none">
+    <a href="<?= BASE_URL ?>news/announcements/" class="text-success fw-bold text-decoration-none">
         → View All Announcements
     </a>
 </div>

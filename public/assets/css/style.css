@@ -38,7 +38,7 @@
 	text-decoration: underline 1px transparent;
 }
 
-.top-login-btn:hover {
+.top-login-btn:hover {	
     background-color: none;
     color: var(--accent);
     border-color: transparent ;
