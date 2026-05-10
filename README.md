@@ -258,7 +258,7 @@ Each sub-page in Academics, Activities, and Family has a corresponding config ke
 
 
 
-Final List of PHP Files Needed
+List of PHP Files Needed
 Root Level (/public/)
 
 index.php ← Main Home Page (modular)
@@ -274,7 +274,7 @@ includes/home/hero.php
 includes/home/live-feed-section.php
 includes/home/widgets-section.php
 includes/home/sidebar.php
-includes/home/pride-section.php (Recommended - for "Why Our School" section)
+includes/home/pride-section.php (for "Why Our School" section)
 
 About Section
 
