@@ -57,8 +57,9 @@ include '../header.php';
                         <li>Baseball</li>
                         <li>Bowling</li>
                         <li>Basketball</li>
+                        <li>Cheerleading</li>
+                        <li>Cross Country</li>
                         <li>Volleyball</li>
-                        <li>Track & Field</li>
                     </ul>
 
                     <a href="<?= BASE_URL ?>activities/athletics/" class="btn btn-success">
