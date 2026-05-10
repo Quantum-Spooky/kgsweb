@@ -27,6 +27,35 @@ include '../header.php';
                     ?>
                 </div>
             </div>
+			
+			
+			
+            <!-- About the Administration -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Administration</h5>
+                </div>
+                <div class="card-body">
+                    <?php 
+                    // You can pull this from a Google Doc or config later
+                    echo "<p>Content for About the Administration goes here, including the leadership team and district contact information....</p>"; 
+                    ?>
+                </div>
+            </div>
+			
+            <!-- Board Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Administration</h5>
+                </div>
+                <div class="card-body">
+                    <?php 
+                    // You can pull this from a Google Doc or config later
+                    echo "<p>Content about Board members, meeting dates, and agendas goes here... Do not duplicate whatever is on the dedicated school board page though. Figure out a way to make this work. </p>"; 
+                    ?>
+                </div>
+            </div>
+			
 
             <!-- Building Information -->
             <div class="card mb-4">
@@ -49,8 +78,11 @@ include '../header.php';
                     <strong>District Documents &amp; Compliance</strong>
                 </a>
                 <a href="<?= BASE_URL ?>about/policies/" class="list-group-item list-group-item-action">
-                    <strong>District Policies</strong>
+                    <strong>District Policies & Handbooks</strong>
                 </a>
+                <a href="<?= BASE_URL ?>calendar" class="list-group-item list-group-item-action">
+                    <strong>School Calendar</strong>
+                </a>	
                 <a href="<?= BASE_URL ?>about/employment/" class="list-group-item list-group-item-action">
                     <strong>Employment Opportunities</strong>
                 </a>
