@@ -1,65 +1,67 @@
 <?php
 /**
- * index.php
- * 
- * Placeholder / Temporary 404 Page
- * 
- * Used as a temporary landing page for sections that
- * have not been fully built out yet.
+ * public/family/pto/index.php
+ *
+ * PTO information page.
  */
 
-include '../header.php';
+include '../../header.php';
 ?>
 
 <div class="container my-5">
-    <div class="row justify-content-center">
+
+    <div class="bg-light rounded-4 p-4 p-lg-5 shadow-sm mb-4">
+        <h1 class="display-5 fw-bold mb-3">Parent Teacher Organization</h1>
+
+        <p class="lead mb-0">
+            The Kell Grade School PTO works to strengthen the connection between school and home while supporting students and staff through events, volunteer efforts, and fundraising.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
         <div class="col-lg-8">
-
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">Page Under Construction</h4>
-                </div>
-
                 <div class="card-body">
-                    <h1 class="display-6 mb-3">404 - Page Not Found</h1>
 
-                    <p class="lead">
-                        The page or section you are looking for has not been created yet.
-                    </p>
+                    <h2 class="h4">Get Involved</h2>
 
                     <p>
-                        This area of the website is currently under development and will be available soon.
+                        Families are encouraged to participate in PTO meetings, volunteer opportunities, and school events throughout the year.
                     </p>
 
-                    <hr>
-
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="<?= BASE_URL ?>" class="btn btn-primary">
-                            Return to Homepage
-                        </a>
-
-                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
-                            Go Back
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Optional Future Content -->
-            <div class="card mt-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Coming Soon</h5>
-                </div>
-
-                <div class="card-body">
                     <p class="mb-0">
-                        Additional content and resources for this section will be added in a future update.
+                        Additional PTO information, meeting dates, and announcements will be added to this page.
                     </p>
+
                 </div>
             </div>
-
         </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h3 class="h5 mb-0">Quick Links</h3>
+                </div>
+
+                <div class="list-group list-group-flush">
+                    <a href="<?= BASE_URL ?>calendar/" class="list-group-item list-group-item-action">
+                        School Calendar
+                    </a>
+
+                    <a href="<?= BASE_URL ?>news/" class="list-group-item list-group-item-action">
+                        School News
+                    </a>
+
+                    <a href="<?= BASE_URL ?>family/" class="list-group-item list-group-item-action">
+                        Family Resources
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </div>
+
 </div>
 
-<?php include '../footer.php'; ?>
+<?php include '../../footer.php'; ?>
