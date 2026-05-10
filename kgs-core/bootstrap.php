@@ -11,7 +11,10 @@ function view($path, $data = [])
     if (file_exists($file)) {
         extract($data);
         include $file;
-    } else {
-        echo "<!-- Missing view: {$path} -->";
     }
+}
+
+function fetch_route_aliases_from_sheet()
+{
+    return [];
 }

@@ -1,28 +1,34 @@
 <?php
-/**
- * public/index.php
- * 
- * Main Home Page
- * 
- * Loads all modular components for the homepage.
- */
 
 require_once dirname(__DIR__) . '/kgs-core/bootstrap.php';
-view('layout/header'); 
-?>
+require_once ROOT_PATH . 'kgs-core/core/Router.php';
 
-<!-- Hero -->
-<?php include 'includes/home/hero.php'; ?>
+$router = new Router();
 
-<div class="container my-5">
-    <div class="row">
-        <div class="col-lg-8">
-            <?php include 'includes/home/live-feed-section.php'; ?>
-            <?php include 'includes/home/widgets-section.php'; ?>
-        </div>
+/*
+|--------------------------------------------------------------------------
+| AUTO LOAD FILES
+|--------------------------------------------------------------------------
+*/
+$router->loadFromDirectory(ROOT_PATH . 'includes/pages');
 
-        <?php include 'includes/home/sidebar.php'; ?>
-    </div>
-</div>
+/*
+|--------------------------------------------------------------------------
+| CMS-DRIVEN ALIASES
+|--------------------------------------------------------------------------
+*/
 
-<?php view('layout/footer'); ?>
+$sheetId = config_value('route_aliases_sheet_id');
+
+$aliases = fetch_route_aliases_from_sheet($sheetId);
+
+$router->loadAliasesFromSheet($aliases);
+
+/*
+|--------------------------------------------------------------------------
+| DISPATCH
+|--------------------------------------------------------------------------
+*/
+
+$route = $_GET['route'] ?? '';
+$router->dispatch($route);
