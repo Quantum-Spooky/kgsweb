@@ -1,65 +1,37 @@
 <?php
 /**
- * index.php
- * 
- * Placeholder / Temporary 404 Page
- * 
- * Used as a temporary landing page for sections that
- * have not been fully built out yet.
+ * public/about/policies/index.php
+ *
+ * Policies landing page.
  */
 
-include '../header.php';
+include '../../header.php';
 ?>
 
 <div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
 
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">Page Under Construction</h4>
-                </div>
+    <div class="bg-light rounded-4 p-4 p-lg-5 shadow-sm mb-4">
+        <h1 class="display-5 fw-bold mb-3">Policies & Handbooks</h1>
 
-                <div class="card-body">
-                    <h1 class="display-6 mb-3">404 - Page Not Found</h1>
+        <p class="lead mb-0">
+            Access school policies, student handbooks, and important district documents.
+        </p>
+    </div>
 
-                    <p class="lead">
-                        The page or section you are looking for has not been created yet.
-                    </p>
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
 
-                    <p>
-                        This area of the website is currently under development and will be available soon.
-                    </p>
+            <p>
+                This section will eventually be powered by Google Drive document listings so policies and handbooks can be updated without editing the website code.
+            </p>
 
-                    <hr>
-
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="<?= BASE_URL ?>" class="btn btn-primary">
-                            Return to Homepage
-                        </a>
-
-                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
-                            Go Back
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Optional Future Content -->
-            <div class="card mt-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Coming Soon</h5>
-                </div>
-
-                <div class="card-body">
-                    <p class="mb-0">
-                        Additional content and resources for this section will be added in a future update.
-                    </p>
-                </div>
+            <div class="alert alert-info mb-0">
+                Policy and handbook documents will be added soon.
             </div>
 
         </div>
     </div>
+
 </div>
 
-<?php include '../footer.php'; ?>
+<?php include '../../footer.php'; ?>
