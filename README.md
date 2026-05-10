@@ -259,6 +259,7 @@ Each sub-page in Academics, Activities, and Family has a corresponding config ke
 
 
 List of PHP Files Needed
+
 Root Level (/public/)
 
 index.php ← Main Home Page (modular)
@@ -315,3 +316,99 @@ Family Section
 
 family/index.php
 family/pto/index.php
+
+
+/////////////////
+
+
+A lightweight Google Drive + PHP hybrid is probably the right fit for this project.
+
+A full CMS would add:
+
+authentication complexity
+database maintenance
+plugin/security management
+migration headaches
+more breakage points for future volunteers/staff
+
+Your current direction has advantages:
+
+content editable by nontechnical staff
+Google Docs/Sheets already familiar
+version history built in
+no database dependency
+static-ish PHP rendering stays fast/simple
+
+The strongest architecture for this site is likely:
+
+Google Drive / Sheets
+        ↓
+Cached JSON generator
+        ↓
+Simple PHP templates
+
+Recommended structure:
+
+Google Sheets:
+announcements
+athletics schedules
+menus
+staff directory
+board members
+calendar events
+document indexes
+Google Docs:
+handbook pages
+PTO info
+policies
+long-form content
+PHP:
+layout/templates only
+reusable cards/components
+navigation
+rendering cached JSON
+Cache layer:
+cron job or manual refresh
+local JSON cache files
+avoids live API calls on every request
+
+That keeps the project editable without becoming a CMS.
+
+
+////////////////////
+////////////////////
+
+
+New content model
+
+Each page becomes a Google Drive folder:
+
+/KGS-CMS/
+    /about/
+        content.html
+        meta.json
+
+    /news/
+        content.html
+
+    /activities/
+        /athletics/
+            /basketball/
+                content.html
+                meta.json
+				
+What each page contains
+	content.html
+
+	Raw HTML (or Markdown later)
+
+	<h1>Basketball</h1>
+	<p>Season info, schedule, coaches...</p>
+	meta.json (optional but powerful)
+	{
+	  "title": "Basketball",
+	  "layout": "default",
+	  "show_sidebar": true
+	}				
+
+
