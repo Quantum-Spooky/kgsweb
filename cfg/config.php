@@ -368,6 +368,12 @@ $config = [
  * --------
  * Footer links and Navigation links should be editable via a google sheet.
  *
+ * Standardize ALL includes in /includes/ using one rule set:
+ *     Rule 1 (same folder):	
+ *         include __DIR__ . '/file.php';
+ *     Rule 2 (different folder):
+ *         include ROOT_PATH . 'includes/path/file.php';
+ *
  */
 
 /////////////////////////////////////////////////////////////////////////// 
