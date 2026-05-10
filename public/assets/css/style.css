@@ -1,0 +1,46 @@
+/* assets/css/style.css */
+
+.text-shadow {
+    text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.85);
+}
+
+.navbar-brand {
+    font-size: 1.35rem;
+}
+
+.navbar-nav .nav-link {
+    padding: 0.5rem 1rem;
+    transition: color 0.2s;
+}
+
+/* General utilities */
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-outline-primary {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.card-header.bg-primary {
+    background-color: var(--primary) !important;
+}
+
+/* TeacherEase Login Button */
+.top-login-btn {
+    background-color: none;
+    color: white;
+    border: none;
+    font-weight: 400;
+    white-space: nowrap;
+	text-decoration: underline 1px transparent;
+}
+
+.top-login-btn:hover {
+    background-color: none;
+    color: var(--accent);
+    border-color: transparent ;
+	text-decoration: underline 1px var(--accent);
+}
