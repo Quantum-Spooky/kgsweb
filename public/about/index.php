@@ -46,7 +46,7 @@ include '../header.php';
             <!-- Board Information -->
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Administration</h5>
+                    <h5 class="mb-0">School Board</h5>
                 </div>
                 <div class="card-body">
                     <?php 
