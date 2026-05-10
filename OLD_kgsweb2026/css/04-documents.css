@@ -1,0 +1,67 @@
+/* --- DISTRICT DOCUMENTS TREE --- */
+
+/* Remove default bullets and indent nested levels */
+ul.kgsweb-tree, 
+ul.nested-docs {
+    list-style: none;
+    padding-left: 1.5rem;
+    margin-bottom: 0;
+}
+
+ul.kgsweb-tree {
+    padding-left: 0; /* Root level stays flush left */
+}
+
+/* Individual items (Folders and Files) */
+.folder-node, .file-node {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+/* Folder Header styling */
+.folder-header {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    color: #333;
+    font-weight: 500;
+}
+
+.folder-header:hover {
+    background-color: #e9ecef;
+    color: #0056b3;
+}
+
+/* Hide nested documents by default */
+.nested-docs {
+    display: none;
+    border-left: 1px dashed #dee2e6; /* Visual guide line for tree depth */
+    margin-left: 10px;
+}
+
+/* Show nested documents when parent is open */
+.folder-node.is-open > .nested-docs {
+    display: block;
+}
+
+/* File link styling */
+.file-link {
+    text-decoration: none;
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.file-link:hover {
+    text-decoration: underline;
+    color: #dc3545; /* PDF Red or your primary brand color */
+}
+
+/* Icon spacing */
+.folder-header i, .file-node i {
+    /width: 20px;
+    text-align: center;
+    padding: 0 10px 0 0;
+}

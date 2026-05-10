@@ -1,0 +1,170 @@
+# STEP-BY-STEP GUIDE
+
+### **Secure the Robot**
+
+* Move your Service Account .json and put a `config.php` (or a new `config_cache.json`) key into [root]/private/.
+
+* *Point the Code:*
+
+- **Update kgs2026/config.php**
+	
+	```	PHP
+		<?php
+		// Define the folder above the root where the secret stuff lives
+		$privatePath = realpath(__DIR__ . '/../../private/');
+
+		// Define specific file paths using that base folder
+		$googleKeyFile = $privatePath . '/google-key.json';
+		$cacheFile     = $privatePath . '/config_cache.json';
+
+		// Optional: Add a check to make sure the key actually exists
+		if (!file_exists($googleKeyFile)) {
+			// This helps you troubleshoot if the path is wrong
+			error_log("CRITICAL ERROR: Google Key not found at " . $googleKeyFile);
+		}
+		?>
+	```
+	
+	**Inside kgs2026/header.php**
+	Include the config at the absolute top so all your other variables are ready to use.
+
+	```PHP
+		<?php 
+		require_once('config.php'); 
+		?>
+		<!DOCTYPE html>
+		<html>
+		<head>
+		<title>Kell Grade School</title>
+		</head>
+	```
+	
+**One minor "Gotcha":** If you write a function inside your PHP, those variables won't automatically be visible inside that function. You would either need to pass them in or use the global keyword:
+
+	```PHP
+		function getGoogleData() {
+			global $googleKeyFile; // This "grabs" the variable from your config
+			// ... use the key here ...
+		}
+	```	
+	
+### **Flip the Switch:**
+
+* Replace the root /www/www/.htaccess with the "Subdirectory Redirect" code.
+
+### **Clean House:** 
+
+* Delete the old WordPress folders once the new site is confirmed live.
+
+
+---
+
+## **The "Switch" (.htaccess)**
+
+Replace the contents of `/www/www/.htaccess` with this block. It preserves optimization but redirects all traffic to your new folder.
+
+```apache
+# ----------------------------------------------------------------------
+# 1. OPTIMIZATION: Browser Caching & Compression
+# ----------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/xml application/xhtml+xml application/rss+xml application/javascript application/x-httpd-php image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access 1 year"
+    ExpiresByType image/jpeg "access 1 year"
+    ExpiresByType image/gif "access 1 year"
+    ExpiresByType image/png "access 1 year"
+    ExpiresByType text/css "access 1 month"
+    ExpiresByType text/javascript "access 1 month"
+    ExpiresDefault "access 2 days"
+</IfModule>
+
+# ----------------------------------------------------------------------
+# 2. REDIRECT: Transparently point the domain to /kgs2026/
+# ----------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Don't loop if we are already in the folder
+    RewriteCond %{REQUEST_URI} !^/kgs2026/
+
+    # Allow old files to still be accessed if they exist (optional)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Send everything else to kgs2026
+    RewriteRule ^(.*)$ kgs2026/$1 [L]
+</IfModule>
+
+```
+
+**The "Optional" Lines:** The two lines RewriteCond %{REQUEST_FILENAME} !-f and RewriteCond %{REQUEST_FILENAME} !-d are very helpful right now. They allow you to still see the old WordPress files or your info.php in the root while the new site is running.
+
+**The "Final" Move:** Once you delete the old WordPress folders, you can actually remove those two lines. This ensures that if someone tries to visit a broken WordPress link, they are automatically sent into your new kgs2026 system rather than seeing a generic server 404 page.
+
+---
+
+### **Future Admin Management (Google Sheets)**
+
+Once the site is stable, implement the "Non-Threatening" UI.
+
+1. **Create Two Sheets:** 
+
+* **Master Config:** For API Keys/Base URLs (Private to you).
+* **Staff Portal:** For Teachers to paste Google Site/Folder URLs.
+
+
+2. **Sync Logic:** Use a PHP script to pull from these Sheets and save to `[root]/private/config_cache.json`.
+
+3. **Regex Parsing:** Use the logic below to allow teachers to paste full URLs without having to find the ID themselves.
+
+	```php
+	function getCleanId($input) {
+		$input = trim(str_replace(['"', "'"], '', $input));
+		if (empty($input)) return null;
+		// Extract ID from /d/ or /folders/
+		if (preg_match('/(?:\/d\/|folders\/|id=)([a-zA-Z0-9-_]{25,})/', $input, $matches)) {
+			return $matches[1];
+		}
+		// Fallback for raw IDs
+		return (preg_match('/^[a-zA-Z0-9-_]{25,}$/', $input)) ? $input : null;
+	}
+
+	```
+
+### **Maintenance & Logging**
+
+1. **Log File:** Create a text file in `/private/` to log sync successes/errors.
+
+2. **Clean Up:** Delete the old WordPress folders (`wp-admin`, `wp-content`, `wp-includes`) once the new site is confirmed live.
+
+
+
+---
+
+## **Future "Admin UI" phase**
+
+- Make sure you also have these **three "Logical" points** saved. They are the "brains" of the management system you are planning to build next:
+
+### The "Missing" Logic Pieces for your Archive:
+
+* **Sheet Tiering:** Remember to use two separate Google Sheets. One **Master Sheet** (private to you) for the "Engine" settings like API keys/Base URLs, and one **Staff Sheet** for the teachers to edit.
+* **The Regex Parser:** You'll need the function that allows teachers to paste a full browser URL so they don't have to manually find the Folder/File ID.
+* **Staging Cache:** When you write the sync script, remember the **"Temp-then-Live"** logic. Write the new data to `config_temp.json`, verify it isn't empty or broken, and *then* rename it to `config_live.json`. This is what prevents a teacher's typo from crashing the public site.
+
+
+### One Final Confirmation on Paths
+
+Because your site is in `/www/www/kgs2026/` and your private folder is in `/www/private/`, the "climb" is exactly **two levels up**.
+
+* **Correct PHP path:** `__DIR__ . '/../../private/file.json'`
+
+You are now officially ready to move. You have the security plan, the server configuration, the redirect code, and the future-proof logic for your staff members.
+
+
+---
+

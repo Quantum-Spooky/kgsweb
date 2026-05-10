@@ -1,0 +1,70 @@
+/* TICKER STYLES */
+	
+.kgsweb-ticker {
+	background: var(--kell-blue);
+	height: 40px;
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+	font-weight: bold;
+	font-size: 1.3rem;
+	position: sticky;
+	top: 70px; /* Matches header height for a flush fit */
+	z-index: 999;
+	border-bottom: 2px solid var(--kell-blue);
+}
+
+.ticker-label {
+	background: #FFD700;
+	color: var(--kell-blue);
+	padding: 0 15px;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	z-index: 10;
+	font-size: 0.8rem;
+	letter-spacing: 1px;
+}
+
+.kgsweb-ticker-wrapper {
+	flex: 1;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+}
+
+.kgsweb-ticker-track {
+	display: flex;
+	white-space: nowrap;
+	will-change: transform;
+	/* Speed is controlled here: 30s for the full trip */
+	animation: ticker-scroll 30s linear infinite;
+}
+
+.kgsweb-ticker-track span {
+	color: #FFFFFF;
+	padding-right: 100px; /* The gap between the repeated messages */
+	display: inline-block;
+}
+
+@keyframes ticker-scroll {
+	from { transform: translateX(0); }
+	to { transform: translateX(-50%); } /* Works with the JS cloning below */
+}
+
+.kgsweb-ticker:hover .kgsweb-ticker-track {
+	animation-play-state: paused;
+}
+
+/* Emergency Mode Styles */
+.kgsweb-ticker.emergency-mode {
+	background: #d9534f !important;
+	border-bottom: 2px solid #b94441;
+}
+.kgsweb-ticker.emergency-mode .ticker-label {
+	background: #ffffff !important;
+}
+.kgsweb-ticker.emergency-mode .ticker-label span,
+.kgsweb-ticker.emergency-mode .ticker-label {
+	color: #d9534f !important;
+}

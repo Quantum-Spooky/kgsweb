@@ -1,0 +1,89 @@
+/* --- SCHOOL BOARD TABLE STYLING --- */
+
+/* Force Left Alignment for headers and cells */
+#table-primary th,
+#table-primary td,
+#board-meetings-table th, 
+#board-meetings-table td,
+#board-members-table th, 
+#board-members-table td {
+    text-align: left !important;
+    vertical-align: middle;
+    padding-left: 1.25rem !important;  /* Horizontal padding */
+    padding-right: 1.25rem !important;
+    padding-top: 0rem;              /* Vertical padding for breathing room */
+    padding-bottom: 0rem;
+}
+
+/* Add a slight hover effect to the rows for better readability */
+#board-members-table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.03);
+}
+
+
+
+/* STAFF DIRECTORY */
+/* --- STAFF GRID CONTAINER --- */
+#staff-directory-grid {
+display: grid;
+/* This creates the 4-column layout on desktop */
+grid-template-columns: repeat(4, 1fr); 
+gap: 20px;
+width: 100%;
+padding: 20px;
+margin: 0 auto;
+}
+/* --- THE CARD --- */
+.staff-profile-card.horizontal {
+display: flex;
+flex-direction: row; /* Keep image and text side-by-side */
+background: #fff;
+border: 1px solid #eee;
+border-radius: 8px;
+overflow: hidden;
+box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+min-height: 140px; /* Ensures consistency */
+}
+/* IMAGE COLUMN */
+.staff-profile-card.horizontal .profile-img-container {
+width: 100px;      /* Smaller fixed width to allow 4-across */
+min-width: 100px;
+background: #f4f4f4;
+}
+.staff-profile-card.horizontal .profile-img-container img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+}
+/* INFO COLUMN */
+.staff-profile-card.horizontal .profile-info {
+padding: 12px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+flex-grow: 1;
+min-width: 0; /* Prevents text from pushing card width */
+}
+.staff-profile-card.horizontal h3 {
+font-size: 1.5rem;
+margin: 0;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+line-height: 1.75em;
+}
+.position-badge {
+	font-size: 1.2rem;
+}
+
+.other-duties {
+    font-size: 1rem;
+    margin: 5px 0;
+    /* Limits duties to 2 lines to keep cards uniform */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.profile-contact * { display: none; }
