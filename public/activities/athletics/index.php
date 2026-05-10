@@ -8,7 +8,7 @@
  * have not been fully built out yet.
  */
 
-include '../header.php';
+include '../../header.php';
 ?>
 
 <div class="container my-5">
@@ -62,4 +62,4 @@ include '../header.php';
     </div>
 </div>
 
-<?php include '../footer.php'; ?>
+<?php include '../../footer.php'; ?>
