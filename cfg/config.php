@@ -57,6 +57,7 @@
  * - Easier JSON/API export
  * - Easier future CMS migration
  */
+ 
 
 ///////////////////////////////////////////////////////////////////////////
 // BASE URL
@@ -373,7 +374,7 @@ $config = [
  
  
  
- */////////////////////////
+/////////////////////////
 
 function config_value($key, $default = '')
 {

@@ -8,7 +8,10 @@
  * have not been fully built out yet.
  */
 
-include '../header.php';
+$root = substr(__DIR__, 0, strpos(__DIR__, '/public'));
+ 
+require_once $root . '/kgs-core/bootstrap.php';
+ view('layout/header');
 ?>
 
 <div class="container my-5">
@@ -62,4 +65,4 @@ include '../header.php';
     </div>
 </div>
 
-<?php include '../footer.php'; ?>
+<?php view('layout/footer'); ?>

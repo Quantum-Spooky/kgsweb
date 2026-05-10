@@ -1,13 +1,14 @@
 <?php
 /**
- * index.php
+ * public/index.php
  * 
  * Main Home Page
  * 
  * Loads all modular components for the homepage.
  */
 
-include 'header.php'; 
+require_once dirname(__DIR__) . '/kgs-core/bootstrap.php';
+view('layout/header'); 
 ?>
 
 <!-- Hero -->
@@ -24,4 +25,4 @@ include 'header.php';
     </div>
 </div>
 
-<?php include 'footer.php'; ?>
+<?php view('layout/footer'); ?>
