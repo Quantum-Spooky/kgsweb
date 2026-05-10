@@ -5,7 +5,7 @@
  * Staff directory page.
  */
 
-include '../header.php';
+include '../../header.php';
 ?>
 
 <div class="container my-5">
@@ -56,4 +56,4 @@ include '../header.php';
 
 </div>
 
-<?php include '../footer.php'; ?>
+<?php include '../../footer.php'; ?>
