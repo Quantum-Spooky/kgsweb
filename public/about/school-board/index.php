@@ -1,56 +1,75 @@
 <?php
 /**
- * about/school-board/index.php
- * 
- * School Board Page
- * 
- * Displays all required Illinois compliance information for the School Board.
+ * public/board/index.php
+ *
+ * School board page.
  */
 
-include '../../header.php'; 
+include '../header.php';
 ?>
 
 <div class="container my-5">
-    <h1 class="mb-4">School Board</h1>
-    
-    <div class="row">
-        <div class="col-lg-8">
-            
-            <!-- Board Information -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Board Information</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Schedule of Regular Board Meetings</strong> [5 ILCS 120/2.02]</p>
-                    <p><strong>Agendas</strong> [5 ILCS 120/2.02]</p>
-                    <p><strong>Minutes (Past 60 Days)</strong> [5 ILCS 120/2.06]</p>
-                </div>
-            </div>
 
-            <!-- Board Members -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Board Members & Leadership Training</h5>
-                </div>
-                <div class="card-body">
-                    <p>List of All Board Members and Leadership Training Completion [105 ILCS 5/10-16a]</p>
-                    <p>Board Member Contact Emails (School Accounts) [50 ILCS 205/20]</p>
-                </div>
-            </div>
+    <div class="bg-light rounded-4 p-4 p-lg-5 shadow-sm mb-4">
+        <h1 class="display-5 fw-bold mb-3">Board of Education</h1>
 
-        </div>
-
-        <!-- Sidebar Links -->
-        <div class="col-lg-4">
-            <div class="list-group">
-                <a href="#" class="list-group-item list-group-item-action">Meeting Schedule</a>
-                <a href="#" class="list-group-item list-group-item-action">Current Agendas</a>
-                <a href="#" class="list-group-item list-group-item-action">Past Meeting Minutes</a>
-                <a href="#" class="list-group-item list-group-item-action">Board Documents</a>
-            </div>
-        </div>
+        <p class="lead mb-0">
+            The Board of Education helps guide district policies, finances, and long-term planning in support of student success.
+        </p>
     </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h2 class="h5 mb-0">Board Information</h2>
+                </div>
+
+                <div class="card-body">
+
+                    <p>
+                        Board meeting dates, agendas, minutes, and district information will be available here.
+                    </p>
+
+                    <div class="alert alert-secondary mb-0">
+                        Board document integration is currently being developed.
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h3 class="h5 mb-0">Related Resources</h3>
+                </div>
+
+                <div class="list-group list-group-flush">
+
+                    <a href="<?= BASE_URL ?>about/policies/" class="list-group-item list-group-item-action">
+                        Policies & Handbooks
+                    </a>
+
+                    <a href="<?= BASE_URL ?>about/documents/" class="list-group-item list-group-item-action">
+                        Public Documents
+                    </a>
+
+                    <a href="<?= BASE_URL ?>calendar/" class="list-group-item list-group-item-action">
+                        School Calendar
+                    </a>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
-<?php include '../../footer.php'; ?>
+<?php include '../footer.php'; ?>
