@@ -1,65 +1,63 @@
 <?php
 /**
- * index.php
- * 
- * Placeholder / Temporary 404 Page
- * 
- * Used as a temporary landing page for sections that
- * have not been fully built out yet.
+ * public/family/index.php
+ *
+ * Family resources landing page.
  */
 
 include '../header.php';
 ?>
 
 <div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
 
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">Page Under Construction</h4>
-                </div>
+    <div class="bg-light rounded-4 p-4 p-lg-5 shadow-sm mb-4">
+        <h1 class="display-5 fw-bold mb-3">Families</h1>
 
+        <p class="lead mb-0">
+            Family involvement is an important part of student success at Kell Grade School. This section provides quick access to resources, organizations, and important information for parents and guardians.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
                 <div class="card-body">
-                    <h1 class="display-6 mb-3">404 - Page Not Found</h1>
+                    <h2 class="h4">Parent Resources</h2>
 
-                    <p class="lead">
-                        The page or section you are looking for has not been created yet.
-                    </p>
+                    <ul class="mb-4">
+                        <li>School announcements</li>
+                        <li>Menus and meal information</li>
+                        <li>School calendar</li>
+                        <li>Student handbook</li>
+                        <li>Transportation information</li>
+                    </ul>
+
+                    <a href="<?= BASE_URL ?>calendar/" class="btn btn-primary">
+                        View Calendar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h2 class="h4">Parent Teacher Organization</h2>
 
                     <p>
-                        This area of the website is currently under development and will be available soon.
+                        The PTO supports students, staff, and school events throughout the year through volunteer work and fundraising activities.
                     </p>
 
-                    <hr>
-
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="<?= BASE_URL ?>" class="btn btn-primary">
-                            Return to Homepage
-                        </a>
-
-                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
-                            Go Back
-                        </a>
-                    </div>
+                    <a href="<?= BASE_URL ?>family/pto/" class="btn btn-success">
+                        PTO Information
+                    </a>
                 </div>
             </div>
-
-            <!-- Optional Future Content -->
-            <div class="card mt-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Coming Soon</h5>
-                </div>
-
-                <div class="card-body">
-                    <p class="mb-0">
-                        Additional content and resources for this section will be added in a future update.
-                    </p>
-                </div>
-            </div>
-
         </div>
+
     </div>
+
 </div>
 
 <?php include '../footer.php'; ?>
