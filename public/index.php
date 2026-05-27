@@ -7,22 +7,57 @@ $router = new Router();
 
 /*
 |--------------------------------------------------------------------------
-| AUTO LOAD FILES
+| AUTO LOAD LOCAL PAGE TEMPLATES
 |--------------------------------------------------------------------------
+|
+| Fallback/local PHP pages
+|
 */
+
 $router->loadFromDirectory(ROOT_PATH . 'includes/pages');
 
 /*
 |--------------------------------------------------------------------------
-| CMS-DRIVEN ALIASES
+| LOAD CMS ALIASES
 |--------------------------------------------------------------------------
 */
 
 $sheetId = config_value('route_aliases_sheet_id');
 
-$aliases = fetch_route_aliases_from_sheet($sheetId);
+if (!empty($sheetId) && function_exists('fetch_route_aliases_from_sheet')) {
 
-$router->loadAliasesFromSheet($aliases);
+    $aliases = fetch_route_aliases_from_sheet($sheetId);
+
+    if (is_array($aliases)) {
+        $router->loadAliasesFromSheet($aliases);
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| DETERMINE ROUTE
+|--------------------------------------------------------------------------
+|
+| Supports:
+|   /?route=about
+|   /about
+|
+*/
+
+$route = $_GET['route'] ?? '';
+
+if (empty($route)) {
+
+    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+    $base = parse_url(BASE_URL, PHP_URL_PATH);
+
+    if ($base && strpos($uri, $base) === 0) {
+        $uri = substr($uri, strlen($base));
+    }
+
+    $route = trim($uri, '/');
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -30,5 +65,4 @@ $router->loadAliasesFromSheet($aliases);
 |--------------------------------------------------------------------------
 */
 
-$route = $_GET['route'] ?? '';
 $router->dispatch($route);
