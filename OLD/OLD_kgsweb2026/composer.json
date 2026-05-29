@@ -1,9 +1,0 @@
-{
-    "require": {
-        "google/apiclient": "2.15.0"
-    },
-    "config": {
-        "optimize-autoloader": true,
-        "prepend-autoloader": false
-    }
-}
