@@ -32,7 +32,7 @@ $calendarId = config('google_calendar_id', '');
         <h5>Facebook Updates</h5>
 
         <iframe
-            src="https://www.facebook.com/plugins/page.php?href=<?= urlencode(config('facebook_page', '')) ?>&tabs=timeline&width=500&height=600"
+            src="https://www.facebook.com/plugins/page.php?href=<?= urlencode(config('facebook_page_id', '')) ?>&tabs=timeline&width=500&height=600"
             width="100%"
             height="600"
             style="border:none;overflow:hidden"
