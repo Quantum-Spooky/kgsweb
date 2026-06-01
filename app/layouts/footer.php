@@ -33,8 +33,6 @@ $lifeline  = config('lifeline_url', 'https://988lifeline.org');
 $able      = config('able_url', '#');
 ?>
 
-</main>
-
 <footer class="bg-dark text-white py-5 mt-auto">
     <div class="container">
         <div class="row">
