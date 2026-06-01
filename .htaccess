@@ -1,0 +1,8 @@
+Options -Indexes
+RewriteEngine On
+
+# Allow ONLY /public to be accessible
+RewriteRule ^public(/.*)?$ - [L]
+
+# Block everything else
+RewriteRule ^ - [F]
