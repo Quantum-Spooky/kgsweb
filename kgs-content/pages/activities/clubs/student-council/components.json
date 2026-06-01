@@ -1,0 +1,16 @@
+[
+  {
+    "type": "page-header",
+    "data": {
+      "title": "Student Council",
+      "subtitle": "",
+      "image": ""
+    }
+  },
+  {
+    "type": "rich-text",
+    "data": {
+      "content": "<p>Student Council content here.</p>"
+    }
+  }
+]

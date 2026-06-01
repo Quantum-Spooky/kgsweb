@@ -1,0 +1,34 @@
+[
+  {
+    "type": "page-header",
+    "data": {
+      "title": "About Our School",
+      "subtitle": "",
+      "image": ""
+    }
+  },
+  {
+    "type": "rich-text",
+    "data": {
+      "title": "About Kell Grade School",
+      "content": "<p>About page content goes here.</p>",
+      "align": "left"
+    }
+  },
+  {
+    "type": "rich-text",
+    "data": {
+      "title": "Administration",
+      "content": "<p>Administration content...</p>",
+      "align": "left"
+    }
+  },
+  {
+    "type": "rich-text",
+    "data": {
+      "title": "School Board",
+      "content": "<p>Board content...</p>",
+      "align": "left"
+    }
+  }
+]

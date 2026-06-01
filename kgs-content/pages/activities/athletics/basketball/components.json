@@ -1,0 +1,16 @@
+[
+  {
+    "type": "page-header",
+    "data": {
+      "title": "Kell Basketball",
+      "subtitle": "",
+      "image": ""
+    }
+  },
+  {
+    "type": "rich-text",
+    "data": {
+      "content": "<p>Athletics content here.</p>"
+    }
+  }
+]

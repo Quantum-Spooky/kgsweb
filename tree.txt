@@ -1,0 +1,253 @@
+Folder PATH listing
+Volume serial number is 000000A2 F4ED:4EAB
+C:.
+|   .htaccess
+|   README.md
+|   tree.txt
+|   
++---app
+|   +---components
+|   |       button-group.php
+|   |       calendar-embed.php
+|   |       callout.php
+|   |       contact-info.php
+|   |       facebook-feed.php
+|   |       file-list.php
+|   |       hero.php
+|   |       live-feed-section.php
+|   |       page-header.php
+|   |       photo-gallery.php
+|   |       quick-links.php
+|   |       renderer.php
+|   |       rich-text.php
+|   |       school-highlights-section.php
+|   |       sidebar.php
+|   |       staff-directory.php
+|   |       widgets-section.php
+|   |       
+|   \---layouts
+|       |   default.php
+|       |   footer.php
+|       |   header.php
+|       |   home.php
+|       |   navigation.php
+|       |   
+|       \---page
+|               athletics-end.php
+|               athletics-start.php
+|               default-end.php
+|               default-start.php
+|               full-width-end.php
+|               full-width-start.php
+|               home-end.php
+|               home-start.php
+|               
++---cfg
+|       cache.php
+|       config.php
+|       google-service-account.json
+|       google.php
+|       GoogleConfig.php
+|       
++---kgs-cache
+|   \---google
+|       +---cms_pages_cache
+|       +---documents
+|       +---drive
+|       +---events
+|       +---menus
+|       +---sheets
+|       +---slides
+|       \---ticker
++---kgs-content
+|   \---pages
+|       +---about
+|       |   |   components.json
+|       |   |   meta.json
+|       |   |   
+|       |   +---documents
+|       |   |       components.json
+|       |   |       meta.json
+|       |   |       
+|       |   +---employment
+|       |   |       components.json
+|       |   |       meta.json
+|       |   |       
+|       |   +---policies
+|       |   |       components.json
+|       |   |       meta.json
+|       |   |       
+|       |   +---school-board
+|       |   |       components.json
+|       |   |       meta.json
+|       |   |       
+|       |   \---staff-directory
+|       |           components.json
+|       |           meta.json
+|       |           
+|       +---academics
+|       |       components.json
+|       |       meta.json
+|       |       
+|       +---activities
+|       |   |   components.json
+|       |   |   meta.json
+|       |   |   
+|       |   +---athletics
+|       |   |   |   components.json
+|       |   |   |   meta.json
+|       |   |   |   
+|       |   |   +---baseball
+|       |   |   |       components.json
+|       |   |   |       meta.json
+|       |   |   |       
+|       |   |   +---basketball
+|       |   |   |       components.json
+|       |   |   |       meta.json
+|       |   |   |       
+|       |   |   +---bowling
+|       |   |   |       components.json
+|       |   |   |       meta.json
+|       |   |   |       
+|       |   |   +---cheerleading
+|       |   |   |       components.json
+|       |   |   |       meta.json
+|       |   |   |       
+|       |   |   +---cross-country
+|       |   |   |       components.json
+|       |   |   |       meta.json
+|       |   |   |       
+|       |   |   \---volleyball
+|       |   |           components.json
+|       |   |           meta.json
+|       |   |           
+|       |   \---clubs
+|       |       +---book-club
+|       |       |       components.json
+|       |       |       meta.json
+|       |       |       
+|       |       +---brain-games
+|       |       |       components.json
+|       |       |       meta.json
+|       |       |       
+|       |       +---cooking-club
+|       |       |       components.json
+|       |       |       meta.json
+|       |       |       
+|       |       +---scholar-bowl
+|       |       |       components.json
+|       |       |       meta.json
+|       |       |       
+|       |       +---student-council
+|       |       |       components.json
+|       |       |       meta.json
+|       |       |       
+|       |       \---yearbook
+|       |               components.json
+|       |               meta.json
+|       |               
+|       +---calendar
+|       |       components.json
+|       |       meta.json
+|       |       
+|       +---contact
+|       |       components.json
+|       |       meta.json
+|       |       
+|       +---dining
+|       |       components.json
+|       |       meta.json
+|       |       
+|       +---family
+|       |   |   components.json
+|       |   |   meta.json
+|       |   |   
+|       |   \---pto
+|       |           components.json
+|       |           meta.json
+|       |           
+|       +---home
+|       |       components.json
+|       |       meta.json
+|       |       
+|       \---news
+|           |   components.json
+|           |   meta.json
+|           |   
+|           \---announcements
+|                   components.json
+|                   meta.json
+|                   
++---kgs-core
+|   |   autoload.php
+|   |   bootstrap.php
+|   |   CacheManager.php
+|   |   EventBus.php
+|   |   ModuleManager.php
+|   |   Router.php
+|   |   
+|   +---bootstrap
+|   |       RuntimeRules.php
+|   |       ServiceContainer.php
+|   |       
+|   +---cms
+|   |       CMSCache.php
+|   |       ComponentRenderer.php
+|   |       ComponentSchema.php
+|   |       ComponentValidator.php
+|   |       ContentCMS.php
+|   |       
+|   +---config
+|   |       ConfigRepository.php
+|   |       google.php
+|   |       modules.php
+|   |       
+|   +---google
+|   |       GoogleCalendar.php
+|   |       GoogleConfig.php
+|   |       GoogleDrive.php
+|   |       GoogleDriveCache.php
+|   |       GoogleDriveClient.php
+|   |       GoogleDriveSync.php
+|   |       GoogleHelpers.php
+|   |       GoogleService.php
+|   |       GoogleSheets.php
+|   |       GoogleSlides.php
+|   |       
+|   +---services
+|   |       ContentCMSService.php
+|   |       RouteAliasService.php
+|   |       
+|   +---settings
+|   |       Settings.php
+|   |       
+|   \---workers
+|           drive-sync.php
+|           
++---public
+|   |   .htaccess
+|   |   index.php
+|   |   test-drive.php
+|   |   
+|   \---assets
+|       +---css
+|       |       base.css
+|       |       cards.css
+|       |       footer.css
+|       |       hero.css
+|       |       layout.css
+|       |       navigation.css
+|       |       page-header.css
+|       |       style.css
+|       |       
+|       +---img
+|       \---js
+\---tools
+    +---admin
+    |       dashboard.php
+    |       page-editor.php
+    |       
+    \---scripts
+            migrate_drive_to_cmscache.php
+            migrate_home_to_cmscache.php
+            

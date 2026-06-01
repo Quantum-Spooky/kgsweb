@@ -1,0 +1,16 @@
+[
+  {
+    "type": "page-header",
+    "data": {
+      "title": "Scholar Bowl",
+      "subtitle": "",
+      "image": ""
+    }
+  },
+  {
+    "type": "rich-text",
+    "data": {
+      "content": "<p>Scholar Bowl content here.</p>"
+    }
+  }
+]

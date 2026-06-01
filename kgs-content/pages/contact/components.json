@@ -1,0 +1,16 @@
+[
+  {
+    "type": "page-header",
+    "data": {
+      "title": "Contact KGS",
+      "subtitle": "",
+      "image": ""
+    }
+  },
+  {
+    "type": "rich-text",
+    "data": {
+      "content": "<p>Contact content here.</p>"
+    }
+  }
+]

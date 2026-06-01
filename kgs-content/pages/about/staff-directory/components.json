@@ -1,0 +1,16 @@
+[
+  {
+    "type": "page-header",
+    "data": {
+      "title": "Staff Directory",
+      "subtitle": "",
+      "image": ""
+    }
+  },
+  {
+    "type": "rich-text",
+    "data": {
+      "content": "<p>Staff Directory content here.</p>"
+    }
+  }
+]

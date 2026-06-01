@@ -1,0 +1,33 @@
+[
+  {
+    "type": "hero",
+    "data": {
+	  "image": "https://kellgradeschool.com/wp-content/uploads/2026/01/kell-school-front-blue.png",
+      "title": "Welcome to Kell Grade School",
+      "subtitle": "Home of the Bearcats",
+	  "overlay": 0.3,
+      "text_position": "center",
+      "text_color": "light"
+    }
+  },
+  {
+    "type": "live-feed-section",
+    "data": {}
+  },
+  {
+    "type": "school-highlights-section",
+    "data": {}
+  },
+  {
+    "type": "widgets-section",
+    "data": {}
+  },
+    {
+    "type": "rich-text",
+    "data": {
+      "title": "Welcome",
+      "content": "<p>Welcome to our school website.</p>",
+      "align": "left"
+    }
+  }
+]
