@@ -1,0 +1,25 @@
+[
+	{
+		"type": "hero",
+		"data": {
+			"image": "@hero_img",
+			"hero_title": "@hero_title",
+			"hero_subtitle": "@hero_subtitle",
+			"overlay": 0.3,
+			"text_position": "center",
+			"text_color": "light",
+			"mobile_view": "full"
+		}
+	},
+	{ "type": "smart-grid", "data": { "prefix": "home", "row": 1 } },
+	{ "type": "smart-grid", "data": { "prefix": "home", "row": 2 } },
+	{ "type": "school-highlights", "data": { "school_highlights_sheet_id": "@school_highlights_sheet_id" } },
+	{ 
+		"type": "rich-text",
+		"data": {
+			"title": "",
+			"content": "",
+			"align": "left"
+		}
+	}
+]

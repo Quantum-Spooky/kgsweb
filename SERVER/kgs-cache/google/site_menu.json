@@ -1,0 +1,428 @@
+[
+    {
+        "label": "District",
+        "parent": "",
+        "show": true,
+        "icon": "",
+        "sort": 100,
+        "slug": "district",
+        "url": "district\/",
+        "items": [
+            {
+                "label": "Documents",
+                "parent": "District",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "documents",
+                "url": "district\/documents\/",
+                "items": []
+            },
+            {
+                "label": "School Board",
+                "parent": "District",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "school-board",
+                "url": "district\/school-board\/",
+                "items": []
+            },
+            {
+                "label": "Staff Directory",
+                "parent": "District",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "staff-directory",
+                "url": "district\/staff-directory\/",
+                "items": []
+            },
+            {
+                "label": "Employment",
+                "parent": "District",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "employment",
+                "url": "district\/employment\/",
+                "items": []
+            },
+            {
+                "label": "Compliance",
+                "parent": "District",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "compliance",
+                "url": "district\/compliance\/",
+                "items": []
+            }
+        ]
+    },
+    {
+        "label": "Calendar",
+        "parent": "",
+        "show": true,
+        "icon": "",
+        "sort": 100,
+        "slug": "calendar",
+        "url": "calendar\/",
+        "items": []
+    },
+    {
+        "label": "Dining",
+        "parent": "",
+        "show": true,
+        "icon": "",
+        "sort": 100,
+        "slug": "dining",
+        "url": "dining\/",
+        "items": []
+    },
+    {
+        "label": "News",
+        "parent": "",
+        "show": false,
+        "icon": "",
+        "sort": 100,
+        "slug": "news",
+        "url": "news\/",
+        "items": []
+    },
+    {
+        "label": "Academics",
+        "parent": "",
+        "show": false,
+        "icon": "",
+        "sort": 100,
+        "slug": "academics",
+        "url": "academics\/",
+        "items": [
+            {
+                "label": "Pre-K",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "pre-k",
+                "url": "academics\/pre-k\/",
+                "items": []
+            },
+            {
+                "label": "Kindergarten",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "kindergarten",
+                "url": "academics\/kindergarten\/",
+                "items": []
+            },
+            {
+                "label": "Grade 1",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "grade-1",
+                "url": "academics\/grade-1\/",
+                "items": []
+            },
+            {
+                "label": "Grade 2",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "grade-2",
+                "url": "academics\/grade-2\/",
+                "items": []
+            },
+            {
+                "label": "Grade 3",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "grade-3",
+                "url": "academics\/grade-3\/",
+                "items": []
+            },
+            {
+                "label": "Grade 4",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "grade-4",
+                "url": "academics\/grade-4\/",
+                "items": []
+            },
+            {
+                "label": "Grade 5",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "grade-5",
+                "url": "academics\/grade-5\/",
+                "items": []
+            },
+            {
+                "label": "Grade 6",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "grade-6",
+                "url": "academics\/grade-6\/",
+                "items": []
+            },
+            {
+                "label": "Grade 7",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "grade-7",
+                "url": "academics\/grade-7\/",
+                "items": []
+            },
+            {
+                "label": "Grade 8",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "grade-8",
+                "url": "academics\/grade-8\/",
+                "items": []
+            },
+            {
+                "label": "Jr High ELA",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "jr-high-ela",
+                "url": "academics\/jr-high-ela\/",
+                "items": []
+            },
+            {
+                "label": "Jr High Math",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "jr-high-math",
+                "url": "academics\/jr-high-math\/",
+                "items": []
+            },
+            {
+                "label": "Jr High Science",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "jr-high-science",
+                "url": "academics\/jr-high-science\/",
+                "items": []
+            },
+            {
+                "label": "Jr High Social Studies",
+                "parent": "Academics",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "jr-high-social-studies",
+                "url": "academics\/jr-high-social-studies\/",
+                "items": []
+            }
+        ]
+    },
+    {
+        "label": "Activities",
+        "parent": "",
+        "show": true,
+        "icon": "",
+        "sort": 100,
+        "slug": "activities",
+        "url": "activities\/",
+        "items": [
+            {
+                "label": "Athletics",
+                "parent": "Activities",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "athletics",
+                "url": "activities\/athletics\/",
+                "items": [
+                    {
+                        "label": "Baseball",
+                        "parent": "Athletics",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "baseball",
+                        "url": "activities\/athletics\/baseball\/",
+                        "items": []
+                    },
+                    {
+                        "label": "Basketball",
+                        "parent": "Athletics",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "basketball",
+                        "url": "activities\/athletics\/basketball\/",
+                        "items": []
+                    },
+                    {
+                        "label": "Bowling",
+                        "parent": "Athletics",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "bowling",
+                        "url": "activities\/athletics\/bowling\/",
+                        "items": []
+                    },
+                    {
+                        "label": "Cheerleading",
+                        "parent": "Athletics",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "cheerleading",
+                        "url": "activities\/athletics\/cheerleading\/",
+                        "items": []
+                    },
+                    {
+                        "label": "Cross Country",
+                        "parent": "Athletics",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "cross-country",
+                        "url": "activities\/athletics\/cross-country\/",
+                        "items": []
+                    },
+                    {
+                        "label": "Volleyball",
+                        "parent": "Athletics",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "volleyball",
+                        "url": "activities\/athletics\/volleyball\/",
+                        "items": []
+                    }
+                ]
+            },
+            {
+                "label": "Clubs",
+                "parent": "Activities",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "clubs",
+                "url": "activities\/clubs\/",
+                "items": [
+                    {
+                        "label": "Book Club",
+                        "parent": "Clubs",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "book-club",
+                        "url": "activities\/clubs\/book-club\/",
+                        "items": []
+                    },
+                    {
+                        "label": "Brain Games",
+                        "parent": "Clubs",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "brain-games",
+                        "url": "activities\/clubs\/brain-games\/",
+                        "items": []
+                    },
+                    {
+                        "label": "Cooking Club",
+                        "parent": "Clubs",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "cooking-club",
+                        "url": "activities\/clubs\/cooking-club\/",
+                        "items": []
+                    },
+                    {
+                        "label": "Scholar Bowl",
+                        "parent": "Clubs",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "scholar-bowl",
+                        "url": "activities\/clubs\/scholar-bowl\/",
+                        "items": []
+                    },
+                    {
+                        "label": "Student Council",
+                        "parent": "Clubs",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "student-council",
+                        "url": "activities\/clubs\/student-council\/",
+                        "items": []
+                    },
+                    {
+                        "label": "Yearbook",
+                        "parent": "Clubs",
+                        "show": true,
+                        "icon": "",
+                        "sort": 100,
+                        "slug": "yearbook",
+                        "url": "activities\/clubs\/yearbook\/",
+                        "items": []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "label": "Family",
+        "parent": "",
+        "show": true,
+        "icon": "",
+        "sort": 100,
+        "slug": "family",
+        "url": "family\/",
+        "items": [
+            {
+                "label": "PTO",
+                "parent": "Family",
+                "show": true,
+                "icon": "",
+                "sort": 100,
+                "slug": "pto",
+                "url": "family\/pto\/",
+                "items": []
+            }
+        ]
+    },
+    {
+        "label": "Contact",
+        "parent": "",
+        "show": true,
+        "icon": "",
+        "sort": 100,
+        "slug": "contact",
+        "url": "contact\/",
+        "items": []
+    }
+]

@@ -1,0 +1,12 @@
+{
+    "board": "district\/school-board",
+    "staff": "district\/staff-directory",
+    "menus": "dining",
+    "sports": "activities\/athletics",
+    "cal": "calendar",
+    "docs": "district\/documents",
+    "compliance": "district\/compliance\/",
+    "board-agendas": "district\/school-board\/school-board-agendas\/",
+    "board-minutes": "district\/school-board\/school-board-minutes\/",
+    "soppa": "district\/documents\/policies\/soppa\/"
+}

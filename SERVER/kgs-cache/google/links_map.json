@@ -1,0 +1,229 @@
+{
+    "Facebook Links": [
+        {
+            "label": "Follow us on Facebook",
+            "url": "https:\/\/www.facebook.com\/KellCSD2",
+            "tooltip": "Link to the main school Facebook page.",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Follow KGS PTO on Facebook",
+            "url": "https:\/\/www.facebook.com\/groups\/1162635645047071",
+            "tooltip": "Link to the PTO Facebook page.",
+            "icon": "",
+            "external": true
+        }
+    ],
+    "Header Links": [
+        {
+            "label": "TeacherEase",
+            "url": "https:\/\/www.teacherease.com\/common\/login.aspx",
+            "tooltip": "Login URL for TeacherEase.",
+            "icon": "",
+            "external": true
+        }
+    ],
+    "Footer Links: Quick Links": [
+        {
+            "label": "Staff Directory",
+            "url": "\/district\/staff-directory",
+            "tooltip": "Link to Staff Directory page",
+            "icon": "",
+            "external": false
+        },
+        {
+            "label": "Lunch Menu",
+            "url": "\/dining",
+            "tooltip": "Link to Dining page",
+            "icon": "",
+            "external": false
+        },
+        {
+            "label": "Illinois Report Card",
+            "url": "https:\/\/www.illinoisreportcard.com\/School.aspx?schoolid=130580020032001",
+            "tooltip": "Link to the Illinois Report Card site.",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "ABLE - Achieving a Better Life Experience",
+            "url": "https:\/\/ablenrc.org",
+            "tooltip": "Link to ABLE resources.",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Special Education and Section 504 plans",
+            "url": "https:\/\/ldaillinois.org\/ieps-vs-504-plans\/",
+            "tooltip": "Link to LDA IEP vs 504 plans",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "ROE Website Compliance",
+            "url": "\/district\/compliance\/",
+            "tooltip": "Link to ROE Website Compliance links",
+            "icon": "",
+            "external": false
+        }
+    ],
+    "Footer Links: Safety and Resources": [
+        {
+            "label": "Illinois Suicide Prevention",
+            "url": "https:\/\/safe2helpil.com",
+            "tooltip": "Link to Safe2Help Illinois.",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "National Suicide Prevention Lifeline",
+            "url": "https:\/\/988lifeline.org",
+            "tooltip": "Link to Suicide & Crisis Lifeline.",
+            "icon": "",
+            "external": true
+        }
+    ],
+    "Compliance Links": [
+        {
+            "label": "Schedule of Regular Board Meetings with Dates, Times, Locations",
+            "url": "https:\/\/docs.google.com\/document\/d\/1Fao3Kg1rF90xRhyxHl4OFYP-B7F5b0fb\/edit?usp=drivesdk&ouid=118348104168435635958&rtpof=true&sd=true",
+            "tooltip": "5 ILCS 120\/2.02",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Agendas for Board Meetings",
+            "url": "\/district\/school-board\/school-board-agendas\/",
+            "tooltip": "5 ILCS 120\/2.02",
+            "icon": "",
+            "external": false
+        },
+        {
+            "label": "Minutes from Past Meetings for at Least 60 Days",
+            "url": "\/district\/school-board\/school-board-minutes\/",
+            "tooltip": "5 ILCS 120\/2.06",
+            "icon": "",
+            "external": false
+        },
+        {
+            "label": "List of All Board Members and Leadership Training Completion",
+            "url": "https:\/\/drive.google.com\/file\/d\/12VfvX904feUIGvOUOYkGZQzr8fiPSso7\/view?usp=drivesdk",
+            "tooltip": "105 ILCS 5\/10-16a",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "School Board Members Contact Email (School Account)",
+            "url": "https:\/\/docs.google.com\/document\/d\/1O5gqPSreGrmUKeUCmrIRBbVOinqqkajy\/edit?usp=drivesdk&ouid=118348104168435635958&rtpof=true&sd=true",
+            "tooltip": "50 ILCS 205\/20",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "School District Report Card - Link to District IIRC",
+            "url": "https:\/\/www.illinoisreportcard.com\/School.aspx?schoolid=130580020032001",
+            "tooltip": "105 ILCS 5\/10-17a",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Current Itemized Annual Budget",
+            "url": "https:\/\/docs.google.com\/spreadsheets\/d\/1GHnp0H4VW_mtSf6Wlh5mSO2Z1wXsbRsz\/edit?usp=drivesdk&ouid=118348104168435635958&rtpof=true&sd=true",
+            "tooltip": "105 ILCS 5\/17-1.2",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "District SOPPA Policy (3rd Party Agreements and Parent's Privacy Rights)",
+            "url": "\/district\/documents\/policies\/soppa\/",
+            "tooltip": "105 ILCS 85\/27",
+            "icon": "",
+            "external": false
+        },
+        {
+            "label": "Anti-Bias Education Policies (6.70,6.80,7.10,7.20,7.180)",
+            "url": "https:\/\/drive.google.com\/file\/d\/1kmxrG1k8usGrypcxqcV9ohiksrr_vYFh\/view?usp=drivesdk",
+            "tooltip": "105 ILCS 5\/27-23.6",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Bullying Prevention Policy",
+            "url": "https:\/\/drive.google.com\/file\/d\/1j_yp0A18eeGCYBMO81tDY5_hOjys-b3C\/view?usp=drivesdk",
+            "tooltip": "105 ILCS 5\/27-23.7",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Suicide Awareness and Prevention Policy with Resources",
+            "url": "https:\/\/drive.google.com\/file\/d\/1BZg8z3YyJ5CfSsu25VTL-p_kRNk8dKhF\/view?usp=drivesdk",
+            "tooltip": "105 ILCS 5\/2-3.166",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "FOIA Officer Information",
+            "url": "https:\/\/docs.google.com\/document\/d\/1566fTN2zzuvCwExONvLfkRBuIGgAGZks\/edit?usp=drivesdk&ouid=118348104168435635958&rtpof=true&sd=true",
+            "tooltip": "5 ILCS 140\/4",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "All Contracts over $25,000",
+            "url": "https:\/\/docs.google.com\/document\/d\/1MbzzWryqAWj9HMsra5XHN7yw5CTvU7sr\/edit?usp=drivesdk&ouid=118348104168435635958&rtpof=true&sd=true",
+            "tooltip": "105 ILCS 5\/10-20.44",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Collective Bargaining Agreements",
+            "url": "https:\/\/drive.google.com\/file\/d\/1rwRkC7c271C81AhUObxCU57ab9WsyA6h\/view?usp=drivesdk",
+            "tooltip": "105 ILCS 5\/10-20.44",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Sexual Abuse Policy - Faith's Law Policy (4.165)",
+            "url": "https:\/\/drive.google.com\/file\/d\/1AxkVS_-h5jweOeOuIzOKnl9Wrb2M_HcD\/view?usp=drivesdk",
+            "tooltip": "105 ILCS 5\/22-85.5",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Administrator and Teacher Compensation Reports",
+            "url": "https:\/\/drive.google.com\/file\/d\/1KYv_tYZ-HGVQ0D5XODkv_e5GD-OL6ae8\/view?usp=drivesdk",
+            "tooltip": "105 ILCS 5\/10-20.47",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Special Education and Section 504 Plans",
+            "url": "https:\/\/ldaillinois.org\/ieps-vs-504-plans\/",
+            "tooltip": "105 ILCS 5\/14-6.01",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Code of Professional Conduct Policy (5:120)",
+            "url": "https:\/\/drive.google.com\/file\/d\/1GHPnzlfV98wiXPFuAxQm_SehgJQJALsB\/view?usp=drivesdk",
+            "tooltip": "105 ILCS 5\/22-85.5",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Type I Diabetes Information for Parents",
+            "url": "https:\/\/drive.google.com\/file\/d\/1YStzGXwBVzeMtEyB257oxD91IE_7zrWi\/view?usp=drivesdk",
+            "tooltip": "PA103-0641",
+            "icon": "",
+            "external": true
+        },
+        {
+            "label": "Link to ABLE (Achieving a Better Life Experience) NEW FY27",
+            "url": "https:\/\/www.ablenrc.org\/",
+            "tooltip": "PA 104-0314",
+            "icon": "",
+            "external": true
+        }
+    ]
+}

@@ -1,0 +1,12 @@
+[
+	{ "type": "page-header", "data": { "title": "Kell Clubs" } },
+	{ "type": "google-doc-content", "data": { "doc_id": "@about_clubs_doc_id" } },
+	{
+	  "type": "link-tiles",
+	  "data": {
+		"source_type": "site_menu"
+	  }
+	},
+	{ "type": "smart-grid", "data": { "prefix": "clubs" } },
+	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
+]

@@ -1,0 +1,16 @@
+[
+	{ "type": "page-header", "data": { "title": "School Board Minutes" } },
+	{ 
+		"type": "file-list", 
+		"data": { 
+		  "title": "", 
+		  "folder_id": "@board_minutes_folder_id",
+		  "initial_state": "expanded",
+		  "initial_depth": 2,
+		  "show_search": true,
+		  "show_toggle": true,
+		  "sort_order": "desc"
+		} 
+	},
+	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
+]

@@ -1,0 +1,6 @@
+[
+	{ "type": "page-header", "data": { "title": "Student Council" } },
+	{ "type": "google-doc-content", "data": { "doc_id": "@about_student_council_doc_id" } },
+	{ "type": "smart-grid", "data": { "prefix": "clubs" } },
+	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
+]

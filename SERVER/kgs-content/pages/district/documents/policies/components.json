@@ -1,0 +1,6 @@
+[
+	{ "type": "page-header", "data": { "title": "Policies Documents" } },
+	{ "type": "google-doc-content", "data": { "doc_id": "@about_policies_doc_id" } },
+	{ "type": "smart-grid", "data": { "prefix": "docs_page" } },
+	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
+]

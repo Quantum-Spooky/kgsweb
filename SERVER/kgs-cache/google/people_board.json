@@ -1,0 +1,58 @@
+[
+    {
+        "name": "Jennifer Timm",
+        "email": "jjjstimm@yahoo.com",
+        "title": "President",
+        "image_id": "staff_photo_placeholder_img",
+        "category": "Board of Education",
+        "sort": 0
+    },
+    {
+        "name": "Bruce Green",
+        "email": "bgreen5101@gmail.com",
+        "title": "Vice-President",
+        "image_id": "staff_photo_placeholder_img",
+        "category": "Board of Education",
+        "sort": 10
+    },
+    {
+        "name": "Kimberly Tate",
+        "email": "kimberlytate99@yahoo.com",
+        "title": "Secretary\/Treasurer",
+        "image_id": "staff_photo_placeholder_img",
+        "category": "Board of Education",
+        "sort": 20
+    },
+    {
+        "name": "Kathleen Howard",
+        "email": "kathleenhoward79@gmail.com",
+        "title": "Board Member",
+        "image_id": "staff_photo_placeholder_img",
+        "category": "Board of Education",
+        "sort": 30
+    },
+    {
+        "name": "Todd Burroughs",
+        "email": "tburroughs@northwayne.net",
+        "title": "Board Member",
+        "image_id": "staff_photo_placeholder_img",
+        "category": "Board of Education",
+        "sort": 40
+    },
+    {
+        "name": "DeLinda Youngblood",
+        "email": "delinday24@gmail.com",
+        "title": "Board Member",
+        "image_id": "staff_photo_placeholder_img",
+        "category": "Board of Education",
+        "sort": 50
+    },
+    {
+        "name": "Jason Arnold",
+        "email": "erikderson@gmail.com",
+        "title": "Board Member",
+        "image_id": "staff_photo_placeholder_img",
+        "category": "Board of Education",
+        "sort": 60
+    }
+]

@@ -1,0 +1,106 @@
+[
+    {
+        "name": "Terry Milt",
+        "email": "tmilt@kellgradeschool.com",
+        "title": "Superintendent\/ Principal",
+        "image_id": "staff_photo_placeholder_img",
+        "category": "Administration",
+        "sort": 70
+    },
+    {
+        "name": "Karen Garrison",
+        "email": "kgarrison@kellgradeschool.com",
+        "title": "Kindergarten Teacher",
+        "image_id": "1Wtx1Ww1XEN1m9OxSyhNbufK5_YsWJC0N",
+        "category": "Elementary Faculty",
+        "sort": 90
+    },
+    {
+        "name": "Alexandra Slater",
+        "email": "aslater@kellgradeschool.com",
+        "title": "1st Grade Teacher",
+        "image_id": "1c4R-hPz0GPDeXbN5EidnWnQZ90eRim-H",
+        "category": "Elementary Faculty",
+        "sort": 100
+    },
+    {
+        "name": "Lyric Juday",
+        "email": "ljuday@kellgradeschool.com",
+        "title": "2nd\/3rd Grade Teacher",
+        "image_id": "1HnH7Ya9HGzZBKSLlwrd6qgNZPyOEzZX4",
+        "category": "Elementary Faculty",
+        "sort": 110
+    },
+    {
+        "name": "Jeanna Donoho",
+        "email": "jedonoho@kellgradeschool.com",
+        "title": "4th\/5th Grade Teacher",
+        "image_id": "1tlX9TpEFZ14uzIYlcBG9BsYPugYzdvDM",
+        "category": "Elementary Faculty",
+        "sort": 120
+    },
+    {
+        "name": "Dawna Meador",
+        "email": "dmeador@kellgradeschool.com",
+        "title": "Title I Teacher",
+        "image_id": "1Uwtsu33CatiChACb3U9mRpHhdzPZ9TCV",
+        "category": "Faculty",
+        "sort": 160
+    },
+    {
+        "name": "Kim Pearce",
+        "email": "contact@kellgradeschool.com",
+        "title": "Head Cook",
+        "image_id": "1kNfiHdEf30g9gSVbQ7tyD6PJdt2imR9L",
+        "category": "Support Staff",
+        "sort": 190
+    },
+    {
+        "name": "George Hoyt",
+        "email": "contact@kellgradeschool.com",
+        "title": "Maintenance",
+        "image_id": "1iMceYnOPGdhZ7KmpBDcbtTVZau_EY8Y-",
+        "category": "Support Staff",
+        "sort": 200
+    },
+    {
+        "name": "Keith Knight",
+        "email": "contact@kellgradeschool.com",
+        "title": "Bus Driver",
+        "image_id": "1ZFRjmoYnXIjPndRxLjpXu4hBgeb7HzdC",
+        "category": "Support Staff",
+        "sort": 210
+    },
+    {
+        "name": "Tom Taylor",
+        "email": "ttaylor@kellgradeschool.com",
+        "title": "Technology",
+        "image_id": "1HN704oDhqNemPgKWuUFNOv1HdUpNGukO",
+        "category": "Support Staff",
+        "sort": 220
+    },
+    {
+        "name": "Lori Arnold",
+        "email": "contact@kellgradeschool.com",
+        "title": "Paraprofessional",
+        "image_id": "1e0Ys2yR1me1VUYJZkDXFq9Hw7ovlm0W1",
+        "category": "Paraprofessionals",
+        "sort": 230
+    },
+    {
+        "name": "Julie Benjamin",
+        "email": "contact@kellgradeschool.com",
+        "title": "Paraprofessional",
+        "image_id": "1wadcTRWBX6s6g_dSCkY731k0Hp0HR0tb",
+        "category": "Paraprofessionals",
+        "sort": 240
+    },
+    {
+        "name": "Penny Knepp",
+        "email": "contact@kellgradeschool.com",
+        "title": "Paraprofessional",
+        "image_id": "11PHw1o7S3dMB1kXvxPiA9ZNI1N__KZui",
+        "category": "Paraprofessionals",
+        "sort": 250
+    }
+]

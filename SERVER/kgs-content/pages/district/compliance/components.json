@@ -1,0 +1,21 @@
+[
+	{ 
+		"type": "page-header", 
+		"data": { "title": "ROE Compliance Documents" } 
+	},
+	{ 
+		"type": "google-doc-content", 
+		"data": { "doc_id": "@about_compliance_doc_id" } 
+	},
+	{
+		"type": "compliance-table",
+		"data": {
+			"title": "",
+			"category": "Compliance Links"
+		}
+	},
+	{ 
+		"type": "rich-text", 
+		"data": { "title": "", "content": "", "align": "left" } 
+	}	
+]

@@ -1,0 +1,7 @@
+[
+	{ "type": "page-header", "data": { "title": "Documents" } },
+	{ "type": "google-doc-content", "data": { "doc_id": "@about_documents_doc_id" } },
+	{ "type": "smart-grid", "data": { "prefix": "docs_page" } },
+    { "type": "file-list", "data": { "folder_id": "1L2vOHZlPrDnvXrGVFeTZa2duilKv89IL", "title": "" } },
+	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
+]
