@@ -1,0 +1,63 @@
+/* assets/css/hero.css */
+
+.hero-component { 
+    margin-top: 0; 
+    position: relative; 
+    overflow: hidden;
+    background-color: var(--secondary); /* Fallback background */
+}
+
+/* Base Image Behavior */
+.hero-component img {
+    width: 100%;
+    display: block;
+}
+
+/* Desktop Height */
+@media (min-width: 769px) {
+    .hero-component img {
+        height: 480px;
+        object-fit: cover;
+    }
+}
+
+/* TASK 2: Mobile Views */
+@media (max-width: 768px) {
+    /* Full View: Show 100% of the image width/height */
+    .hero-mobile-full img {
+        height: auto !important;
+        min-height: 180px;
+    }
+
+    /* Crop View: Standard fill-the-box look */
+    .hero-mobile-crop img {
+        height: 280px;
+        object-fit: cover;
+    }
+
+    /* Adjust text size for small screens */
+    .hero-component .hero-title {
+        font-size: 1.75rem !important;
+    }
+    .hero-component .hero-subtitle {
+        font-size: 1rem !important;
+    }
+
+    /* Ensure text container stays centered over the image on mobile */
+    .hero-component .translate-middle {
+        width: 100% !important;
+        padding: 0 20px !important;
+    }
+}
+
+/* Typography */
+.hero-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.9);
+}
+
+.hero-subtitle {
+    font-size: clamp(1.1rem, 2vw, 1.6rem);
+    text-shadow: 1px 1px 6px rgba(0,0,0,0.9);
+}

@@ -1,0 +1,249 @@
+/* assets/css/navigation.css */
+
+/* =========================================================
+   GLOBAL & DESKTOP NAVIGATION
+========================================================= */
+
+.navbar {
+    background-image: url('../img/nav_bg_img_ID.png');
+    background-position: left top;
+    background-repeat: repeat;
+    position: relative;
+}
+
+.navbar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 35, 102, 0.25);
+    z-index: 1;
+}
+
+.navbar > * { 
+    position: relative; 
+    z-index: 2; 
+}
+
+.navbar-brand {
+    position: relative;
+    z-index: 1100; /* Stays above mobile overlay */
+}
+
+.navbar-brand img {
+    height: 60px !important;
+    width: auto;
+    transition: transform 0.2s;
+}
+
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+.navbar-brand, 
+.navbar-nav .nav-link {
+    color: white !important;
+    font-weight: 600;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.9);
+}
+
+/* Desktop Hover */
+.navbar-nav .nav-link:hover { 
+    color: var(--accent) !important; 
+}
+
+/* Desktop Active State (Current Page) */
+@media (min-width: 992px) {
+    .navbar-nav .nav-link.active {
+        color: var(--accent) !important;
+        border-bottom: 3px solid var(--accent);
+        text-shadow: none;
+    }
+}
+
+/* =========================================================
+   TOP CONTACT BAR & LOGIN
+========================================================= */
+
+.text-accent {
+    color: var(--accent) !important;
+}
+
+.top-login-btn {
+    background: transparent;
+    color: #fff;
+    border: none;
+    font-weight: 400;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    text-decoration: underline 1px transparent;
+}
+
+.top-login-btn:hover { 
+    color: var(--accent); 
+    text-decoration: underline 1px var(--accent); 
+}
+
+@media (max-width: 768px) {
+    .header-contact-info {
+        text-align: center;
+        font-size: 0.75rem;
+    }
+    .header-contact-info span {
+        display: block;
+        margin-bottom: 4px;
+    }
+}
+
+@media (max-width: 576px) {
+    .bg-dark .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .top-login-btn strong {
+        font-weight: 600;
+    }
+}
+
+@media (max-width: 400px) {
+    .site-title-text {
+        font-size: 1rem; /* Shrink text on very small phones so it fits next to logo */
+    }
+}
+
+
+/* =========================================================
+   MOBILE TOGGLER (Hamburger / X)
+========================================================= */
+
+.navbar-toggler {
+    background-color: rgba(var(--primary-rgb), 1) !important;
+    border: 2px solid rgba(255,255,255,0.2) !important;
+    padding: 8px 12px !important;
+    border-radius: 8px;
+    color: white !important;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1100; /* Ensure it is clickable above the overlay */
+}
+
+/* Toggle between List and X icon */
+.navbar-toggler .close-icon { display: none; }
+.navbar-toggler:not(.collapsed) .open-icon { display: none; }
+.navbar-toggler:not(.collapsed) .close-icon { display: block; }
+
+/* =========================================================
+   MOBILE NAV OVERLAY (max-width: 991px)
+========================================================= */
+
+@media (max-width: 991px) {
+    .navbar-collapse {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1050;
+        
+        /* 
+           FIX: We combine the image and the color tint into one property.
+           This ensures the background and color stretch together as the 
+           content scrolls or expands.
+        */
+        background: linear-gradient(rgba(var(--secondary-rgb), 0.96), rgba(var(--secondary-rgb), 0.96)), 
+                    url('../img/nav_bg_img_ID.png');
+        background-position: left top;
+        background-repeat: repeat;
+        background-attachment: fixed;
+        
+        /* Layout */
+        padding: 100px 20px 100px 20px; /* Extra bottom padding for thumb reach */
+        overflow-y: auto;
+        height: 100%; /* Uses full window height */
+        width: 100vw;
+        display: none;
+    }
+    
+    /* Remove the ::before pseudo-element as it's no longer needed */
+    .navbar-collapse::before {
+        display: none;
+    }
+
+    .navbar-collapse.show {
+        display: block;
+    }
+
+    .navbar-nav {
+        max-width: 500px;
+        margin: 0 auto !important;
+		padding-top: 15px !important;
+        padding-bottom: 50px; /* Force extra space at the very bottom of the list */
+    }
+
+    /* THE BUTTONS */
+    .navbar-nav .nav-link {
+        background: rgba(var(--primary-rgb), 0.6);
+        color: white !important;
+        margin-bottom: 12px;
+        padding: 18px !important;
+        border-radius: 12px;
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 600;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.2s ease-in-out;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
+
+    /* TOUCH FEEDBACK */
+    .navbar-nav .nav-link:active {
+        background: rgba(var(--accent-rgb), 0.9) !important;
+        color: var(--secondary) !important;
+        transform: scale(0.96); 
+        transition: 0s; 
+        text-shadow: none;
+    }
+
+    /* ACTIVE PAGE */
+    .navbar-nav .nav-link.active {
+        background: rgba(var(--accent-rgb), 0.8) !important;
+        color: var(--secondary) !important;
+        text-shadow: none;
+    }
+	
+	/* Mobile Accordion Dropdowns */
+    .navbar-collapse .dropdown-menu {
+        position: static !important;
+        float: none;
+        background: rgba(255,255,255,0.08); /* Lighter tint to separate from main buttons */
+        border: 1px solid rgba(255,255,255,0.1);
+        margin: -5px 10px 15px 10px; /* Connects visually to the button above */
+        padding: 10px 0;
+        border-radius: 0 0 12px 12px;
+        box-shadow: none;
+        display: none;
+    }
+
+    .navbar-collapse .dropdown-menu.show {
+        display: block;
+    }
+
+    .navbar-collapse .dropdown-item {	
+        color: white !important;
+        padding: 14px 20px !important;
+        text-align: center;
+        font-size: 1.1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+	
+    .navbar-collapse .dropdown-item:active,
+	.navbar-collapse .dropdown-item:hover {
+		background: var(--accent);
+        color: var(--secondary) !important;
+    }
+    
+    .navbar-collapse .dropdown-item:last-child { border-bottom: none; }
+}
