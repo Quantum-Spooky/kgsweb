@@ -1,0 +1,7 @@
+[
+	{ "type": "page-header", "data": { "title": "Calendars & Events" } },
+	{ "type": "google-doc-content", "data": { "doc_id": "@about_calendar_doc_id" } },
+	{ "type": "smart-grid", "data": { "prefix": "calendar", "row": 1 } },
+	{ "type": "smart-grid", "data": { "prefix": "calendar", "row": 2 } },
+	{ "type": "smart-grid", "data": { "prefix": "calendar", "row": 3 } }
+]

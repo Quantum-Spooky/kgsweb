@@ -1,0 +1,12 @@
+[
+	{ "type": "page-header", "data": { "title": "Academics" } },
+	{ "type": "google-doc-content", "data": { "doc_id": "@about_academics_doc_id" } },
+	{
+	  "type": "link-tiles",
+	  "data": {
+		"source_type": "site_menu"
+	  }
+	},
+	{ "type": "smart-grid", "data": { "prefix": "academics" } },
+	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
+]

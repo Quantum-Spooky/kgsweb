@@ -1,0 +1,6 @@
+[
+	{ "type": "page-header", "data": { "title": "Bowling" } },
+	{ "type": "google-doc-content", "data": { "doc_id": "@about_bowling_doc_id" } },
+	{ "type": "smart-grid", "data": { "prefix": "athletics" } },
+	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
+]

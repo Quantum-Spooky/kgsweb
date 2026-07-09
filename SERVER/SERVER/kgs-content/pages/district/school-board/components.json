@@ -1,0 +1,8 @@
+[
+	{ "type": "page-header", "data": { "title": "School Board" } },
+	{ "type": "google-doc-content", "data": { "doc_id": "@about_board_doc_id" } },
+
+	{ "type": "smart-grid", "data": { "prefix": "board", "row": 1 } },
+	{ "type": "smart-grid", "data": { "prefix": "board", "row": 2 } },
+	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
+]

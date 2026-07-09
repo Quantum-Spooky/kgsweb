@@ -1,0 +1,5 @@
+[
+    { "type": "page-header", "data": { "title": "Staff Directory" } },
+    { "type": "people-list", "data": { "type": "staff", "show_photos": "true" } },
+    { "type": "rich-text", "data": { "title": "", "content": "" } }
+]

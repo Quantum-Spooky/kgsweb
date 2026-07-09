@@ -1,0 +1,80 @@
+{
+    "widget_facebook": {
+        "label": "School Facebook",
+        "component": "facebook-feed",
+        "source": "@school_facebook_url",
+        "parameter": "url"
+    },
+    "widget_calendar": {
+        "label": "Google Calendar",
+        "component": "calendar-embed",
+        "source": "@google_calendar_id",
+        "parameter": "calendar_id"
+    },
+    "widget_monthly_calendar": {
+        "label": "Monthly Calendar",
+        "component": "latest-file-view",
+        "source": "@monthly_calendar_folder_id",
+        "parameter": "folder_id"
+    },
+    "widget_academic_calendar": {
+        "label": "Academic Calendar",
+        "component": "latest-file-view",
+        "source": "@academic_calendar_folder_id",
+        "parameter": "folder_id"
+    },
+    "widget_livefeed": {
+        "label": "Live Feed",
+        "component": "live-feed",
+        "source": "@live_feed_sheet_id",
+        "parameter": "doc_id"
+    },
+    "widget_weather": {
+        "label": "Local Weather",
+        "component": "weather",
+        "source": "@weather_location",
+        "parameter": "location"
+    },
+    "widget_quick_list": {
+        "label": "Quick Links List",
+        "component": "link-list",
+        "source": "Sidebar Links: Clubs",
+        "parameter": "category"
+    },
+    "widget_quick_tiles": {
+        "label": "Quick Links Tiles",
+        "component": "link-tiles",
+        "source": "Sidebar Links: Home",
+        "parameter": "category"
+    },
+    "widget_staff": {
+        "label": "Staff Directory",
+        "component": "people-list",
+        "source": "staff",
+        "parameter": "type"
+    },
+    "widget_board_members": {
+        "label": "School Board Members",
+        "component": "people-list",
+        "source": "board",
+        "parameter": "type"
+    },
+    "widget_board_docs": {
+        "label": "School Board Documents",
+        "component": "file-list",
+        "source": "@board_docs_folder_id",
+        "parameter": "folder_id"
+    },
+    "widget_about_pto": {
+        "label": "About PTO",
+        "component": "google-doc-content",
+        "source": "@about_pto_doc_id",
+        "parameter": "doc_id"
+    },
+    "widget_pto_feature_img": {
+        "label": "PTO Feature Image",
+        "component": "latest-file-view",
+        "source": "@pto_feature_img_folder_id",
+        "parameter": "folder_id"
+    }
+}
