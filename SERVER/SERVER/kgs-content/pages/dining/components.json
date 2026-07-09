@@ -1,8 +1,0 @@
-[
-  { "type": "page-header", "data": { "title": "Breakfast & Lunch Menus" } },
-  { "type": "google-doc-content", "data": { "doc_id": "@about_dining_doc_id" } },
-  { "type": "latest-file-view", "data": { "title": "Breakfast", "folder_id": "@breakfast_menu_folder_id" } },
-  { "type": "latest-file-view", "data": { "title": "Lunch", "folder_id": "@lunch_menu_folder_id" } },
-  { "type": "file-list", "data": { "title": "Dining Menus", "folder_id": "@dining_menus_folder_id" } },
-	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
-]

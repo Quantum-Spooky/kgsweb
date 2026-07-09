@@ -1,6 +1,0 @@
-[
-	{ "type": "page-header", "data": { "title": "Jobs at Kell" } },
-	{ "type": "google-doc-content", "data": { "doc_id": "@about_employment_doc_id" } },
-	{ "type": "smart-grid", "data": { "prefix": "employment" } },
-	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
-]

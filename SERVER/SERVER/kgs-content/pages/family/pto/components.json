@@ -1,6 +1,0 @@
-[
-	{ "type": "page-header", "data": { "title": "KGS PTO (Parent-Teacher Organization)" } },
-	{ "type": "smart-grid", "data": { "prefix": "pto", "row": 1 } },
-	{ "type": "smart-grid", "data": { "prefix": "pto", "row": 2 } },
-	{ "type": "rich-text", "data": { "title": "", "content": "", "align": "left" } }	
-]
