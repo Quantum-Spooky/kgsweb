@@ -1,0 +1,143 @@
+TASKS
+
+Here are several things I want to work on. Where should we start? Also, let me know what files you need to see.
+
+///// REMAINING TASKS /////
+
+[TASK 13] LIVE FEED COMPONENT. Let’s build out the Live Feed component some more. Please see the following websites (most if not all are Apptegy sites) for an idea of what I want to appear on the site. [https://www.raccoonschool.org and https://www.raccoonschool.org/live-feed, https://www.iukaschool.com and https://www.iukaschool.com/live-feed, https://www.woodlawnschools.org/%20and%20https://www.woodlawnschools.org/live-feed] Then also consider how those live feeds are updated and how we can implement a method for it. Maybe a Google Form? Would something else be better? The ability to include images in the live feeds seems good. Something like a twitter feed, except just for the school secretary (and possibly other stakeholders) to update. Let’s follow best practices. 
+
+[TASK 20] LIVE FEED COMPONENT. Maybe make an update button for JUST the live feed, so that if it doesn’t seem like it is up to date, the viewer can refresh it. That may be too much of an API hit. Not sure. Maybe separate the live feed from the cache system altogether and have it directly populated from the google sheet via API so it stays as current as possible? Thoughts? Best practice? How does Apptegy do it?
+
+[TASK 52] LIVE FEED GUI. Build Live Feed Dashboard GUI php (with credentials check).
+
+[TASK 14] PAGE BUILDING. Can we populate the meta.json files from the google sheet config too? There is stuff hardcoded in those json files that I think people will want to edit.
+[TASK 24] PAGE BUILDING. Should we figure out a way to build all of the websites within Google Sheets? Like a “Pages” sheet with a tab for each page on the website, and build up a page in its sheet, from top to bottom, with the meta.json data at the top (including an additional “parent:” row, so for example, the Volleyball page is a sub-page of the Athletics page, and the Athletics page is a sub-page of the Activities page), and the components.json data below that, to tell the website row by row what to include on that page. 
+[TASK 60] PAGE BUILDING. I still want to move the page components and page meta from the server to a Google Sheet so individual stakeholders can control their pages on the website.
+[TASK 61] PAGE BUILDING. Would it be possible to have a Show/Hide toggle for each page, listed in a tab in the main Settings cfg sheet (what we currently have), and ALSO an individual page Show/Hide toggle on each page’s individual sheet, in a way that applies the toggle state in the main cfg sheet to the the toggle states in those individual sheets (and vice versa)?
+
+[TASK 57] PAGE BUILDING. Teachers and coaches can make their own Google Sites if they want to, but for simplicity’s sake, I will simply make a “content” document for each of the subpages under Academics, Athletics, Clubs, and maybe some other things like PTO, Office, Library, etc. The content document contents will appear on the page if contents exist. A toggle in Settings will allow stakeholders to choose to Show/Hide the about document contents and to Show/Hide the content document contents.
+
+[TASK 54] PAGE BUILDING. Build the Contact page.
+
+[TASK 55] PAGE BUILDING. Build out the News page so there is something on it even if the Live Feed is empty.
+
+[TASK 56] PAGE BUILDING. Build out the template or whatever for Academics pages, Athletics pages, and Clubs pages.
+[TASK 66] PAGE TEMPLATES. Build out templates for Google Sites for athletics teams, classrooms, PTO, school board, and the Main Office. Figure out how to use those templates on Google Sites, and how to best make (and guide others to make) a Google Site and wire it up to the main website.
+
+[TASK 58] PAGE BUILDING. Consider also adding a Teacher/Coach/Whatever section on each of the subpages under Academics, Athletics, Clubs, and maybe some other things like PTO, Office, Library, etc. A toggle in Settings will Show/Hide the section.
+
+[TASK 35](8) LINK LIST COMPONENT. It hasn’t come up yet but link lists should be able to be list of links for anything. If stakeholders want to add a link list to a sidebar or smart row thing, and put it on a page, they should be able to create a link list and add it in. Right now, I am not sure if that is possible.
+[TASK 59] LINK LIST COMPONENT. Figure out a good way to do link lists for each of the subpages under Academics, Athletics, Clubs, and maybe some other things like PTO, Office, Library, etc. I have a “Links” tab in the settings config sheet, but it may make sense to source these links from individual sheets in their stakeholder’s content folders in the in-house branch of the website’s Google Drive, along with the associated About Document and Content Document, etc.
+
+[TASK 44] CALENDAR. The Calendar pdf on in the calendar component is only filling part of the viewer. I can click the zoom button to fill the whole area, but I would like for it to seemlessly load in that size. I would like to try it, filling the entire height of the viewer and displaying the entire height of the pdf document. The background color is currently black. I would like to try transparent and white. The images displaying on the dining page appear to be rendering to these specifications. Tell me what files you need to see.
+[TASK 62] CALENDAR. Add Board Meeting dates to a KGS Board Google Calendar. Display this Calendar (agenda view) on the School Board page.
+[TASK 63] CALENDAR. Create color-coded Google Calendars for various things. Organize the Calendar IDs in the cfg sheet. Update the Calendar component to accept parameters to display multiple Google Calendars as specified, and to toggle show/hide a feature that allows page visitors to show/hide individual calendars. Does that make sense?
+[TASK 64] CALENDAR. Figure out a way to format the calendar display in a variety of custom list types to mimic a variety of ways school websites do it, to be optimal for any specific purpose for which it is being used (upcoming events, academic calendar, board meetings, sports events, club events, school events, community events, holidays, reminders, lunch menus, breakfast menus, etc) on desktop and mobile views.
+
+[TASK 46] DISTRICT. I would like to see the District page looking more like this: https://kellgradeschool.com/administration/. Tell me what files you need to see.
+
+[TASK 47] WEATHER. Apply styles to weather widget.
+[TASK 48] WEATHER. Set default state of weather widget to collapsed. Make this configurable via cfg sheet.
+
+[TASK 50] CONFIG SHEET. Clean up cfg sheet to avoid redundancies. One example of redundancy is Superintendent/Principal and Secretary names should be set in the Site Settings tab with an @ key from the People sheet. Another is the Illinois School District Report Card listed twice.
+[TASK 51] ADMIN GUI. Build Admin Settings Dashboard GUI php (with credentials check). Use toggle icons.
+
+[TASK 53] PEOPLE LIST. Make People List use @ key for default photo.
+
+[TASK 16] STYLE. Let’s work on making some style standards for the website, including fonts, headings, etc.
+
+[TASK 65] COMPONENTS. Make components consistent in how they display (for example, make sure the divs have consistent container classes so that items stay lined up properly).
+
+[TASK 67] BACKUP. Figure out how to make the site and Google Drive exportable for backup.
+
+[TASK 68] PORTABILITY. Figure out how to make the site and Google Drive exportable for selling to other schools to use as their own school website CMS to compete with Apptegy on a much smaller, cheaper scale?
+
+[TASK 69] DOCUMENTATION. Start thinking about a comprehensive user guide / help document / wiki that is organized, concise, easy to follow, and searchable. It should cover the domain, hosted files, Google Drive integration, and Google Sites.
+
+
+
+
+///// COMPLETED TASKS /////
+
+DONE! [TASK 1] ON MOBILE VIEW: The address, phone number, and email address wrap weirdly in the header. What is best practice for this? I want your ideas. Otherwise, maybe add a link for Contact Info there that either drops the user down to the Contact Info section of the footer or directs to a dedicated Contact Info page on the site (which also would include an embedded map).
+
+DONE! [TASK 2] ON MOBILE VIEW: Please make the full width of the hero image show. It might be a good idea to add lines for options for this in the page components.php, because the best view may vary from image to image. What do you think? Some sites have a hero carousel, but I don’t think I want that right now, and if I did add it, I would want it to be separate component. Honestly I don’t even like hero images, because they feel like a waste of screen real estate, but they seem to be the expected standard, so I guess they have a purpose.
+
+DONE! [TASK 3] ON MOBILE VIEW: I don’t know how to get mobile browsers to let go of old data and get the latest version of the website without asking users to do something (as a user, I also don’t know what to do). Other sites don’t require that and I am not going to either. What’s best practice for this? I did the hard refresh trick (turn on airplane mode, then refresh, then turn off airplane mode, then refresh), and safari on iPhone is still showing old data. This should not be the case. a normal refresh of the page should render the latest version of the page, period.
+
+DONE, for now. [TASK 4] ON MOBILE VIEW: I like that the Facebook embed now shows the available posts and then has a button for “See more on Facebook” instead of repeating the same posts over and over again like it did before. I would also like the view to show the full contents of that scenario all on one page without a scroll bar (without the need for a scroll bar), so the embedded feed appears to be a native part of the website and not an embedded view.
+
+DONE! [TASK 5] Add a button to return to the top of the page.
+
+DONE, MAYBE?! [TASK 6] I need a way to display cached images and pdfs on the page, like in the case of, for one example, breakfast and lunch menus. I built a working Wordpress plugin for the site this site is replacing. You may be able to get an idea of my vision from that. It would also be nice if I could specify (a) at what size the image and pdf is displayed (should it be full page width or some smaller width or what?), (b) whether the image or pdf is displayed with or without a context frame (and in the case of pdfs, with or without controls), (c) whether there is a zoom button to view the image or pdf at full size, (d) whether there is a link associated with the image or pdf, and if so, what it does (open the image or pdf in a new tab or direct to another page or url, for example), (e) anything else you can think of. What are your thoughts and what is best practice?
+
+DONE! [TASK 7] Give me a weather component. I built a working Wordpress plugin for the site this site is replacing. You may be able to get an idea of my vision from that. IMPORTANT: THE FOLLOWING IS A WP PLUGIN ON A SEPARATE EXISTING WEBSITE. THE KEYS AND EVERYTHING MAY BE DIFFERENT IN OUR IMPLEMENTATION. Also, you can reject the principles of the following plugin code and plan your own take on it. Please do not begin thining this example code is part of our current project. (Ask me for the old weather app)
+
+DONE!  [TASK 8] Add a component with a row of maybe 4 visual quick link buttons that can appear below the hero on the home page. I don’t know the details but I know a lot of similar sites have that. They responsively collapse to 2x2 on mobile. I want to set up a suite of swappable quick links that can be selected in the configuration sheet on Google. The user will see 4 rows for the quick links section, with a dropdown for each so they can choose what they want to appear in each button area from the pre-designed suite. Does that make sense? I already have a component called quick links, to produce a list of links and display them as a list on the page, so naming conventions need to be considered.
+
+DONE! [TASK 9] Make the widgets-section component configurable in the configuration sheet on Google. Right now, facebook and calendar are hardcoded into it. There are also separate facebook and calendar components. That is redundant. The components.php for the page should pass parameters into the widgets-compoent to use the existing components phps in the widgets-section. Make it so the backend user (on google drive) can have a dropdown menu of options for the left and right widgets-section components (if only one is assigned, it can take up the full alotted widgets-section component width). Consider whether the widgets component should only be used on the home page or if it can have applications elsewhere, and whether it should be limited to one instance on a page. I do not have answers to these questions.
+
+DONE! [TASK 10] Add a cron job to clear the cache directories and refresh the cache from Google API once per hour? Keep in mind that kgs-cache may contain non-Google cached content too. I don’t remember right now if there is a separate cache folder tree for Google. Anyway, non-Google cache needs refreshed too I guess. Are there instances when I would have things permanently cached that I wouldn’t want to clear? Additionally, when stakeholders make updates or upload documents to Google Drive they will inevitably want to see results on the website immediately. Can we make that happen automatically on a per-file basis based on changes or would that be a heavy api usage? Of course some components, like Live Feed, will need updates to appear on the site instantly. What is best practice? What are your ideas?
+
+DONE! [TASK 11] On the current Wordpress website, I have hidden a function link in the copyright symbol on the bottom of the site. If the user clicks it 3 times consecutively (I think), the cache refresh worker runs. A green toast message checkmark appears on the bottom right to indicate that it is happening and/or is completed or whatever. As a security feature, the function link is blocked from running again for a period of time, indicated by a red toast message checkmark. Here is my current implementation from the old (currently live) website.
+
+DONE! [TASK 12] Should there be a “Last Updated” indicator somewhere on the website that indicates when the data was last refreshed? It could be displayed with the copyright line maybe? What’s best practice for this?
+
+DONE! [TASK 15]  Make the logo larger. Also consider generalizing/normalizing the key name for it and for the navigation background image.
+
+DONE! [TASK 17] The Facebook embed is being cut off on the right side of the iframe and it is unreadable.
+
+DONE! [TASK 18] Make the Facebook embed show the whole length of the available feed, which isn’t very long when using the default Facebook embed tool (this task is also included in a previous task list) at least in mobile view, but maybe also in computer view if it looks good there too. What I want is to make the embed look like a native part of the site, and not a scrollable iframe in the site.
+
+DONE! [TASK 19] LIVE FEED COMPONENT. Figure out how we are going to save entries to the live feed. A Google Form maybe, then the entries are stored in, fetched from, and cached from a Google Sheet. At any rate, make sure the live-feed.php knows what data to grab and how to display it.
+
+DONE! [TASK 21] Fix the spacing between the hero and the site contents.
+
+DONE! [TASK 22] Fix that titles are not showing on widgets in the Smart Grid.
+
+DONE! [TASK 23] Make the nav menu look better on mobile. Either a vertical stack of wide buttons or a grid of tile link buttons.
+
+DONE! [TASK 25] Display Monthly and Academic Calendars on Calendar page.
+
+DONE! [TASK 26] The text in the footer, due to left justification (which I want to keep), appears close to the left edge of the screen, but far from the right edge of the screen. Is there a reasonable way to detect where the left side text starts and where the right side text stops (the longest line on the right part of the footer) and make both of the those points automatically the same distance from the edges of the screen?
+
+DONE! [TASK 27] The text in the footer links isn't all text-aligning in the center.
+
+DONE. FIXED. [TASK 28](1) Missing on mobile: Title of site
+
+DONE. FIXED. [TASK 29](2) Error on pages that include a file list component: Fatal error: Cannot redeclare kgs_fl_extract_sort_date() (previously declared in /home/kellgradeschool/www/www/kgs2026/ac/kgs-core/bootstrap.php:273) in /home/kellgradeschool/www/www/kgs2026/ac/app/components/file-list.php on line 118
+
+DONE. FIXED. [TASK 30](3) The dropdown mobile menu does not work on the pages that contain all that sort date fatal error.
+
+DONE. FIXED. [TASK 31](4) On https://kellgradeschool.com/kgs2026/ac/public/calendar/, on mobile, there is no space at all between the embedded calendar component and the sidebar (below it). This is probably an issue everywhere the sidebar appears. Make sure all of our components have a little buffer margin below them to keep the sidebar separated. The sidebar can’t have a margin above it on desktop view or it will look odd, but I guess on mobile view it would be ok to put a margin above the sidebar. So margin below the components or margin above the sidebar or both. Whatever is best practice.
+
+DONE. FIXED. [TASK 32](5) Something about the two link list components in the footer is keeping the links from centering there on mobile view. The contact information centers fine, but it is a different component than the link list component.
+
+DONE! [TASK 33](6) Change the display titles for Calendar Feed and Facebook Feed in the Google sheet to something less lame.
+
+DONE! [TASK 34](7) Put controls for the navigation links into the Google cfg sheet so stakeholders can decide what pages and subpages they want to appear in the header navigation links. This is probably going to dealt with when we move page control to Google Sheets, but for the moment, I want to get the website fully functional. Right now, I need to get a list of subpages to drop down from the top level nav links. The components.json and meta.json files (though mostly empty) exist for most or all of the subpages already. The nav component just needs to display the links to them.
+
+DONE. FIXED. [TASK 36](9) When I go to a page that doesn’t exist (as an example, https://kellgradeschool.com/kgs2026/ac/public/404), I get: “404 - Page Not Found The requested page does not exist.” (good) and an error (bad): ``` Fatal error: Uncaught Error: Call to undefined function render_component() in /home/kellgradeschool/www/www/kgs2026/ac/app/layouts/footer.php:30 Stack trace: #0 /home/kellgradeschool/www/www/kgs2026/ac/kgs-core/Router.php(120): include() #1 /home/kellgradeschool/www/www/kgs2026/ac/kgs-core/Router.php(45): Router->renderErrorPage('404 - Page Not ...', 'The requested p...') #2 /home/kellgradeschool/www/www/kgs2026/ac/public/index.php(33): Router->dispatch('404') #3 {main} thrown in /home/kellgradeschool/www/www/kgs2026/ac/app/layouts/footer.phpon line 30 ``` and the footer does not display.
+
+DONE! [TASK 37](10) Since we have a people sheet now, let’s build out the people component(s) for the staff directory page and the school board members list for the school board page.
+
+DONE! [TASK 38](11) I need to build a page like this for compliance.
+```
+| Education Content (These are links)                                  | Policy                                   |
+|----------------------------------------------------------------------|------------------------------------------|
+[ ... etc ...]
+```
+
+DONE! [TASK 39](12) I've been trying to learn to like the Sidebar, but I do not. Can we factor it out?
+
+DONE! [TASK 40] On the mobile nav menu dropdown, when the last item is expanded to show subpages, the nav menu background doesn't quite accomodate it, and it gets into some messy overlapping overflowing situation. Tell me what files you need to see.
+
+DONE! [TASK 41] I like the way we have the Live Feed heading set up, with the "View All" button on the right side, and the "Latest News" (title set in google config sheet) aligned on the left side. On the mobile view, this stays the same, but the headings of the other components center (this "centers" too I think, but since the "View All" button exists here, it renders as if it is aligned left. Not sure). Anyway, the difference in apparent centering looks inconsistent on mobile. So, I think maybe we consider left aligning the component headings on mobile. Tell me what files you need to see.
+
+DONE! [TASK 42] Maybe also consider adding a thin bottom border to component headings? I'm not sure how that would look. Or maybe a top border. Not sure what would be better. Or no border. What's best practice? Tell me what files you need to see.
+
+DONE! [TASK 43] Can we add a "View All" button (like the Live Feed component has) to the Calendar component too? Tell me what files you need to see.
+
+DONE! [TASK 45] LINK TILES COMPONENT. Can you make a version of the link list or link tiles component that automatically populates with the same items that are in the dropdown menu? So if users just click on the "overview" link on the navbar, the destination page can include a component with the same links that appeared in the dropdown? Does that make sense? And the component should not appear if there is nothing to display. 
+
+DONE! [TASK 49] Put correct link in Illinois Report Card.
