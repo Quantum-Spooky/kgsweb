@@ -1,0 +1,442 @@
+{
+    "home_row_1_slot_1": {
+        "label": "School Facebook",
+        "title": "KellCSD2 on Facebook",
+        "width": 8
+    },
+    "home_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "home_row_1_slot_3": {
+        "label": "Local Weather",
+        "title": "Local Weather",
+        "width": 4
+    },
+    "home_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "home_row_2_slot_1": {
+        "label": "Live Feed",
+        "title": "Live Feed",
+        "width": 6
+    },
+    "home_row_2_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "home_row_2_slot_3": {
+        "label": "Google Calendar",
+        "title": "Google Calendar",
+        "width": 6
+    },
+    "home_row_2_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "home_row_3_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "home_row_3_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "home_row_3_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "home_row_3_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "district_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "district_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "district_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "district_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "board_row_1_slot_1": {
+        "label": "School Board Members",
+        "title": "Board Members",
+        "width": 6
+    },
+    "board_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "board_row_1_slot_3": {
+        "label": "School Board Documents",
+        "title": "Board Documents",
+        "width": 6
+    },
+    "board_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "docs_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "docs_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "docs_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "docs_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "docs_row_2_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "docs_row_2_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "docs_row_2_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "docs_row_2_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "dining_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "dining_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "dining_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "dining_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "news_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "news_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "news_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "news_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "family_row_1_slot_1": {
+        "label": "Featured Profile",
+        "title": "Coach Slater",
+        "width": 0
+    },
+    "family_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "family_row_1_slot_3": {
+        "label": "Featured Profile",
+        "title": "Mrs. Donoho",
+        "width": 0
+    },
+    "family_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "pto_row_1_slot_1": {
+        "label": "About PTO",
+        "title": "",
+        "width": 6
+    },
+    "pto_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "pto_row_1_slot_3": {
+        "label": "PTO Feature Image",
+        "title": "...",
+        "width": 6
+    },
+    "pto_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "contact_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "contact_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "contact_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "contact_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "calendar_row_1_slot_1": {
+        "label": "Monthly Calendar",
+        "title": "",
+        "width": 12
+    },
+    "calendar_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "calendar_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "calendar_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "calendar_row_2_slot_1": {
+        "label": "Academic Calendar",
+        "title": "",
+        "width": 12
+    },
+    "calendar_row_2_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "calendar_row_2_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "calendar_row_2_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "calendar_row_3_slot_1": {
+        "label": "Calendar Feed",
+        "title": "",
+        "width": 12
+    },
+    "calendar_row_3_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "calendar_row_3_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "calendar_row_3_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "academics_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "academics_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "academics_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "academics_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "activities_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "activities_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "activities_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "activities_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "sports_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "sports_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "sports_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "sports_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "clubs_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "clubs_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "clubs_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "clubs_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "employment_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "employment_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "employment_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "employment_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 0
+    },
+    "quicklinks_row_1_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 3
+    },
+    "quicklinks_row_1_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 3
+    },
+    "quicklinks_row_1_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 3
+    },
+    "quicklinks_row_1_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 3
+    },
+    "quicklinks_row_2_slot_1": {
+        "label": "None",
+        "title": "",
+        "width": 3
+    },
+    "quicklinks_row_2_slot_2": {
+        "label": "None",
+        "title": "",
+        "width": 3
+    },
+    "quicklinks_row_2_slot_3": {
+        "label": "None",
+        "title": "",
+        "width": 3
+    },
+    "quicklinks_row_2_slot_4": {
+        "label": "None",
+        "title": "",
+        "width": 3
+    }
+}

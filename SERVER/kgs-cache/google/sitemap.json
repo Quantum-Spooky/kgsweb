@@ -1,0 +1,98 @@
+{
+    "home": {
+        "title": "Kell Grade School",
+        "template": "Standard",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "",
+        "layout": "default"
+    },
+    "district": {
+        "title": "About Our School",
+        "template": "@about_school_doc_id",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "",
+        "layout": "default"
+    },
+    "district\/school-board": {
+        "title": "School Board",
+        "template": "@about_board_doc_id",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "",
+        "layout": "default"
+    },
+    "district\/staff-directory": {
+        "title": "Staff Directory",
+        "template": "",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "staff",
+        "layout": "default"
+    },
+    "district\/compliance": {
+        "title": "ROE Compliance",
+        "template": "@about_compliance_doc_id",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "Compliance Links",
+        "layout": "default"
+    },
+    "calendar": {
+        "title": "Calendars & Events",
+        "template": "@about_calendar_doc_id",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "",
+        "layout": "@google_calendar_id"
+    },
+    "dining": {
+        "title": "Breakfast & Lunch Menus",
+        "template": "@about_dining_doc_id",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "@dining_menus_folder_id",
+        "layout": "default"
+    },
+    "news": {
+        "title": "KGS News",
+        "template": "@about_news_doc_id",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "@live_feed_sheet_id",
+        "layout": "default"
+    },
+    "activities\/sports": {
+        "title": "Kell Sports",
+        "template": "@about_sports_doc_id",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "",
+        "layout": "default"
+    },
+    "activities\/clubs": {
+        "title": "Kell Clubs",
+        "template": "@about_clubs_doc_id",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "",
+        "layout": "default"
+    },
+    "family\/pto": {
+        "title": "KGS PTO",
+        "template": "@about_pto_doc_id",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "",
+        "layout": "default"
+    },
+    "academics": {
+        "title": "KGS Academics",
+        "template": "@about_academics_doc_id",
+        "doc_id": "",
+        "data_id": "",
+        "cal_id": "",
+        "layout": "default"
+    }
+}
