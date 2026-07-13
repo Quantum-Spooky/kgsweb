@@ -119,4 +119,3 @@ if (typeof kgsFeedInit === 'undefined') {
     });
 }
 </script>
-</script>
