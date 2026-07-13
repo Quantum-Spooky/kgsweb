@@ -1,0 +1,95 @@
+/* assets/css/base.css */
+
+/* =========================================================
+   CORE VARIABLES & DEFAULTS
+========================================================= */
+
+/* :root { base color styles are in app/layouts/header.php } */
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    overflow-x: hidden; 
+}
+
+/* =========================================================
+   BUTTON SYSTEM
+========================================================= */
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+.btn-primary:hover { filter: brightness(0.92); }
+
+.btn-outline-primary {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+.btn-outline-primary:hover {
+    background-color: var(--primary);
+    color: #fff;
+}
+
+/* =========================================================
+   TYPOGRAPHY ENGINE
+========================================================= */
+
+
+.rich-text-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    font-size: clamp(1.4rem, 3vw, 1.85rem);
+    font-weight: 700;
+    color: var(--secondary);
+    line-height: 1.2;
+    margin-top: 0 !important; /* Ensure titles at the top of a column sit at the very top */
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(var(--primary-rgb), 0.15); /* Subtle bottom border */
+    text-align: left; /* [TASK] Left align everything for consistency */
+}
+
+/* Ensure the title text doesn't shrink when buttons are present */
+.rich-text-title span {
+    flex: 1;
+}
+
+/* Button sizing within titles */
+.rich-text-title .btn {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.rich-text-body {
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: #333;
+}
+
+.rich-text-body p { margin-bottom: 1.5rem; }
+.rich-text-body p:last-child { margin-bottom: 0; }
+
+.rich-text-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 1.5rem 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.rich-text-block h1,
+.rich-text-block h2,
+.rich-text-block h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.debug-hidden { display: none; }

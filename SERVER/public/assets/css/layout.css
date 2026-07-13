@@ -1,0 +1,211 @@
+/* assets/css/layout.css */
+
+/* =========================================================
+   GENERAL LAYOUT
+========================================================= */
+
+/* Main Layout Wrapper */
+.page-wrapper { flex: 1; min-height: 60vh; }
+
+.container { clear: both; }
+
+/* Sub-page Container Widths */
+@media (min-width: 768px)  { .container { max-width: 1000px; } }
+@media (min-width: 992px)  { .container { max-width: 1200px; } }
+@media (min-width: 1200px) { .container { max-width: 1400px; } }
+@media (min-width: 1400px) { .container { max-width: 1600px; } }
+
+/* =========================================================
+   HOME LAYOUT ARCHITECTURE
+========================================================= */
+
+/* The Wrapper for the whole page content */
+.home-layout-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Target all components on the home page */
+.home-layout-wrapper > * {
+    max-width: 1600px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 2.5rem;   /* Increased safe gutter */
+    padding-right: 2.5rem;
+    margin-bottom: 3rem !important; /* Consistent gap between all sections */
+    margin-top: 0 !important;
+}
+
+/* The Hero Exception (Full Bleed) */
+.home-layout-wrapper > .hero-component {
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-bottom: 2rem !important; /* Smaller gap below the main photo */
+}
+
+/* The Grid Exception (Counteract Bootstrap Row Gutters) */
+/* This ensures the widgets align perfectly with the text above/below */
+.home-layout-wrapper > .kgs-smart-grid-row {
+    padding-left: 1rem; 
+    padding-right: 1rem;
+}
+
+.kgs-smart-grid-row {
+	clear:both;
+}
+
+/* Force Smart Grid to 1-Column Collapse at 1000px */
+@media (max-width: 1000px) {
+    .kgs-smart-grid-row .row > [class*="col-"] {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    } 
+    /* Optional: Center titles when stacked */
+    .kgs-smart-grid-row .rich-text-title {
+        // text-align: center;
+    }
+	.sidebar-area {
+        margin-top: 4rem; /* Buffer between main content and sidebar */
+        border-top: 1px solid rgba(0,0,0,0.1);
+        padding-top: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .home-layout-wrapper > * {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+        margin-bottom: 2rem !important;
+    }
+}
+
+
+/* =========================================================
+   WIDGET FIXES
+========================================================= */
+
+/* The Outer Wrapper */
+.kgs-widget-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden;
+}
+
+/* The Facebook Container */
+.fb-container {
+    width: 100% !important;
+    max-width: 500px !important; /* Facebook won't render wider than this anyway */
+    margin: 0 auto;
+    height: 800px;
+    overflow: hidden;
+	 margin: 0 auto; /* Centers it */
+}
+
+.fb-container iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 800px !important;
+    border: none !important;
+}
+
+/* Calendar scaling fix */
+.ratio-4x3 iframe {
+    border-radius: 8px;
+}
+
+/* =========================================================
+   PEOPLE DIRECTORY: FLUID ROW LOGIC
+========================================================= */
+
+.kgs-people-card {
+    border-left: 4px solid var(--primary) !important;
+    transition: transform 0.2s ease-in-out;
+    background: #fff;
+}
+
+.kgs-people-card:hover {
+    transform: translateX(5px);
+}
+
+.people-card-thumb {
+    /* Fixed width for the image area ensures text starts at the same spot in every card */
+    flex: 0 0 60px; 
+}
+
+.people-card-thumb img { 
+    width: 50px; height: 50px; object-fit: cover; border-radius: 50%; 
+}
+
+/* THE ALIGNMENT ENGINE */
+.kgs-person-fluid-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+/* 
+   On Desktop (Wide screens/containers): 
+   We assign fixed percentages so every "Role" starts at the same horizontal pixel.
+*/
+@media (min-width: 768px) {
+    .kgs-person-col--name  { flex: 0 0 30%; padding-right: 15px; }
+    .kgs-person-col--title { flex: 0 0 40%; padding-right: 15px; }
+    .kgs-person-col--email { flex: 0 0 30%; text-align: left; }
+}
+
+/* 
+   On Tablet/Mobile (Or inside narrow 50% grid slots):
+   We let them stack and fill 100% width.
+*/
+@media (max-width: 767px) {
+    .kgs-person-col {
+        flex: 0 0 100% !important;
+        margin-bottom: 0.25rem;
+        text-align: left !important;
+    }
+}
+
+.kgs-person-col {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kgs-person-col--email a {
+    color: var(--primary);
+    font-weight: 500;
+}
+    
+/* =========================================================
+   GOOGLE DOC CONTENT
+========================================================= */
+
+/* Fix for Google Doc Content layout issues */
+.kgs-google-doc-content {
+    display: block;
+    width: 100%;
+    clear: both; /* Forces the next element (Smart Grid) to start below */
+    overflow: hidden; /* Modern clearfix */
+    margin-bottom: 2rem; /* Adds a nice gap before the widgets start */
+}
+
+/* Ensure paragraphs inside the doc have standard spacing */
+.kgs-google-doc-content p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   OTHER
+========================================================= */
+
+.sports-layout { background-color: #f8f9fa; }
+.school-board-layout .rich-text-title { color: var(--primary); }

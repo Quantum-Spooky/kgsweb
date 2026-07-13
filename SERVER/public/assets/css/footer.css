@@ -1,0 +1,65 @@
+/* assets/css/footer.css */
+
+
+/* =========================================================
+   FOOTER LAYOUT
+========================================================= */
+
+/* Optical Sizing for Footer Columns */
+footer .row.g-4 {
+    display: flex;
+    justify-content: center; /* Centers the group of columns */
+}
+
+footer .col-md-4 {
+    /* Constrain the columns so they don't stretch too far apart */
+    max-width: 320px; 
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    footer .col-md-4 {
+        max-width: 100%; /* Stacks naturally on mobile */
+        text-align: center; /* Optional: many prefer centered footer text on mobile */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    footer .nav {
+        align-items: center;
+    }
+    
+    /* If you want to keep left-justified on mobile: */
+    /* .kgs-contact-widget, footer h5, .nav { text-align: left; } */
+}
+
+/* =========================================================
+   FOOTER UTILITIES
+========================================================= */
+
+/* Toast Notification */
+.kgs-toast {
+    position: fixed; bottom: 20px; right: 20px; padding: 12px 20px;
+    background: #333; color: #fff; border-radius: 8px; font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0;
+    transform: translateY(20px); transition: all 0.3s ease; z-index: 9999;
+    pointer-events: none;
+}
+.kgs-toast.show { opacity: 1; transform: translateY(0); }
+.kgs-toast--success { background: #28a745 !important; }
+.kgs-toast--error { background: #dc3545 !important; }
+
+/* Back to Top */
+#back-to-top {
+    position: fixed; bottom: 30px; right: 30px;
+    width: 45px; height: 45px; border-radius: 50%;
+    z-index: 1000; transition: transform 0.2s, opacity 0.2s;
+    display: none; align-items: center; justify-content: center;
+}
+#back-to-top i { font-size: 1.4rem; line-height: 0; }
+#back-to-top:hover { transform: scale(1.1); }
+
+@media (max-width: 768px) {
+    #back-to-top { bottom: 20px; right: 20px; }
+}
