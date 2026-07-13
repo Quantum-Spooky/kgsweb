@@ -58,12 +58,15 @@ define('COLOR_BLACK',     '#000000');
 */
 
 $config = [
+    // Absolute URL required for Google OAuth Login
+    'base_url_absolute' => 'https://kellgradeschool.com/kgs2026/ac/public/',
+	
     // --- Identity ---
     'site_name'     => SITE_NAME,
     'district_name' => DISTRICT_NAME,
     'school_name'   => 'Kell Grade School',
-    'principal'     => 'Patrick Keeney',
-    'secretary'     => 'Kendra Koch',
+    'principal'     => '',
+    'secretary'     => '',
 
     // --- Contact Info ---
     'address' => '207 N Johnson St, Kell, IL 62853',
