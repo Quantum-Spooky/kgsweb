@@ -181,31 +181,33 @@ $tree = kgs_fl_filter($tree);
 $tree = kgs_fl_sort($tree);
 ?>
 
-<section class="kgs-file-list" id="section-<?= $treeId ?>">
-    <!-- Standardized Heading (matching base.css) -->
-    <?php if ($title): ?>
-        <h3 class="rich-text-title"><span><?= htmlspecialchars($title) ?></span></h3>
-    <?php endif; ?>
+<div class="container py-4">
+	<section class="kgs-file-list" id="section-<?= $treeId ?>">
+		<!-- Standardized Heading (matching base.css) -->
+		<?php if ($title): ?>
+			<h3 class="rich-text-title"><span><?= htmlspecialchars($title) ?></span></h3>
+		<?php endif; ?>
 
-    <div class="container">
-        <?php if ($showToggle || $showSearch): ?>
-            <div class="kgs-file-list__toolbar mb-3">
-                <?php if ($showToggle): ?>
-                    <button class="btn btn-outline-primary btn-sm kgs-toggle-all">Expand All</button>
-                <?php endif; ?>
-                
-                <?php if ($showSearch): ?>
-                    <input class="form-control form-control-sm kgs-search-box <?php if ($showToggle) echo 'ms-auto'; ?>" 
-                           id="<?= $searchId ?>" placeholder="Search documents..." type="search">
-                <?php endif; ?>
-            </div>
-        <?php endif; ?>
+		<div class="container">
+			<?php if ($showToggle || $showSearch): ?>
+				<div class="kgs-file-list__toolbar mb-3">
+					<?php if ($showToggle): ?>
+						<button class="btn btn-outline-primary btn-sm kgs-toggle-all">Expand All</button>
+					<?php endif; ?>
+					
+					<?php if ($showSearch): ?>
+						<input class="form-control form-control-sm kgs-search-box <?php if ($showToggle) echo 'ms-auto'; ?>" 
+							   id="<?= $searchId ?>" placeholder="Search documents..." type="search">
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
 
-        <div class="kgs-file-list__tree" id="<?= $treeId ?>">
-            <?php kgs_fl_render($tree, 0, '', $initialDepth, $initialState); ?>
-        </div>
-    </div>
-</section>
+			<div class="kgs-file-list__tree" id="<?= $treeId ?>">
+				<?php kgs_fl_render($tree, 0, '', $initialDepth, $initialState); ?>
+			</div>
+		</div>
+	</section>
+</div>
 
 <script>
 (function () {

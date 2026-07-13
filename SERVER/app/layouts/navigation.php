@@ -20,7 +20,7 @@ function isActive($target, $current) {
     <div class="container">
         <a class="navbar-brand d-flex align-items-center fw-bold fs-4" href="<?= $baseUrl ?>">
             <img src="<?= $logoUrl ?>" alt="Logo" height="60" class="me-2">
-            <span class="d-inline site-title-text"><?= htmlspecialchars(config('site_name')) ?></span>
+			<span class="site-title-text d-block"><?= htmlspecialchars(config('site_name')) ?></span>
         </a>
 
         <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">

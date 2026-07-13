@@ -30,26 +30,28 @@ if (empty($links)) {
 $title = $data['title'] ?? '';
 ?>
 
-<div class="kgs-quick-links-container">
-    <?php if (!empty($title)): ?>
-        <h5 class="mb-3"><?= htmlspecialchars($title) ?></h5>
-    <?php endif; ?>
+<div class="container py-4">
+	<div class="kgs-quick-links-container">
+		<?php if (!empty($title)): ?>
+			<h5 class="mb-3"><?= htmlspecialchars($title) ?></h5>
+		<?php endif; ?>
 
-    <nav class="nav flex-column small">
-        <?php foreach ($links as $link): ?>
-            <?php 
-                $url = $link['url'];
-                if (!str_starts_with($url, 'http')) {
-                    $url = config('base_url') . ltrim($url, '/');
-                }
-            ?>
-            <a href="<?= htmlspecialchars($url) ?>" 
-               class="text-white nav-link p-0 mb-2 d-flex justify-content-between align-items-center" 
-               title="<?= htmlspecialchars($link['tooltip'] ?? '') ?>"
-               <?= (!empty($link['external'])) ? 'target="_blank" rel="noopener"' : '' ?>>
-                <span><?= htmlspecialchars($link['label']) ?></span>
-                <!-- <i class="fa-solid fa-chevron-right opacity-50"></i> /-->
-            </a>
-        <?php endforeach; ?>
-    </nav>
+		<nav class="nav flex-column small">
+			<?php foreach ($links as $link): ?>
+				<?php 
+					$url = $link['url'];
+					if (!str_starts_with($url, 'http')) {
+						$url = config('base_url') . ltrim($url, '/');
+					}
+				?>
+				<a href="<?= htmlspecialchars($url) ?>" 
+				   class="text-white nav-link p-0 mb-2 d-flex justify-content-between align-items-center" 
+				   title="<?= htmlspecialchars($link['tooltip'] ?? '') ?>"
+				   <?= (!empty($link['external'])) ? 'target="_blank" rel="noopener"' : '' ?>>
+					<span><?= htmlspecialchars($link['label']) ?></span>
+					<!-- <i class="fa-solid fa-chevron-right opacity-50"></i> /-->
+				</a>
+			<?php endforeach; ?>
+		</nav>
+	</div>
 </div>

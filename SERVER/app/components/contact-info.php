@@ -19,25 +19,26 @@ if (empty($address) && empty($phone)) {
 
 
 ?>
+<div class="container py-4">
+	<div class="kgs-contact-widget">
+		<h5 class="text-accent fw-bold"><?= htmlspecialchars($schoolname) ?></h5>
+		
+		<?php if (!empty($address)): ?>
+			<p class="small mb-1"><?= htmlspecialchars($address) ?></p>
+		<?php endif; ?>
 
-<div class="kgs-contact-widget">
-    <h5 class="text-accent fw-bold"><?= htmlspecialchars($schoolname) ?></h5>
-    
-    <?php if (!empty($address)): ?>
-        <p class="small mb-1"><?= htmlspecialchars($address) ?></p>
-    <?php endif; ?>
+		<?php if (!empty($phone)): ?>
+			<p class="small mb-1"><strong>Phone:</strong> <?= htmlspecialchars($phone) ?></p>
+		<?php endif; ?>
 
-    <?php if (!empty($phone)): ?>
-        <p class="small mb-1"><strong>Phone:</strong> <?= htmlspecialchars($phone) ?></p>
-    <?php endif; ?>
+		<?php if (!empty($fax)): ?>
+			<p class="small mb-1"><strong>Fax:</strong> <?= htmlspecialchars($fax) ?></p>
+		<?php endif; ?>
 
-    <?php if (!empty($fax)): ?>
-        <p class="small mb-1"><strong>Fax:</strong> <?= htmlspecialchars($fax) ?></p>
-    <?php endif; ?>
-
-    <?php if (!empty($email)): ?>
-        <p class="small">
-            <strong>Email:</strong> <a href="mailto:<?= $email ?>" class="text-white text-decoration-underline"><?= htmlspecialchars($email) ?></a>
-        </p>
-    <?php endif; ?>
+		<?php if (!empty($email)): ?>
+			<p class="small">
+				<strong>Email:</strong> <a href="mailto:<?= $email ?>" class="text-white text-decoration-underline"><?= htmlspecialchars($email) ?></a>
+			</p>
+		<?php endif; ?>
+	</div>
 </div>

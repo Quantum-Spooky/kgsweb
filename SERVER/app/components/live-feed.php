@@ -31,64 +31,66 @@ $displayTitle = !empty($title) ? $title : 'Latest News';
 $instanceId = 'feed-' . substr(md5($sheetId . ($data['row'] ?? '')), 0, 6);
 ?>
 
-<div class="kgs-live-feed mb-5" id="<?= $instanceId ?>">
+<div class="container py-4">
+	<div class="kgs-live-feed mb-5" id="<?= $instanceId ?>">
 
-    <h3 class="rich-text-title">
-        <span><i class="fa-solid fa-tower-broadcast me-2 text-success"></i><?= htmlspecialchars($displayTitle) ?></span>
-        <?php if ($showViewAll): ?>
-            <a href="<?= config('base_url') ?>news/" class="btn btn-sm btn-outline-success">View All</a>
-        <?php endif; ?>
-    </h3>
+		<h3 class="rich-text-title">
+			<span><i class="fa-solid fa-tower-broadcast me-2 text-success"></i><?= htmlspecialchars($displayTitle) ?></span>
+			<?php if ($showViewAll): ?>
+				<a href="<?= url('news') ?>" class="btn btn-sm btn-outline-success">View All</a>
+			<?php endif; ?>
+		</h3>
 
-    <!-- Container Logic: scrollMode adds a fixed height and scrollbar -->
-    <div class="kgs-feed-container <?= $scrollMode ? 'kgs-feed-scrollable' : '' ?>" 
-         style="<?= $scrollMode ? 'max-height: 600px; overflow-y: auto; padding-right: 10px;' : '' ?>">
-        
-        <?php foreach ($displayPosts as $index => $post): ?>
-            <?php 
-                $hasImage = !empty($post['image_id']); 
-                $hiddenClass = ($pagination && $index >= $limit) ? 'd-none kgs-feed-extra' : '';
-            ?>
-            
-            <div class="kgs-feed-item card border-0 shadow-sm mb-4 overflow-hidden <?= $hiddenClass ?>">
-                <div class="row g-0">
-                    <?php if ($hasImage): ?>
-                        <div class="col-md-4">
-                            <img src="<?= get_drive_url($post['image_id'], 600) ?>" 
-                                 class="img-fluid h-100" 
-                                 style="object-fit:cover; min-height: 150px;" 
-                                 alt="News photo">
-                        </div>
-                    <?php endif; ?>
-                    
-                    <div class="<?= $hasImage ? 'col-md-8' : 'col-12' ?>">
-                        <div class="card-body p-3">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <span class="badge bg-success text-white me-2" style="font-size: 0.7rem;"><?= htmlspecialchars($post['date']) ?></span>
-                                    <?php if(!empty($post['time'])): ?>
-                                        <span class="text-muted" style="font-size: 0.75rem;"><?= htmlspecialchars($post['time']) ?></span>
-                                    <?php endif; ?>
-                                </div>
-                                <small class="text-muted italic" style="font-size: 0.7rem;">By <?= htmlspecialchars($post['author']) ?></small>
-                            </div>
-                            <div class="rich-text-body" style="font-size: 0.95rem; line-height: 1.5;">
-                                <?= nl2br(htmlspecialchars($post['text'])) ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
+		<!-- Container Logic: scrollMode adds a fixed height and scrollbar -->
+		<div class="kgs-feed-container <?= $scrollMode ? 'kgs-feed-scrollable' : '' ?>" 
+			 style="<?= $scrollMode ? 'max-height: 600px; overflow-y: auto; padding-right: 10px;' : '' ?>">
+			
+			<?php foreach ($displayPosts as $index => $post): ?>
+				<?php 
+					$hasImage = !empty($post['image_id']); 
+					$hiddenClass = ($pagination && $index >= $limit) ? 'd-none kgs-feed-extra' : '';
+				?>
+				
+				<div class="kgs-feed-item card border-0 shadow-sm mb-4 overflow-hidden <?= $hiddenClass ?>">
+					<div class="row g-0">
+						<?php if ($hasImage): ?>
+							<div class="col-md-4">
+								<img src="<?= get_drive_url($post['image_id'], 600) ?>" 
+									 class="img-fluid h-100" 
+									 style="object-fit:cover; min-height: 150px;" 
+									 alt="News photo">
+							</div>
+						<?php endif; ?>
+						
+						<div class="<?= $hasImage ? 'col-md-8' : 'col-12' ?>">
+							<div class="card-body p-3">
+								<div class="d-flex justify-content-between align-items-start mb-2">
+									<div>
+										<span class="badge bg-success text-white me-2" style="font-size: 0.7rem;"><?= htmlspecialchars($post['date']) ?></span>
+										<?php if(!empty($post['time'])): ?>
+											<span class="text-muted" style="font-size: 0.75rem;"><?= htmlspecialchars($post['time']) ?></span>
+										<?php endif; ?>
+									</div>
+									<small class="text-muted italic" style="font-size: 0.7rem;">By <?= htmlspecialchars($post['author']) ?></small>
+								</div>
+								<div class="rich-text-body" style="font-size: 0.95rem; line-height: 1.5;">
+									<?= nl2br(htmlspecialchars($post['text'])) ?>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			<?php endforeach; ?>
+		</div>
 
-    <?php if ($pagination && count($posts) > $limit): ?>
-        <div class="text-center mt-3">
-            <button class="btn btn-sm btn-outline-primary kgs-load-more" data-target="<?= $instanceId ?>">
-                <i class="fa-solid fa-circle-arrow-down me-1"></i> Load More
-            </button>
-        </div>
-    <?php endif; ?>
+		<?php if ($pagination && count($posts) > $limit): ?>
+			<div class="text-center mt-3">
+				<button class="btn btn-sm btn-outline-primary kgs-load-more" data-target="<?= $instanceId ?>">
+					<i class="fa-solid fa-circle-arrow-down me-1"></i> Load More
+				</button>
+			</div>
+		<?php endif; ?>
+	</div>
 </div>
 
 <script>

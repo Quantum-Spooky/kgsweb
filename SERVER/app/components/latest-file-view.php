@@ -52,25 +52,27 @@ $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif']);
 $title = $data['title'] ?? $latest['name'];
 ?>
 
-<div class="kgs-latest-file card shadow-sm border-0">
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 fw-bold"><?= htmlspecialchars($title) ?></h6>
-        <a href="<?= $latest['webViewLink'] ?>" target="_blank" class="btn btn-sm btn-outline-primary py-0">View</a>
-    </div>
-    <div class="kgs-file-body">
-        <?php if ($isImage): ?>
-            <img src="<?= get_drive_url($fileId, 1200) ?>" class="img-fluid d-block mx-auto" style="max-height:600px; width:auto;">
-			
-			
-		<?php elseif ($ext === 'pdf'): ?>
-			<div class="kgs-pdf-wrapper shadow-sm rounded overflow-hidden" style="background-color: #fff; border: 1px solid #ddd;">
-				<!-- We use a custom height here to show the full height of a portrait PDF -->
-				<iframe 
-					src="https://drive.google.com/file/d/<?= $fileId ?>/preview?view=FitH" 
-					style="width: 100%; height: 800px; border: none;" 
-					allow="autoplay">
-				</iframe>
-			</div>
-		<?php endif; ?>	
-    </div>
+<div class="container py-4">
+	<div class="kgs-latest-file card shadow-sm border-0">
+		<div class="card-header bg-light d-flex justify-content-between align-items-center">
+			<h6 class="mb-0 fw-bold"><?= htmlspecialchars($title) ?></h6>
+			<a href="<?= $latest['webViewLink'] ?>" target="_blank" class="btn btn-sm btn-outline-primary py-0">View</a>
+		</div>
+		<div class="kgs-file-body">
+			<?php if ($isImage): ?>
+				<img src="<?= get_drive_url($fileId, 1200) ?>" class="img-fluid d-block mx-auto" style="max-height:600px; width:auto;">
+				
+				
+			<?php elseif ($ext === 'pdf'): ?>
+				<div class="kgs-pdf-wrapper shadow-sm rounded overflow-hidden" style="background-color: #fff; border: 1px solid #ddd;">
+					<!-- We use a custom height here to show the full height of a portrait PDF -->
+					<iframe 
+						src="https://drive.google.com/file/d/<?= $fileId ?>/preview?view=FitH" 
+						style="width: 100%; height: 800px; border: none;" 
+						allow="autoplay">
+					</iframe>
+				</div>
+			<?php endif; ?>	
+		</div>
+	</div>
 </div>

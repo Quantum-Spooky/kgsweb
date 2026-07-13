@@ -39,9 +39,11 @@ if (file_exists($cachePath)) {
      * - We removed the 'container' class so the Layout Wrapper handles the width.
      * - Added 'flow-root' and 'clearfix' to force the Smart Grid to stay BELOW this text.
      */
-    echo '<div class="kgs-google-doc-content d-block clearfix w-100 mb-4" style="display: flow-root; clear: both;">';
+    echo '<div class="container py-4">';
+	echo '<div class="kgs-google-doc-content d-block clearfix w-100 mb-4" style="display: flow-root; clear: both;">';
     echo $content;
     echo '</div>';
+	echo '</div>';
 
 } else {
     echo "<!-- Content not found for Doc ID: {$docId} -->";

@@ -16,7 +16,7 @@
  
 
 ?>
-<div class="athletics-layout">
+<div class="sports-layout">
     <div class="container py-5">
         <div class="row">
             <div class="col-12">

@@ -119,7 +119,7 @@ if ($autoFillWidth < 3 && $unassignedActiveCount > 0) {
 
 // 4. RENDER
 ?>
-<div class="container">
+<div class="container py-4">
     <div class="kgs-smart-grid-row">
         <div class="row g-4">
             <?php foreach ($activeSlots as $slotNum => $data): 

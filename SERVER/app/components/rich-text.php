@@ -20,12 +20,14 @@ $textAlignClass = match ($align) {
     default  => 'text-start',
 };
 ?>
-<div class="kgs-rich-text-block <?= $textAlignClass ?>">
-    <?php if (!empty($title)): ?>
-        <h2 class="rich-text-title"><?= htmlspecialchars($title) ?></h2>
-    <?php endif; ?>
+<div class="container py-2">
+	<div class="kgs-rich-text-block <?= $textAlignClass ?>">
+		<?php if (!empty($title)): ?>
+			<h2 class="rich-text-title"><?= htmlspecialchars($title) ?></h2>
+		<?php endif; ?>
 
-    <div class="rich-text-body">
-        <?= $content ?>
-    </div>
+		<div class="rich-text-body">
+			<?= $content ?>
+		</div>
+	</div>
 </div>
